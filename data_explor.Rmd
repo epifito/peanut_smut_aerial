@@ -1,0 +1,28 @@
+---
+title: "Data exploration"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r session settings}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+pacman::p_load(tidyverse)
+```
+
+```{r data load}
+load("data/dat.Rda")
+glimpse(dat)
+# ftable(xtabs(~ field + trap_coord+distance_m +time_min, dat))
+```
+
+```{r 1st visualization}
+dat %>% 
+# filter(field == "field_1") %>% 
+ggplot(aes(distance_m, spores, col = trap_coord )) +
+geom_point()+
+geom_smooth()+
+facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")
+
+# ggsave(last_plot(), file = "plots/x.png", w=6.5, h=6)
+```
