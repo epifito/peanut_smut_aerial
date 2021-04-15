@@ -10,7 +10,7 @@ Raw data
 https://docs.google.com/spreadsheets/d/1fBHWS1qCVNoj3yn0VcK9-598CS-Q95esJx8SXvPd5Uo/edit?usp=sharing 
 
 Meteo-data
-https://docs.google.com/spreadsheets/d/1F6Yr_lUXlzcqWX84XkQfZmPEPXwGPBxY/edit#gid=616589685
+https://docs.google.com/spreadsheets/d/15yGsFy4Bkh5WvQ1xdiPJWIH3R7S9cjf5TS2YyjljPss/edit?usp=sharing
 
 Type of spores data
 https://docs.google.com/spreadsheets/d/1mfEP3daMbVKBIHfRqTIsBXnmQrLHMTEU/edit#gid=740893926
