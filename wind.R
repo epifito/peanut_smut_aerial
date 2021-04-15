@@ -32,7 +32,7 @@ meteo_dat %>%
   geom_bar(stat="count",width=1,colour="black",size=0.1, alpha= 0.5)+ 
   coord_polar(theta = "x", start=6.0729, direction = 1)+
   scale_color_discrete ()+ 
-  labs(x="", y="")+ 
+  labs(x="", y="", title = "Frequency wind rose")+ 
   scale_fill_discrete(drop=FALSE) + scale_x_discrete(drop=FALSE)+
   guides(fill="none") +
   theme(axis.text.y=element_blank(),
