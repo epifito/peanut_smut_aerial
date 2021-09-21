@@ -54,36 +54,24 @@ m3
 ```
 
 ```{r}
-m4 <- gam(summed_count_spores ~ time_min + 
+m4 <- gam(summed_count_spores ~ time_min + distance_m + downwind + wind_speed +
           s(distance_m, k=3) + 
-          s(wind_speed, bs = 're') +
-          s(field, bs = 're')+
-          s(downwind, bs = 're'),
+          # s(wind_speed, bs = 're') +
+          s(field, bs = 're'),
           method = 'REML',
           data = mod_dat)
 m4
 ```
 
 ```{r}
-m5 <- gam(summed_count_spores ~ time_min + distance_m:downwind +
-          s(distance_m, k=3) + 
-          s(wind_speed, bs = 're') +
-          s(field, bs = 're'),
+m5 <- gam(summed_count_spores ~ time_min + distance_m + downwind + 
+            wind_speed + smut_incidence + 
+            s(distance_m, k=3) + 
+            # s(wind_speed, bs = 're') +
+            s(field, bs = 're'),
           method = 'REML',
           data = mod_dat)
 m5
-```
-
-
-```{r}
-m6 <- gam(summed_count_spores ~ downwind +  
-          s(distance_m, time_min) +
-          # s(distance_m, k=3) + 
-          s(wind_speed, bs = 're') +
-          s(field, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
-m6
 ```
 
 ```{r}
@@ -91,15 +79,14 @@ models <- list(m1 = m1,
                m2 = m2, 
                m3 = m3, 
                m4 = m4, 
-               m5= m5, 
-               m6 = m6
+               m5 = m5
                )
 map_df(models, glance, .id = "model") %>%
    arrange(AIC)
 ```
 
 ```{r}
-anova(m1, m2, m3, m4, m5, 
+anova(m1, m2, m3, m4, m5,
       # mod3,
       # mod4,
       # mod5,
@@ -115,7 +102,12 @@ anova(m1, m2, m3, m4, m5,
 ```
 
 ```{r}
-b <- getViz(m5)
+plot(m4,all.terms=TRUE,scheme=1)
+summary(m4)
+```
+
+```{r}
+b <- getViz(m4)
 print(plot(b, allTerms = T), pages = 1) # Calls print.plotGam()
 ```
 

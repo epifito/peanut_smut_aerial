@@ -4,6 +4,7 @@ library(tidyverse)
 library(broom)
 library(ggpubr)
 theme_set(ggpubr::theme_pubclean(base_size = 14))
+source(here::here("sources/0-themes.R"))
 ```
 
 ```{r data load}
@@ -158,8 +159,16 @@ meteo_dat %>%
             wind_speed = mean(wind_speed)) %>% 
   left_join(prev_wind) -> meteo_sum
 
-meteo_sum 
+# added smut harvesting field incidence 
+meteo_sum$smut_incidence = c(2, 4.1, 6.2, 7.5, 11.6, 6.2)
+meteo_sum
 ```
+
+```{r}
+meteo_sum <- read_csv("data/meteo_sum.csv") %>% 
+  mutate(field = as.factor(field))
+```
+
 
 ```{r}
 spore_dat %>% 
@@ -183,9 +192,19 @@ mod_dat %>%
 
 ```{r}
 mod_dat %>% 
-  ggplot(aes(distance_m, summed_count_spores, col = downwind )) +
+  ggplot(aes(distance_m, summed_count_spores, col = downwind)) +
   geom_point()+
   geom_smooth(se=F)+
   facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
-  theme_bw() 
+  theme_bw2 +
+  labs(col="Prevailing wind", 
+       x= "Distance from harvesting field (m)", 
+       y = "Smut spores / m² at trap") +
+  theme(legend.position='top', 
+        legend.justification='center',
+        legend.direction='horizontal')
+```
+
+```{r}
+ggsave(last_plot(), file = "plots/spore_gradient.png", w=6, h=4, scale = 1.2)
 ```
