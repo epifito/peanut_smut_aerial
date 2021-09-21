@@ -1,0 +1,191 @@
+
+```{r session settings}
+library(tidyverse)
+library(broom)
+library(ggpubr)
+theme_set(ggpubr::theme_pubclean(base_size = 14))
+```
+
+```{r data load}
+load("data/dat.Rdata")
+ftable(xtabs(~ field + time_min + trap_coord, dat))
+```
+
+```{r}
+glimpse(dat)
+```
+
+We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam code)
+
+```{r}
+coord_deg <- tibble(
+  dir= c("N","NNE","NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"), 
+  degrees= seq(0, 337.5 , by=22.5), 
+  )
+coord_deg
+```
+
+```{r}
+spore_raw <- spore_raw %>% 
+  left_join(coord_deg, by = c("trap_coord"="dir")) %>% 
+  rename(trap_degrees=degrees)
+spore_raw
+```
+
+Spore dispersal plot 
+
+```{r}
+spore_dat <- spore_raw %>%
+  unite("id", field, trap_coord, distance_m, time_min, sub_sample, 
+        remove = FALSE) %>% 
+  group_by(id) %>% 
+  summarise(n_spore=mean(n_spore)/1.2, 
+            field =first(field), 
+            trap_coord = first(trap_coord), 
+            distance_m = first(distance_m),
+            trap_degrees = first(trap_degrees),
+            time_min=first(time_min),
+            sub_sample = first(sub_sample)) %>% 
+  group_by(field, trap_degrees, sub_sample) %>%
+  mutate(summed_count_spores =
+           case_when(distance_m == 0 ~ sum(n_spore),
+                     TRUE ~ n_spore)) #%>%
+```
+
+```{r}
+spore_dat %>%   
+  ggplot() +
+  aes(x = trap_degrees, y = distance_m,
+      colour = summed_count_spores,
+      size = summed_count_spores) +
+  facet_grid(time_min ~ field)+ 
+  coord_polar(theta = "x",start = 0,direction = 1) + 
+  geom_count(data = subset(heat_dat, distance_m > 0),
+              alpha=1) +
+  scale_colour_viridis_c(
+    direction = -1,
+    name = "Smut spores/m²",
+    # guide = "legend",
+    breaks = c(100, 200, 300, 400)
+  ) +
+  scale_size(
+    range = c(.1, 10),
+    name = "Smut spores/m²",
+    guide= "none", 
+    breaks = c(100, 200, 300, 400)
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 90, 180, 270),
+    expand = c(0, 0),
+    limits = c(0, 360),
+    labels = c("N", "E", "S", "W"),
+    sec.axis = sec_axis(~ . , name = "Sampling fields", breaks = NULL, labels = NULL))+ 
+  scale_y_continuous(breaks = c(0, 100, 200, 300, 400),
+                     limits = c(0, 400), 
+                     sec.axis = sec_axis(~ . , name = "Minutes since harvest beginning", breaks = NULL, labels = NULL)) +
+  ylab("Distance (m)") +
+  xlab("") +
+   theme(legend.position='right', 
+        legend.justification='center'
+        # legend.direction='horizontal'
+        )
+```
+
+```{r}
+ggsave(last_plot(), file = "plots/spores2.jpg", width = 20, 
+       height = 10, units = "cm",  dpi = 600, bg = "white", 
+       scale = 1.5)
+```
+
+Let's visualize wind data
+
+```{r}
+meteo_dat <- meteo_raw %>% 
+  left_join(coord_deg, by = c("wind_dir"="dir")) %>% 
+  rename(wind_degrees=degrees)
+```
+
+```{r}
+pacman::p_load("clifro")
+
+wind_rose <-
+  with(
+    meteo_dat,
+    windrose(
+      speed=wind_speed,
+      direction=wind_degrees,
+      field, 
+      n_col = 6, 
+      n_speeds = 5
+      )
+  )
+wind_rose +
+  scale_fill_viridis_d(name = "Wind Speed (m/s)", direction = -1, begin=0,
+                       end=.8) +
+  labs(x="", y="") +
+  cowplot::theme_minimal_grid()+
+  theme(legend.position='top', 
+        legend.justification='center',
+        legend.direction='horizontal')
+```
+
+```{r}
+ggsave(last_plot(), file = "plots/wind_rose_6_tr.png", width = 20, 
+       height = 10, units = "cm",  dpi = 600, 
+       bg = "transparent",
+       scale = 1.5)
+```
+
+Now let's merge both datasets: Prevailing wind direction
+
+```{r}
+meteo_dat %>% 
+  count(field, wind_dir) %>% 
+  group_by(field) %>%
+  mutate(freq = n / sum(n)*100) %>%
+  group_by(field) %>%
+  top_n(1, freq) %>% 
+  mutate(field = as.factor(field)) %>% 
+  left_join(coord_deg, by = c("wind_dir"="dir")) %>% 
+  rename(wind_degrees=degrees)-> prev_wind
+```
+
+```{r}
+meteo_dat %>% 
+  group_by(field) %>% 
+  summarise(rel_hum = mean(rel_hum),
+            temp = mean(temp), 
+            wind_speed = mean(wind_speed)) %>% 
+  left_join(prev_wind) -> meteo_sum
+
+meteo_sum 
+```
+
+```{r}
+spore_dat %>% 
+  left_join(meteo_sum, by="field") %>% 
+  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>% 
+  mutate(
+    downwind = case_when(
+      between(degree_dif, 157.5, 202.5) ~ "downwind",
+      between(degree_dif, 22.5, 157.5) | between(degree_dif, 202.5, 337.5)  ~ "lateral",
+      TRUE ~ "upwind")) %>% 
+  mutate_at(vars(field, downwind), as.factor)-> mod_dat
+mod_dat
+```
+
+```{r}
+mod_dat %>% 
+  distinct(field, trap_coord, sub_sample, .keep_all = TRUE) %>%
+  select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
+  print(n=Inf)
+```
+
+```{r}
+mod_dat %>% 
+  ggplot(aes(distance_m, summed_count_spores, col = downwind )) +
+  geom_point()+
+  geom_smooth(se=F)+
+  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
+  theme_bw() 
+```

@@ -1,0 +1,44 @@
+Import original dataset from google sheet
+
+```{r}
+# pacman::p_load(tidyverse, googlesheets4)
+# gs4_auth()
+# url <- "https://docs.google.com/spreadsheets/d/1fBHWS1qCVNoj3yn0VcK9-598CS-Q95esJx8SXvPd5Uo/edit?usp=sharing"
+# smut <- gs4_get(url)
+# gs4_browse(smut)
+```
+
+```{r}
+# dat <- tibble(field = sheet_names(smut) %>% str_subset(pattern = "^field")) %>% 
+#   mutate(data = map(field, ~read_sheet(smut, sheet = .x))) %>% 
+#   tidyr::unnest(cols = c(data))  %>% 
+#   mutate_if(is.character, as.factor) %>% 
+#   mutate(field = str_replace(field, "field_", ""))
+# dat %>% write_csv("data/spore_data.csv")
+```
+
+Import compiled dataset from pc
+
+```{r}
+library(tidyverse)
+```
+
+- Spore dispersal data
+
+```{r}
+spore_raw <- read_csv("data/spore_data.csv") %>% 
+  mutate(field = as.factor(field))
+```
+
+- Meteorological data
+
+```{r}
+meteo_raw <- read_csv("data/wind.csv") %>% 
+  mutate(field = as.factor(field))
+```
+
+- Save raw datasets to .Rdata
+
+```{r}
+save(spore_raw, meteo_raw, spore_dat, meteo_dat, mod_dat, file = "data/dat.Rdata")
+```

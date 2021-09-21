@@ -1,4 +1,4 @@
-FIELD,MIN_LAP,H,T,W,W_DIR
+field,minute_lap,rel_hum,temp,wind_speed,wind_dir
 1,0,65,16,6.2,E
 1,0,65,16,9,E
 1,0,65,16,5.7,E

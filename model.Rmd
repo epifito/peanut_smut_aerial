@@ -1,0 +1,121 @@
+
+```{r session settings}
+library(tidyverse)
+library(broom)
+library(mgcv)
+library(mgcViz)
+```
+
+```{r data load}
+load("data/dat.Rdata")
+ftable(xtabs(~ field + time_min + trap_coord, mod_dat))
+```
+
+```{r}
+mod_dat %>% 
+  distinct(field, trap_coord, .keep_all = TRUE) %>%
+  select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
+  print(n=Inf)
+```
+
+```{r}
+mod_dat %>% 
+  ggplot(aes(distance_m, summed_count_spores, col = downwind )) +
+  geom_point()+
+  geom_smooth(se=F)+
+  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y") +
+  theme_bw()
+```
+
+```{r}
+m1 <- gam(summed_count_spores ~ distance_m:time_min +
+            s(field, bs = 're'),  
+          data = mod_dat, method = 'REML')
+m1
+```
+
+```{r}
+m2 <- gam(summed_count_spores ~ distance_m:time_min +
+          s(field, bs = 're') + 
+          s(downwind, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m2
+```
+
+```{r}
+m3 <- gam(summed_count_spores ~ distance_m:time_min + 
+          s(wind_speed, bs = 're') +
+          s(field, bs = 're')+
+          s(downwind, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m3
+```
+
+```{r}
+m4 <- gam(summed_count_spores ~ time_min + 
+          s(distance_m, k=3) + 
+          s(wind_speed, bs = 're') +
+          s(field, bs = 're')+
+          s(downwind, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m4
+```
+
+```{r}
+m5 <- gam(summed_count_spores ~ time_min + distance_m:downwind +
+          s(distance_m, k=3) + 
+          s(wind_speed, bs = 're') +
+          s(field, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m5
+```
+
+
+```{r}
+m6 <- gam(summed_count_spores ~ downwind +  
+          s(distance_m, time_min) +
+          # s(distance_m, k=3) + 
+          s(wind_speed, bs = 're') +
+          s(field, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m6
+```
+
+```{r}
+models <- list(m1 = m1,
+               m2 = m2, 
+               m3 = m3, 
+               m4 = m4, 
+               m5= m5, 
+               m6 = m6
+               )
+map_df(models, glance, .id = "model") %>%
+   arrange(AIC)
+```
+
+```{r}
+anova(m1, m2, m3, m4, m5, 
+      # mod3,
+      # mod4,
+      # mod5,
+      # mod6,
+      # mod7,
+      # mod8,
+      # mod9,
+      # mod10,
+      # mod11,
+      # mod12,
+      # mod13,
+      test = "F")
+```
+
+```{r}
+b <- getViz(m5)
+print(plot(b, allTerms = T), pages = 1) # Calls print.plotGam()
+```
+
