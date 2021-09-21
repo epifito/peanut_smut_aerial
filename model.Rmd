@@ -13,6 +13,7 @@ ftable(xtabs(~ field + time_min + trap_coord, mod_dat))
 
 ```{r}
 mod_dat %>% 
+  filter(s)
   distinct(field, trap_coord, .keep_all = TRUE) %>%
   select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
   print(n=Inf)
@@ -20,7 +21,7 @@ mod_dat %>%
 
 ```{r}
 mod_dat %>% 
-  ggplot(aes(distance_m, summed_count_spores, col = downwind )) +
+  ggplot(aes(distance_m, spore_cm2, col = downwind )) +
   geom_point()+
   geom_smooth(se=F)+
   facet_grid(field ~time_min, labeller = "label_both", scales = "free_y") +
@@ -28,14 +29,14 @@ mod_dat %>%
 ```
 
 ```{r}
-m1 <- gam(summed_count_spores ~ distance_m:time_min +
+m1 <- gam(spore_cm2 ~ distance_m:time_min +
             s(field, bs = 're'),  
           data = mod_dat, method = 'REML')
 m1
 ```
 
 ```{r}
-m2 <- gam(summed_count_spores ~ distance_m:time_min +
+m2 <- gam(spore_cm2 ~ distance_m:time_min +
           s(field, bs = 're') + 
           s(downwind, bs = 're'),
           method = 'REML',
@@ -44,7 +45,7 @@ m2
 ```
 
 ```{r}
-m3 <- gam(summed_count_spores ~ distance_m:time_min + 
+m3 <- gam(spore_cm2 ~ distance_m:time_min + 
           s(wind_speed, bs = 're') +
           s(field, bs = 're')+
           s(downwind, bs = 're'),
@@ -54,7 +55,7 @@ m3
 ```
 
 ```{r}
-m4 <- gam(summed_count_spores ~ time_min + distance_m + downwind + wind_speed +
+m4 <- gam(spore_cm2 ~ time_min + downwind + wind_speed +
           s(distance_m, k=3) + 
           # s(wind_speed, bs = 're') +
           s(field, bs = 're'),
@@ -64,14 +65,34 @@ m4
 ```
 
 ```{r}
-m5 <- gam(summed_count_spores ~ time_min + distance_m + downwind + 
-            wind_speed + smut_incidence + 
+m4.1 <- gam(spore_cm2 ~ time_min + downwind + wind_speed +
+          s(distance_m, k=3) + 
+          s(time_min, bs = 're') +
+          s(field, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m4.1
+```
+
+```{r}
+m5 <- gam(spore_cm2 ~ time_min + downwind + 
+          s(distance_m, k=3) + 
+          # s(wind_speed, bs = 're') +
+          s(field, bs = 're'),
+          method = 'REML',
+          data = mod_dat)
+m5
+```
+
+```{r}
+m6 <- gam(spore_cm2 ~ time_min + distance_m + downwind +  rel_hum +
+            temp + wind_speed + smut_incidence + 
             s(distance_m, k=3) + 
             # s(wind_speed, bs = 're') +
             s(field, bs = 're'),
           method = 'REML',
           data = mod_dat)
-m5
+m6
 ```
 
 ```{r}
@@ -79,7 +100,8 @@ models <- list(m1 = m1,
                m2 = m2, 
                m3 = m3, 
                m4 = m4, 
-               m5 = m5
+               m5 = m5, 
+               m6 = m6
                )
 map_df(models, glance, .id = "model") %>%
    arrange(AIC)
@@ -102,12 +124,38 @@ anova(m1, m2, m3, m4, m5,
 ```
 
 ```{r}
-plot(m4,all.terms=TRUE,scheme=1)
+plot(m5,all.terms=TRUE, scheme=1)
 summary(m4)
 ```
 
 ```{r}
-b <- getViz(m4)
+b <- getViz(m5)
 print(plot(b, allTerms = T), pages = 1) # Calls print.plotGam()
 ```
+
+```{r}
+mod_dat %>% distinct(downwind) %>% pull()
+newd <- expand_grid(time_min=c(90, 180, 270), 
+                    downwind=c("downwind", "lateral", "upwind"), 
+                    distance_m=seq(0, 400, 100), 
+                    field=5)
+newd$pred_spore_cm2 <- predict.gam(m5,newd)
+```
+
+```{r}
+newd %>% 
+  ggplot(aes(distance_m, pred_spore_cm2, col = downwind)) +
+  geom_point()+
+  geom_line(se=T)+
+  facet_grid(. ~time_min, labeller = "label_both", scales = "free_y") +
+  labs(x = "Distance from harvesting field (m)", 
+       y = "Spores/m²", col= "Prevailing wind")+
+  theme_bw2
+```
+
+```{r}
+ggsave(last_plot(), file = "plots/spore_prediction.png", w=5, h=2, scale = 1.2)
+```
+
+
 

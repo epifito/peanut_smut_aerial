@@ -40,33 +40,32 @@ spore_dat <- spore_raw %>%
   unite("id", field, trap_coord, distance_m, time_min, sub_sample, 
         remove = FALSE) %>% 
   group_by(id) %>% 
-  summarise(n_spore=mean(n_spore)/1.2, 
-            field =first(field), 
+  summarise(field =first(field), 
             trap_coord = first(trap_coord), 
             distance_m = first(distance_m),
             trap_degrees = first(trap_degrees),
             time_min=first(time_min),
-            sub_sample = first(sub_sample)) %>% 
-  group_by(field, trap_degrees, sub_sample) %>%
-  mutate(summed_count_spores =
-           case_when(distance_m == 0 ~ sum(n_spore),
-                     TRUE ~ n_spore)) #%>%
+            sub_sample = first(sub_sample), 
+            spore_cm2=mean(n_spore)/1.2) # %>% 
+  # group_by(field, trap_degrees, sub_sample) %>%
+  # mutate(summed_count_spores =
+  #          case_when(distance_m == 0 ~ sum(n_spore),
+  #                    TRUE ~ n_spore))
+spore_dat
 ```
 
 ```{r}
 spore_dat %>%   
   ggplot() +
   aes(x = trap_degrees, y = distance_m,
-      colour = summed_count_spores,
-      size = summed_count_spores) +
+      colour = spore_cm2,
+      size = spore_cm2) +
   facet_grid(time_min ~ field)+ 
   coord_polar(theta = "x",start = 0,direction = 1) + 
-  geom_count(data = subset(heat_dat, distance_m > 0),
-              alpha=1) +
+  geom_count(alpha=.5) +
   scale_colour_viridis_c(
     direction = -1,
     name = "Smut spores/m²",
-    # guide = "legend",
     breaks = c(100, 200, 300, 400)
   ) +
   scale_size(
@@ -93,7 +92,7 @@ spore_dat %>%
 ```
 
 ```{r}
-ggsave(last_plot(), file = "plots/spores2.jpg", width = 20, 
+ggsave(last_plot(), file = "plots/spores_cardinal.jpg", width = 20, 
        height = 10, units = "cm",  dpi = 600, bg = "white", 
        scale = 1.5)
 ```
@@ -192,7 +191,7 @@ mod_dat %>%
 
 ```{r}
 mod_dat %>% 
-  ggplot(aes(distance_m, summed_count_spores, col = downwind)) +
+  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
   geom_point()+
   geom_smooth(se=F)+
   facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
@@ -202,7 +201,8 @@ mod_dat %>%
        y = "Smut spores / m² at trap") +
   theme(legend.position='top', 
         legend.justification='center',
-        legend.direction='horizontal')
+        legend.direction='horizontal') + 
+  viridis::scale_color_viridis(discrete=TRUE) 
 ```
 
 ```{r}
