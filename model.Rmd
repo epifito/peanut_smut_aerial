@@ -4,6 +4,7 @@ library(tidyverse)
 library(broom)
 library(mgcv)
 library(mgcViz)
+source(here::here("sources/0-themes.R"))
 ```
 
 ```{r data load}
@@ -13,7 +14,6 @@ ftable(xtabs(~ field + time_min + trap_coord, mod_dat))
 
 ```{r}
 mod_dat %>% 
-  filter(s)
   distinct(field, trap_coord, .keep_all = TRUE) %>%
   select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
   print(n=Inf)
@@ -21,11 +21,18 @@ mod_dat %>%
 
 ```{r}
 mod_dat %>% 
-  ggplot(aes(distance_m, spore_cm2, col = downwind )) +
+  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
   geom_point()+
   geom_smooth(se=F)+
-  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y") +
-  theme_bw()
+  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
+  theme_bw() +
+  labs(col="Prevailing wind", 
+       x= "Distance from harvesting field (m)", 
+       y = "Smut spores / m² at trap") +
+  theme(legend.position='top', 
+        legend.justification='center',
+        legend.direction='horizontal') + 
+  viridis::scale_color_viridis(discrete=TRUE) 
 ```
 
 ```{r}
@@ -153,7 +160,7 @@ newd %>%
   theme_bw2
 ```
 
-```{r}
+```{r, eval=FALSE}
 ggsave(last_plot(), file = "plots/spore_prediction.png", w=5, h=2, scale = 1.2)
 ```
 

@@ -91,7 +91,7 @@ spore_dat %>%
         )
 ```
 
-```{r}
+```{r eval=FALSE}
 ggsave(last_plot(), file = "plots/spores_cardinal.jpg", width = 20, 
        height = 10, units = "cm",  dpi = 600, bg = "white", 
        scale = 1.5)
@@ -107,7 +107,10 @@ meteo_dat <- meteo_raw %>%
 
 ```{r}
 pacman::p_load("clifro")
+```
 
+
+```{r}
 wind_rose <-
   with(
     meteo_dat,
@@ -163,9 +166,9 @@ meteo_sum$smut_incidence = c(2, 4.1, 6.2, 7.5, 11.6, 6.2)
 meteo_sum
 ```
 
-```{r}
-meteo_sum <- read_csv("data/meteo_sum.csv") %>% 
-  mutate(field = as.factor(field))
+```{r, eval=F}
+# meteo_sum <- read_csv("data/meteo_sum.csv") %>% 
+#   mutate(field = as.factor(field))
 ```
 
 
@@ -184,13 +187,6 @@ mod_dat
 
 ```{r}
 mod_dat %>% 
-  distinct(field, trap_coord, sub_sample, .keep_all = TRUE) %>%
-  select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
-  print(n=Inf)
-```
-
-```{r}
-mod_dat %>% 
   ggplot(aes(distance_m, spore_cm2, col = downwind)) +
   geom_point()+
   geom_smooth(se=F)+
@@ -205,6 +201,6 @@ mod_dat %>%
   viridis::scale_color_viridis(discrete=TRUE) 
 ```
 
-```{r}
+```{r, eval =FALSE}
 ggsave(last_plot(), file = "plots/spore_gradient.png", w=6, h=4, scale = 1.2)
 ```
