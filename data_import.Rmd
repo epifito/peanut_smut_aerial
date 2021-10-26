@@ -1,44 +1,60 @@
-Import original dataset from google sheet
+---
+title: "Import data"
+author: ""
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    toc_depth: 2
+    css: style.css
+---
 
-```{r}
-# pacman::p_load(tidyverse, googlesheets4)
-# gs4_auth()
-# url <- "https://docs.google.com/spreadsheets/d/1fBHWS1qCVNoj3yn0VcK9-598CS-Q95esJx8SXvPd5Uo/edit?usp=sharing"
-# smut <- gs4_get(url)
-# gs4_browse(smut)
+```{r markdown-settings, echo=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
 ```
 
-```{r}
-# dat <- tibble(field = sheet_names(smut) %>% str_subset(pattern = "^field")) %>% 
-#   mutate(data = map(field, ~read_sheet(smut, sheet = .x))) %>% 
-#   tidyr::unnest(cols = c(data))  %>% 
-#   mutate_if(is.character, as.factor) %>% 
-#   mutate(field = str_replace(field, "field_", ""))
-# dat %>% write_csv("data/spore_data.csv")
+## Load libraries
+
+```{r libraries}
+library("tidyverse")
+library("here")
 ```
 
-Import compiled dataset from pc
+## Import compiled dataset from local files.
 
-```{r}
-library(tidyverse)
-```
+### Spore data
 
-- Spore dispersal data
+Import spore trap data and inspect.
 
-```{r}
-spore_raw <- read_csv("data/spore_data.csv") %>% 
+```{r spore-data}
+spore_data <- read_csv(here("data/spore_data.csv")) %>%
   mutate(field = as.factor(field))
+ftable(xtabs(~ field + time_min + trap_coord, spore_data))
+
+glimpse(spore_data)
 ```
 
-- Meteorological data
+### Weather data
 
-```{r}
-meteo_raw <- read_csv("data/wind.csv") %>% 
+Import weather data and inspect.
+
+```{r meteo-data}
+meteo_data <- read_csv(here("data/wind.csv")) %>%
   mutate(field = as.factor(field))
+
+glimpse(meteo_data)
 ```
 
-- Save raw datasets to .Rdata
+## Save data sets as Rdata files
 
 ```{r}
-save(spore_raw, meteo_raw, spore_dat, meteo_dat, mod_dat, file = "data/dat.Rdata")
+save(spore_data, meteo_data, file = "data/dat.Rdata")
 ```

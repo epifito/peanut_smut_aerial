@@ -1,206 +1,356 @@
+---
+title: "Visualise data"
+author: ""
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    toc_depth: 2
+    css: style.css
+---
+
+```{r markdown-settings, echo=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Load libraries
 
 ```{r session settings}
-library(tidyverse)
-library(broom)
-library(ggpubr)
-theme_set(ggpubr::theme_pubclean(base_size = 14))
-source(here::here("sources/0-themes.R"))
+library("tidyverse")
+library("broom")
+library("ggpubr")
+library("here")
+library("clifro")
+
+theme_set(theme_pubclean())
 ```
 
-```{r data load}
-load("data/dat.Rdata")
-ftable(xtabs(~ field + time_min + trap_coord, dat))
+## Load data
+
+```{r load-data}
+load(here("data/dat.Rdata"))
 ```
 
-```{r}
-glimpse(dat)
-```
+### Add cardinal directions
 
-We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam code)
+We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam's code for chickpea ascochyta blight spore dispersal).
 
-```{r}
+```{r cardinal-directions}
 coord_deg <- tibble(
-  dir= c("N","NNE","NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"), 
-  degrees= seq(0, 337.5 , by=22.5), 
-  )
+  dir = c(
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW"
+  ),
+  degrees = seq(0, 337.5 , by = 22.5),
+)
 coord_deg
 ```
 
-```{r}
-spore_raw <- spore_raw %>% 
-  left_join(coord_deg, by = c("trap_coord"="dir")) %>% 
-  rename(trap_degrees=degrees)
+```{r join-data}
+spore_raw <- spore_data %>%
+  left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
+  rename(trap_degrees = degrees)
 spore_raw
 ```
 
-Spore dispersal plot 
+## Plot spore dispersal density
 
-```{r}
-spore_dat <- spore_raw %>%
-  unite("id", field, trap_coord, distance_m, time_min, sub_sample, 
-        remove = FALSE) %>% 
-  group_by(id) %>% 
-  summarise(field =first(field), 
-            trap_coord = first(trap_coord), 
-            distance_m = first(distance_m),
-            trap_degrees = first(trap_degrees),
-            time_min=first(time_min),
-            sub_sample = first(sub_sample), 
-            spore_cm2=mean(n_spore)/1.2) # %>% 
-  # group_by(field, trap_degrees, sub_sample) %>%
-  # mutate(summed_count_spores =
-  #          case_when(distance_m == 0 ~ sum(n_spore),
-  #                    TRUE ~ n_spore))
+### Data prep
+
+Create a `data.frame` that has `field`, `trap_coord`, `distance_m`, `time_min` and `sub_sample` summarised with mean spores for graphing spore density by polar direction.
+
+```{r unite-summarise}
+spore_dat <- 
+  spore_raw %>%
+  unite("id",
+        field,
+        trap_coord,
+        distance_m,
+        time_min,
+        sub_sample,
+        remove = FALSE) %>%
+  group_by(id) %>%
+  summarise(
+    field = first(field),
+    trap_coord = first(trap_coord),
+    distance_m = first(distance_m),
+    trap_degrees = first(trap_degrees),
+    time_min = first(time_min),
+    sub_sample = first(sub_sample),
+    spore_cm2 = mean(n_spore) / 1.2
+  ) # %>%
+# group_by(field, trap_degrees, sub_sample) %>%
+# mutate(summed_count_spores =
+#          case_when(distance_m == 0 ~ sum(n_spore),
+#                    TRUE ~ n_spore))
 spore_dat
 ```
 
-```{r}
-spore_dat %>%   
-  ggplot() +
-  aes(x = trap_degrees, y = distance_m,
-      colour = spore_cm2,
-      size = spore_cm2) +
-  facet_grid(time_min ~ field)+ 
-  coord_polar(theta = "x",start = 0,direction = 1) + 
-  geom_count(alpha=.5) +
+### Plot spore densities
+
+Create polar coordinate plots that display spore density in each cardinal direction.
+
+```{r plot-spores}
+ggplot(data = spore_dat) +
+  aes(
+    x = trap_degrees,
+    y = distance_m,
+    colour = spore_cm2,
+    size = spore_cm2
+  ) +
+  facet_grid(time_min ~ field) +
+  coord_polar(theta = "x",
+              start = 0,
+              direction = 1) +
+  geom_count(alpha = 0.55) +
   scale_colour_viridis_c(
     direction = -1,
     name = "Smut spores/m²",
-    breaks = c(100, 200, 300, 400)
+    guide = "legend",
+    breaks = c(10, 100, 200, 300),
+    begin = 0,
+    end = 0.8
   ) +
   scale_size(
-    range = c(.1, 10),
+    range = c(1, 8),
     name = "Smut spores/m²",
-    guide= "none", 
-    breaks = c(100, 200, 300, 400)
+    breaks = c(10, 100, 200, 300)
   ) +
   scale_x_continuous(
     breaks = c(0, 90, 180, 270),
     expand = c(0, 0),
     limits = c(0, 360),
     labels = c("N", "E", "S", "W"),
-    sec.axis = sec_axis(~ . , name = "Sampling fields", breaks = NULL, labels = NULL))+ 
-  scale_y_continuous(breaks = c(0, 100, 200, 300, 400),
-                     limits = c(0, 400), 
-                     sec.axis = sec_axis(~ . , name = "Minutes since harvest beginning", breaks = NULL, labels = NULL)) +
+    sec.axis = sec_axis(
+      ~ . ,
+      name = "Field",
+      breaks = NULL,
+      labels = NULL
+    )
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 100, 200, 300, 400),
+    limits = c(0, 400),
+    sec.axis = sec_axis(
+      ~ . ,
+      name = "Minutes since harvest beginning",
+      breaks = NULL,
+      labels = NULL
+    )
+  ) +
   ylab("Distance (m)") +
   xlab("") +
-   theme(legend.position='right', 
-        legend.justification='center'
-        # legend.direction='horizontal'
-        )
+  theme(
+    legend.position = "top",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(color = guide_legend(title.position = "top",
+                              title.hjust = 0.5))
 ```
 
 ```{r eval=FALSE}
-ggsave(last_plot(), file = "plots/spores_cardinal.jpg", width = 20, 
-       height = 10, units = "cm",  dpi = 600, bg = "white", 
-       scale = 1.5)
+ggsave(
+  last_plot(),
+  file = "plots/spores_cardinal.png",
+  width = 20,
+  height = 10,
+  units = "cm",
+  dpi = 600,
+  scale = 1.5
+)
 ```
 
-Let's visualize wind data
+## Plot wind data
 
-```{r}
-meteo_dat <- meteo_raw %>% 
-  left_join(coord_deg, by = c("wind_dir"="dir")) %>% 
-  rename(wind_degrees=degrees)
+### Data prep
+
+Create a `data.frame` that incoporates the weather data with the cardinal directions object we created above.
+
+```{r join-wind-data}
+meteo_dat <- meteo_data %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees)
 ```
 
-```{r}
-pacman::p_load("clifro")
-```
+### Wind roses
 
+Using the `wind_rose()` from _clifro_, create windrose plots to visualise windspeeds and directions during the harvest and spread events.
 
-```{r}
+```{r wind-rose}
 wind_rose <-
   with(
     meteo_dat,
     windrose(
-      speed=wind_speed,
-      direction=wind_degrees,
-      field, 
-      n_col = 6, 
-      n_speeds = 5
-      )
+      speed = wind_speed,
+      direction = wind_degrees,
+      facet = field,
+      n_speeds = 5,
+      n_col = 3
+    )
   )
+
 wind_rose +
-  scale_fill_viridis_d(name = "Wind Speed (m/s)", direction = -1, begin=0,
-                       end=.8) +
-  labs(x="", y="") +
-  cowplot::theme_minimal_grid()+
-  theme(legend.position='top', 
-        legend.justification='center',
-        legend.direction='horizontal')
+  scale_fill_viridis_d(
+    name = "Wind Speed (m/s)",
+    direction = -1,
+    begin = 0,
+    end = .8
+  ) +
+  labs(x = "", y = "") +
+  theme(legend.position = 'top') +
+  guides(fill = guide_legend(
+    title.position = "top",
+    title.hjust = 0.5,
+    keywidth = unit(1, "lines"),
+    keyheight = unit(1, "lines")
+  )) +
+  theme_pubclean()
 ```
 
 ```{r}
-ggsave(last_plot(), file = "plots/wind_rose_6_tr.png", width = 20, 
-       height = 10, units = "cm",  dpi = 600, 
-       bg = "transparent",
-       scale = 1.5)
+ggsave(
+  last_plot(),
+  file = "plots/wind_rose_6_tr.png",
+  width = 20,
+  height = 10,
+  units = "cm",
+  dpi = 600,
+  scale = 1.5
+)
 ```
 
-Now let's merge both datasets: Prevailing wind direction
+## Summarise spore and meteorology data
 
-```{r}
-meteo_dat %>% 
-  count(field, wind_dir) %>% 
+### Summarise wind speed and direction observations by field
+
+Create a `data.frame` that contains prevailing wind direction for each field/event.
+
+```{r merge-meteo-spore}
+meteo_dat %>%
+  count(field, wind_dir) %>%
   group_by(field) %>%
-  mutate(freq = n / sum(n)*100) %>%
+  mutate(freq = n / sum(n) * 100) %>%
   group_by(field) %>%
-  top_n(1, freq) %>% 
-  mutate(field = as.factor(field)) %>% 
-  left_join(coord_deg, by = c("wind_dir"="dir")) %>% 
-  rename(wind_degrees=degrees)-> prev_wind
+  top_n(1, freq) %>%
+  mutate(field = as.factor(field)) %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees) -> prev_wind
 ```
 
-```{r}
-meteo_dat %>% 
-  group_by(field) %>% 
-  summarise(rel_hum = mean(rel_hum),
-            temp = mean(temp), 
-            wind_speed = mean(wind_speed)) %>% 
+### Summarise weather data
+
+Summarise weather data by field.
+
+```{r summarise-weather-by-field}
+meteo_dat %>%
+  group_by(field) %>%
+  summarise(
+    rel_hum = mean(rel_hum),
+    temp = mean(temp),
+    wind_speed = mean(wind_speed)
+  ) %>%
   left_join(prev_wind) -> meteo_sum
 
-# added smut harvesting field incidence 
+# added smut harvesting field incidence
 meteo_sum$smut_incidence = c(2, 4.1, 6.2, 7.5, 11.6, 6.2)
 meteo_sum
 ```
 
-```{r, eval=F}
-# meteo_sum <- read_csv("data/meteo_sum.csv") %>% 
-#   mutate(field = as.factor(field))
-```
+### Classify spore traps as "downwind", "upwind" or "lateral"
 
+Create a `data.frame` suitable for fitting models to the spore dispersal data.
 
-```{r}
-spore_dat %>% 
-  left_join(meteo_sum, by="field") %>% 
-  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>% 
-  mutate(
-    downwind = case_when(
-      between(degree_dif, 157.5, 202.5) ~ "downwind",
-      between(degree_dif, 22.5, 157.5) | between(degree_dif, 202.5, 337.5)  ~ "lateral",
-      TRUE ~ "upwind")) %>% 
-  mutate_at(vars(field, downwind), as.factor)-> mod_dat
+```{r up-down-lat}
+spore_dat %>%
+  left_join(meteo_sum, by = "field") %>%
+  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
+  mutate(downwind = case_when(
+    between(degree_dif, 157.5, 202.5) ~ "downwind",
+    between(degree_dif, 22.5, 157.5) |
+      between(degree_dif, 202.5, 337.5)  ~ "lateral",
+    TRUE ~ "upwind"
+  )) %>%
+  mutate_at(vars(field, downwind), as.factor) -> mod_dat
+
 mod_dat
 ```
 
-```{r}
-mod_dat %>% 
-  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
-  geom_point()+
-  geom_smooth(se=F)+
-  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
-  theme_bw2 +
-  labs(col="Prevailing wind", 
-       x= "Distance from harvesting field (m)", 
-       y = "Smut spores / m² at trap") +
-  theme(legend.position='top', 
-        legend.justification='center',
-        legend.direction='horizontal') + 
-  viridis::scale_color_viridis(discrete=TRUE) 
+Save data object for fitting models.
+
+```{save-mod-dat, eval=FALSE}
+save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```
 
-```{r, eval =FALSE}
-ggsave(last_plot(), file = "plots/spore_gradient.png", w=6, h=4, scale = 1.2)
+## Plot smoothed spore dispersal
+
+Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or lateral.
+
+```{r smoothed-dispersal}
+mod_dat %>%
+  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  facet_grid(field ~ time_min, scales = "free_y") +
+  scale_x_continuous(
+    sec.axis = sec_axis(
+      ~ . ,
+      name = "Minutes since harvest beginning",
+      breaks = NULL,
+      labels = NULL
+    )
+  ) +
+  scale_y_continuous(
+    sec.axis = sec_axis(
+      ~ . ,
+      name = "Field",
+      breaks = NULL,
+      labels = NULL
+    )
+  ) +
+  scale_colour_viridis_d() +
+  labs(col = "Prevailing wind",
+       x = "Distance from harvesting field (m)",
+       y = "Smut spores / m² at trap") +
+  theme(
+    legend.position = "top",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(colour = guide_legend(title.position = "top",
+                               title.hjust = 0.5))
+```
+
+```{r, eval=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots/spore_gradient.png",
+  w = 6,
+  h = 4,
+  scale = 1.2
+)
 ```

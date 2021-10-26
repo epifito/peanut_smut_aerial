@@ -1,0 +1,19 @@
+name: "Peanut Smut Spore Aerial Dispersal Analysis"
+output_dir: "."
+navbar:
+  title: "Peanut Smut Spore Dispersal Analysis"
+  left:
+    - text: "Home"
+      icon: fas fa-home 
+      href: index.html
+    - text: "Data Visualization"
+      icon: fas fa-chart-area 
+      href: data_viz.html
+    - text: "Model Fitting"
+      icon: fas fa-file-code-o 
+      href: model.html
+
+      
+  right:
+    - icon: fa-github-square 
+      href: https://github.com/juanchiem/peanut_smut_aerial
