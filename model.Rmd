@@ -1,167 +1,229 @@
+---
+title: "Fit models"
+author: ""
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    toc_depth: 2
+    css: style.css
+---
+
+```{r markdown-settings, echo=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Load libraries
 
 ```{r session settings}
-library(tidyverse)
-library(broom)
-library(mgcv)
-library(mgcViz)
-source(here::here("sources/0-themes.R"))
+library("tidyverse")
+library("broom")
+library("ggplot2")
+library("ggpubr")
+library("here")
+library("mgcv")
+library("mgcViz")
+
+theme_set(theme_pubclean())
 ```
 
-```{r data load}
-load("data/dat.Rdata")
-ftable(xtabs(~ field + time_min + trap_coord, mod_dat))
+## Load data
+
+```{r load-data}
+load(here("data/dat.Rdata"))
+load(here("data/mod_dat.Rdata"))
 ```
 
-```{r}
-mod_dat %>% 
+## Inspect the mod_dat data
+
+```{r inspect-mod-dat}
+mod_dat %>%
   distinct(field, trap_coord, .keep_all = TRUE) %>%
-  select(trap_coord, trap_degrees, wind_dir, wind_degrees, degree_dif, downwind) %>% 
-  print(n=Inf)
+  select(trap_coord,
+         trap_degrees,
+         wind_dir,
+         wind_degrees,
+         degree_dif,
+         downwind) %>%
+  print(n = Inf)
 ```
 
-```{r}
-mod_dat %>% 
-  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
-  geom_point()+
-  geom_smooth(se=F)+
-  facet_grid(field ~time_min, labeller = "label_both", scales = "free_y")+
-  theme_bw() +
-  labs(col="Prevailing wind", 
-       x= "Distance from harvesting field (m)", 
-       y = "Smut spores / m² at trap") +
-  theme(legend.position='top', 
-        legend.justification='center',
-        legend.direction='horizontal') + 
-  viridis::scale_color_viridis(discrete=TRUE) 
-```
-
-```{r}
-m1 <- gam(spore_cm2 ~ distance_m:time_min +
-            s(field, bs = 're'),  
-          data = mod_dat, method = 'REML')
+```{r m1}
+m1 <- gam(
+  spore_cm2 ~ distance_m:time_min +
+    s(field, bs = "re"),
+  data = mod_dat,
+  method = "REML"
+)
 m1
 ```
 
-```{r}
-m2 <- gam(spore_cm2 ~ distance_m:time_min +
-          s(field, bs = 're') + 
-          s(downwind, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m2}
+m2 <- gam(
+  spore_cm2 ~ distance_m:time_min +
+    s(field, bs = "re") +
+    s(downwind, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m2
 ```
 
-```{r}
-m3 <- gam(spore_cm2 ~ distance_m:time_min + 
-          s(wind_speed, bs = 're') +
-          s(field, bs = 're')+
-          s(downwind, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m3}
+m3 <- gam(
+  spore_cm2 ~ distance_m:time_min +
+    s(wind_speed, bs = "re") +
+    s(field, bs = "re") +
+    s(downwind, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m3
 ```
 
-```{r}
-m4 <- gam(spore_cm2 ~ time_min + downwind + wind_speed +
-          s(distance_m, k=3) + 
-          # s(wind_speed, bs = 're') +
-          s(field, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m4}
+m4 <- gam(
+  spore_cm2 ~ time_min + downwind + wind_speed +
+    s(distance_m, k = 3) +
+    # s(wind_speed, bs = "re") +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m4
 ```
 
-```{r}
-m4.1 <- gam(spore_cm2 ~ time_min + downwind + wind_speed +
-          s(distance_m, k=3) + 
-          s(time_min, bs = 're') +
-          s(field, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m4.1}
+m4.1 <- gam(
+  spore_cm2 ~ time_min + downwind + wind_speed +
+    s(distance_m, k = 3) +
+    s(time_min, bs = "re") +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m4.1
 ```
 
-```{r}
-m5 <- gam(spore_cm2 ~ time_min + downwind + 
-          s(distance_m, k=3) + 
-          # s(wind_speed, bs = 're') +
-          s(field, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m5}
+m5 <- gam(
+  spore_cm2 ~ time_min + downwind +
+    s(distance_m, k = 3) +
+    # s(wind_speed, bs = "re") +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m5
 ```
 
-```{r}
-m6 <- gam(spore_cm2 ~ time_min + distance_m + downwind +  rel_hum +
-            temp + wind_speed + smut_incidence + 
-            s(distance_m, k=3) + 
-            # s(wind_speed, bs = 're') +
-            s(field, bs = 're'),
-          method = 'REML',
-          data = mod_dat)
+```{r m6}
+m6 <- gam(
+  spore_cm2 ~ time_min + distance_m + downwind +  rel_hum +
+    temp + wind_speed + smut_incidence +
+    s(distance_m, k = 3) +
+    # s(wind_speed, bs = "re") +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat
+)
 m6
 ```
 
-```{r}
-models <- list(m1 = m1,
-               m2 = m2, 
-               m3 = m3, 
-               m4 = m4, 
-               m5 = m5, 
-               m6 = m6
-               )
+## Model AIC
+
+Check models for best fit using AIC.
+
+```{r AIC}
+models <- list(
+  m1 = m1,
+  m2 = m2,
+  m3 = m3,
+  m4 = m4,
+  m4.1 = m4.1,
+  m5 = m5,
+  m6 = m6
+)
 map_df(models, glance, .id = "model") %>%
-   arrange(AIC)
+  arrange(AIC)
 ```
 
-```{r}
-anova(m1, m2, m3, m4, m5,
-      # mod3,
-      # mod4,
-      # mod5,
-      # mod6,
-      # mod7,
-      # mod8,
-      # mod9,
-      # mod10,
-      # mod11,
-      # mod12,
-      # mod13,
-      test = "F")
+## ANOVA
+
+```{r anova}
+anova(m1, m2, m3, m4, m4.1, m5, m6, test = "F")
 ```
 
-```{r}
-plot(m5,all.terms=TRUE, scheme=1)
-summary(m4)
+## Inspect model m5
+
+```{r summarise-m5}
+plot(m5, all.terms = TRUE, scheme = 1)
+summary(m5)
 ```
 
-```{r}
+```{r visualise-gam}
 b <- getViz(m5)
 print(plot(b, allTerms = T), pages = 1) # Calls print.plotGam()
 ```
 
-```{r}
+## Predict spore dispersal
+
+```{r predict}
 mod_dat %>% distinct(downwind) %>% pull()
-newd <- expand_grid(time_min=c(90, 180, 270), 
-                    downwind=c("downwind", "lateral", "upwind"), 
-                    distance_m=seq(0, 400, 100), 
-                    field=5)
-newd$pred_spore_cm2 <- predict.gam(m5,newd)
+newd <- expand_grid(
+  time_min = c(90, 180, 270),
+  downwind = c("downwind", "lateral", "upwind"),
+  distance_m = seq(0, 400, 100),
+  field = 5
+)
+newd$pred_spore_cm2 <- predict.gam(m5, newd)
 ```
 
-```{r}
-newd %>% 
+## Visualise spore dispersal predictions
+
+```{r graph-predictions}
+newd %>%
   ggplot(aes(distance_m, pred_spore_cm2, col = downwind)) +
-  geom_point()+
-  geom_line(se=T)+
-  facet_grid(. ~time_min, labeller = "label_both", scales = "free_y") +
-  labs(x = "Distance from harvesting field (m)", 
-       y = "Spores/m²", col= "Prevailing wind")+
-  theme_bw2
+  geom_point() +
+  geom_line() +
+  scale_colour_viridis_d() +
+  facet_grid(. ~ time_min) +
+  scale_x_continuous(sec.axis = sec_axis(
+    ~ . ,
+    name = "Minutes since harvest beginning",
+    breaks = NULL,
+    labels = NULL
+  )) +
+  labs(x = "Distance from harvesting field (m)",
+       y = "Spores / m²",
+       col = "Prevailing wind") +
+  theme(
+    legend.position = "top",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(colour = guide_legend(title.position = "top",
+                               title.hjust = 0.5))
 ```
 
-```{r, eval=FALSE}
-ggsave(last_plot(), file = "plots/spore_prediction.png", w=5, h=2, scale = 1.2)
+```{r save-prediction-graph, eval=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots/spore_prediction.png",
+  w = 5,
+  h = 2,
+  scale = 1.2
+)
 ```
 
 
