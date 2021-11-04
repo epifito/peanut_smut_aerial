@@ -1,7 +1,7 @@
 # Peanut smut aerial dispersal of spores
 
 Slides
-https://drive.google.com/file/d/1hnQRlhp-hXiJ_yeWIKAnsoPydK6zMZnk/view?usp=sharing
+https://docs.google.com/presentation/d/17k5nQC1h_9bBGxuH3an3fu9fhTWMzAFuurmsx72MqPo/edit?usp=sharing
 
 Mauscript draft and data coding
 https://docs.google.com/document/d/1IpX0FIG7OkDsXKl9ZEJdqQGWv_fMnS95/edit?ts=60127a82
