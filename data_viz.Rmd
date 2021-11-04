@@ -8,6 +8,7 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: yes
+    code_folding: hide
     toc_depth: 2
     css: style.css
 ---

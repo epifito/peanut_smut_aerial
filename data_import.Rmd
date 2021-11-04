@@ -8,11 +8,12 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: yes
+    code_folding: hide
     toc_depth: 2
     css: style.css
 ---
 
-```{r markdown-settings, echo=FALSE}
+```{r markdown-settings, echo=FALSE, include=FALSE}
 knitr::opts_chunk$set(
   fig.width = 7,
   fig.height = 7,
