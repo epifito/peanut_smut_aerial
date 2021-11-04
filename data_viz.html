@@ -33,6 +33,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
@@ -221,6 +222,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -361,6 +365,14 @@ div.tocify {
 </div><!--/.navbar -->
 
 <div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
 
@@ -687,7 +699,7 @@ mod_dat</code></pre>
 ## #   wind_speed &lt;dbl&gt;, wind_dir &lt;chr&gt;, n &lt;int&gt;, freq &lt;dbl&gt;, wind_degrees &lt;dbl&gt;,
 ## #   smut_incidence &lt;dbl&gt;, degree_dif &lt;dbl&gt;, downwind &lt;fct&gt;</code></pre>
 <p>Save data object for fitting models.</p>
-<pre class="{save-mod-dat}"><code>save(mod_dat, file = here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
+<p><code>{save-mod-dat, eval=FALSE} save(mod_dat, file = here("data/mod_dat.Rdata"))</code></p>
 </div>
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
@@ -772,6 +784,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 <script>
 $(document).ready(function ()  {
