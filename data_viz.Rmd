@@ -1,6 +1,5 @@
 ---
 title: "Visualise data"
-author: ""
 output:
   html_document:
     theme: simplex
@@ -101,15 +100,45 @@ spore_dat <-
     time_min = first(time_min),
     sub_sample = first(sub_sample),
     spore_cm2 = mean(n_spore) / 1.2
-  ) # %>%
-# group_by(field, trap_degrees, sub_sample) %>%
-# mutate(summed_count_spores =
-#          case_when(distance_m == 0 ~ sum(n_spore),
-#                    TRUE ~ n_spore))
+  )
+
 spore_dat
 ```
 
 ### Plot spore densities
+
+Create a density plot of the observed spore dispersal values.
+
+```{r spore-kernel-density}
+ggplot(spore_data, aes(y = n_spore)) +
+  geom_density()
+```
+
+Create a scatter plot and use `stat_smooth()` to fit a line.
+
+```{r spore-dot-density-by-distance}
+ggplot(spore_data, aes(x = distance_m, y = n_spore)) +
+  geom_point() +
+  scale_fill_viridis_c() +
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k = 3)) +
+  labs(y = expression(Spores/cm^{2}),
+       x = "Distance (m)") +
+  facet_grid(time_min ~ .)
+```
+
+Create a violin plot with each time as a colour.
+
+```{r spore-violin-density-by-distance}
+ggplot(spore_data, aes(x = as.factor(distance_m), y = n_spore)) +
+  geom_violin(aes(fill = as.factor(time_min),
+                  colour = as.factor(time_min))) +
+  scale_fill_viridis_d("Time (minutes)") +
+  scale_colour_viridis_d("Time (minutes)") +
+  labs(y = expression(Spores/cm^{2}),
+       x = "Distance (m)")
+```
+
+#### Polar coordinates
 
 Create polar coordinate plots that display spore density in each cardinal direction.
 
@@ -188,7 +217,7 @@ ggsave(
 
 ### Data prep
 
-Create a `data.frame` that incoporates the weather data with the cardinal directions object we created above.
+Create a `data.frame` that incorporates the weather data with the cardinal directions object we created above.
 
 ```{r join-wind-data}
 meteo_dat <- meteo_data %>%
@@ -307,7 +336,7 @@ save(mod_dat, file = here("data/mod_dat.Rdata"))
 
 ## Plot smoothed spore dispersal
 
-Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or lateral.
+Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or "lateral".
 
 ```{r smoothed-dispersal}
 mod_dat %>%

@@ -377,7 +377,6 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Visualise data</h1>
-<h4 class="author"></h4>
 
 </div>
 
@@ -482,11 +481,8 @@ spore_raw</code></pre>
     time_min = first(time_min),
     sub_sample = first(sub_sample),
     spore_cm2 = mean(n_spore) / 1.2
-  ) # %&gt;%
-# group_by(field, trap_degrees, sub_sample) %&gt;%
-# mutate(summed_count_spores =
-#          case_when(distance_m == 0 ~ sum(n_spore),
-#                    TRUE ~ n_spore))
+  )
+
 spore_dat</code></pre>
 <pre><code>## # A tibble: 576 × 8
 ##    id     field trap_coord distance_m trap_degrees time_min sub_sample spore_cm2
@@ -505,6 +501,30 @@ spore_dat</code></pre>
 </div>
 <div id="plot-spore-densities" class="section level3">
 <h3>Plot spore densities</h3>
+<p>Create a density plot of the observed spore dispersal values.</p>
+<pre class="r"><code>ggplot(spore_data, aes(y = n_spore)) +
+  geom_density()</code></pre>
+<p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="672" /></p>
+<p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
+<pre class="r"><code>ggplot(spore_data, aes(x = distance_m, y = n_spore)) +
+  geom_point() +
+  scale_fill_viridis_c() +
+  geom_smooth(method = &quot;gam&quot;, formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
+  labs(y = expression(Spores/cm^{2}),
+       x = &quot;Distance (m)&quot;) +
+  facet_grid(time_min ~ .)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
+<p>Create a violin plot with each time as a colour.</p>
+<pre class="r"><code>ggplot(spore_data, aes(x = as.factor(distance_m), y = n_spore)) +
+  geom_violin(aes(fill = as.factor(time_min),
+                  colour = as.factor(time_min))) +
+  scale_fill_viridis_d(&quot;Time (minutes)&quot;) +
+  scale_colour_viridis_d(&quot;Time (minutes)&quot;) +
+  labs(y = expression(Spores/cm^{2}),
+       x = &quot;Distance (m)&quot;)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="672" /></p>
+<div id="polar-coordinates" class="section level4">
+<h4>Polar coordinates</h4>
 <p>Create polar coordinate plots that display spore density in each cardinal direction.</p>
 <pre class="r"><code>ggplot(data = spore_dat) +
   aes(
@@ -574,11 +594,12 @@ spore_dat</code></pre>
 )</code></pre>
 </div>
 </div>
+</div>
 <div id="plot-wind-data" class="section level2">
 <h2>Plot wind data</h2>
 <div id="data-prep-1" class="section level3">
 <h3>Data prep</h3>
-<p>Create a <code>data.frame</code> that incoporates the weather data with the cardinal directions object we created above.</p>
+<p>Create a <code>data.frame</code> that incorporates the weather data with the cardinal directions object we created above.</p>
 <pre class="r"><code>meteo_dat &lt;- meteo_data %&gt;%
   left_join(coord_deg, by = c(&quot;wind_dir&quot; = &quot;dir&quot;)) %&gt;%
   rename(wind_degrees = degrees)</code></pre>
@@ -704,7 +725,7 @@ mod_dat</code></pre>
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
-<p>Plot spore dispersal with smoothed lines for spore traps that are classified as “upwind”, “downwind” or lateral.</p>
+<p>Plot spore dispersal with smoothed lines for spore traps that are classified as “upwind”, “downwind” or “lateral”.</p>
 <pre class="r"><code>mod_dat %&gt;%
   ggplot(aes(distance_m, spore_cm2, col = downwind)) +
   geom_point() +

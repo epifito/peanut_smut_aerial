@@ -377,7 +377,6 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Fit models</h1>
-<h4 class="author"></h4>
 
 </div>
 
@@ -388,6 +387,7 @@ div.tocify {
 library(&quot;broom&quot;)
 library(&quot;ggplot2&quot;)
 library(&quot;ggpubr&quot;)
+library(&quot;gratia&quot;)
 library(&quot;here&quot;)
 library(&quot;mgcv&quot;)
 library(&quot;mgcViz&quot;)
@@ -437,6 +437,13 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 ## 22 N                     0 N                   0          0 upwind  
 ## 23 S                   180 N                   0        180 downwind
 ## 24 W                   270 N                   0        270 lateral</code></pre>
+<div id="model-1" class="section level3">
+<h3>Model 1</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>distance_m:time_min</code></li>
+<li>Random effects: <code>field</code></li>
+</ul>
 <pre class="r"><code>m1 &lt;- gam(
   spore_cm2 ~ distance_m:time_min +
     s(field, bs = &quot;re&quot;),
@@ -455,6 +462,15 @@ m1</code></pre>
 ## 4.27  total = 6.27 
 ## 
 ## REML score: 2602.536</code></pre>
+</div>
+<div id="model-2" class="section level3">
+<h3>Model 2</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>distance_m:time_min</code></li>
+<li>Smoothed predictors: <code>downwind</code></li>
+<li>Random effects: <code>field</code></li>
+</ul>
 <pre class="r"><code>m2 &lt;- gam(
   spore_cm2 ~ distance_m:time_min +
     s(field, bs = &quot;re&quot;) +
@@ -475,6 +491,14 @@ m2</code></pre>
 ## 4.05 1.98  total = 8.03 
 ## 
 ## REML score: 2531.749</code></pre>
+</div>
+<div id="model-3" class="section level3">
+<h3>Model 3</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>distance_m:time_min</code></li>
+<li>Random effects: <code>field</code>, <code>downwind</code>, <code>wind_speed</code></li>
+</ul>
 <pre class="r"><code>m3 &lt;- gam(
   spore_cm2 ~ distance_m:time_min +
     s(wind_speed, bs = &quot;re&quot;) +
@@ -496,10 +520,18 @@ m3</code></pre>
 ## 0.0004 4.0483 1.9793  total = 8.03 
 ## 
 ## REML score: 2531.749</code></pre>
+</div>
+<div id="model-4" class="section level3">
+<h3>Model 4</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>time_min</code>, <code>downwind</code>, <code>wind_speed</code></li>
+<li>Smoothed predictors: <code>distance_m</code></li>
+<li>Random effects: <code>field</code></li>
+</ul>
 <pre class="r"><code>m4 &lt;- gam(
   spore_cm2 ~ time_min + downwind + wind_speed +
     s(distance_m, k = 3) +
-    # s(wind_speed, bs = &quot;re&quot;) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat
@@ -517,6 +549,15 @@ m4</code></pre>
 ## 1.54 3.33  total = 9.87 
 ## 
 ## REML score: 2504.107</code></pre>
+</div>
+<div id="model-4.1" class="section level3">
+<h3>Model 4.1</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>time_min</code>, <code>downwind</code>, <code>wind_speed</code></li>
+<li>Smoothed predictors: <code>distance_m</code></li>
+<li>Random effects: <code>field</code>, <code>time_min</code></li>
+</ul>
 <pre class="r"><code>m4.1 &lt;- gam(
   spore_cm2 ~ time_min + downwind + wind_speed +
     s(distance_m, k = 3) +
@@ -538,10 +579,18 @@ m4.1</code></pre>
 ## 1.54 0.00 3.33  total = 9.87 
 ## 
 ## REML score: 2504.107</code></pre>
+</div>
+<div id="model-5" class="section level3">
+<h3>Model 5</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>time_min</code>, <code>downwind</code></li>
+<li>Smoothed predictors: <code>distance_m</code></li>
+<li>Random effects: <code>field</code></li>
+</ul>
 <pre class="r"><code>m5 &lt;- gam(
   spore_cm2 ~ time_min + downwind +
     s(distance_m, k = 3) +
-    # s(wind_speed, bs = &quot;re&quot;) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat
@@ -559,11 +608,19 @@ m5</code></pre>
 ## 1.54 4.09  total = 9.63 
 ## 
 ## REML score: 2503.903</code></pre>
+</div>
+<div id="model-6" class="section level3">
+<h3>Model 6</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>wind_speed</code>, <code>rel_hum</code>, <code>temp</code>, <code>wind_speed</code>, <code>smut_incidence</code></li>
+<li>Smoothed predictors: <code>distance_m</code></li>
+<li>Random effects: <code>field</code>, <code>time_min</code></li>
+</ul>
 <pre class="r"><code>m6 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +  rel_hum +
+  spore_cm2 ~ time_min + distance_m + downwind + rel_hum +
     temp + wind_speed + smut_incidence +
     s(distance_m, k = 3) +
-    # s(wind_speed, bs = &quot;re&quot;) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat
@@ -582,6 +639,7 @@ m6</code></pre>
 ## 1.542 0.915  total = 10.46 
 ## 
 ## REML score: 2504.34     rank: 16/17</code></pre>
+</div>
 </div>
 <div id="model-aic" class="section level2">
 <h2>Model AIC</h2>
@@ -637,11 +695,12 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
 ## 7    564.89     196855 -0.5068690      269                      
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Based on the AIC and ANOVA, model m5 looks to be the best model for our data.</p>
 </div>
 <div id="inspect-model-m5" class="section level2">
 <h2>Inspect model m5</h2>
-<pre class="r"><code>plot(m5, all.terms = TRUE, scheme = 1)</code></pre>
-<p><img src="model_files/figure-html/summarise-m5-1.png" width="672" /><img src="model_files/figure-html/summarise-m5-2.png" width="672" /><img src="model_files/figure-html/summarise-m5-3.png" width="672" /><img src="model_files/figure-html/summarise-m5-4.png" width="672" /></p>
+<pre class="r"><code>appraise(m5)</code></pre>
+<p><img src="model_files/figure-html/summarise-m5-1.png" width="672" /></p>
 <pre class="r"><code>summary(m5)</code></pre>
 <pre><code>## 
 ## Family: gaussian 
@@ -669,8 +728,7 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
 ## 
 ## R-sq.(adj) =  0.298   Deviance explained = 30.9%
 ## -REML = 2503.9  Scale est. = 348.05    n = 576</code></pre>
-<pre class="r"><code>b &lt;- getViz(m5)
-print(plot(b, allTerms = T), pages = 1) # Calls print.plotGam()</code></pre>
+<pre class="r"><code>draw(m5)</code></pre>
 <p><img src="model_files/figure-html/visualise-gam-1.png" width="672" /></p>
 </div>
 <div id="predict-spore-dispersal" class="section level2">

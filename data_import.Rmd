@@ -1,6 +1,5 @@
 ---
 title: "Import data"
-author: ""
 output:
   html_document:
     theme: simplex
