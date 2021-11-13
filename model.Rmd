@@ -132,37 +132,18 @@ m4 <- gam(
 m4
 ```
 
-### Model 4.1
+### Model 5
 
 * Response: `spore_cm2`
 * Linear predictors: `time_min`, `downwind`, `wind_speed`
 * Smoothed predictors: `distance_m`
 * Random effects: `field`, `time_min`
 
-```{r m4.1}
-m4.1 <- gam(
+```{r m5}
+m5 <- gam(
   spore_cm2 ~ time_min + downwind + wind_speed +
     s(distance_m, k = 3) +
     s(time_min, bs = "re") +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m4.1
-```
-
-### Model 5
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `downwind`
-* Smoothed predictors: `distance_m`
-* Random effects: `field`
-
-```{r m5}
-m5 <- gam(
-  spore_cm2 ~ time_min + downwind +
-    s(distance_m, k = 3) +
     s(field, bs = "re"),
   method = "REML",
   data = mod_dat,
@@ -174,12 +155,14 @@ m5
 ### Model 6
 
 * Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`
+* Linear predictors: `time_min`, `downwind`
+* Smoothed predictors: `distance_m`
 * Random effects: `field`
 
 ```{r m6}
 m6 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = "re"),
+  spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) +
+    s(field, bs = "re"),
   method = "REML",
   data = mod_dat,
   family = "tw"
@@ -190,12 +173,28 @@ m6
 ### Model 7
 
 * Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`, `wind_speed`, `rel_hum`, `temp`, `wind_speed`, `smut_incidence`
-* Smoothed predictors: `distance_m`
-* Random effects: `field`, `time_min`
+* Linear predictors: `time_min`, `distance_m`, `downwind`
+* Random effects: `field`
 
 ```{r m7}
 m7 <- gam(
+  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat,
+  family = "tw"
+)
+m7
+```
+
+### Model 8
+
+* Response: `spore_cm2`
+* Linear predictors: `time_min`, `distance_m`, `downwind`
+* Smoothed predictors: `wind_speed`
+* Random effects: `field`
+
+```{r m8}
+m8 <- gam(
   spore_cm2 ~ distance_m + downwind + time_min +
     s(wind_speed, k = 6) +
     s(field, bs = "re"),
@@ -203,7 +202,26 @@ m7 <- gam(
   data = mod_dat,
   family = "tw"
 )
-m7
+m8
+```
+
+### Model 9
+
+* Response: `spore_cm2`
+* Linear predictors: `time_min`, `distance_m`, `downwind`, `smut_incidence`
+* Smoothed predictors: `wind_speed`
+* Random effects: `field`
+
+```{r m9}
+m9 <- gam(
+  spore_cm2 ~ distance_m + downwind + time_min + `smut_incidence` +
+    s(wind_speed, k = 6) +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat,
+  family = "tw"
+)
+m9
 ```
 
 ## Model AIC
@@ -216,27 +234,27 @@ models <- list(
   m2 = m2,
   m3 = m3,
   m4 = m4,
-  m4.1 = m4.1,
   m5 = m5,
   m6 = m6,
-  m7 = m7
+  m7 = m7,
+  m8 = m8,
+  m9 = m9
 )
 map_df(models, glance, .id = "model") %>%
   arrange(AIC)
 ```
 
+Based on the AIC and BIC values, model m7 looks to be the best model for our data.
 
-Based on the AIC, model m6 looks to be the best model for our data.
+## Inspect model m7
 
-## Inspect model m6
-
-```{r summarise-m6}
-appraise(m6)
-summary(m6)
+```{r summarise-m7}
+appraise(m7)
+summary(m7)
 ```
 
 ```{r visualise-gam}
-draw(m6)
+draw(m7)
 ```
 
 ## Predict spore dispersal
@@ -250,7 +268,7 @@ newd <- expand_grid(
   wind_speed = 0:30,
   field = 5
 )
-newd$pred_spore_cm2 <- predict(m6, newd)
+newd$pred_spore_cm2 <- predict(m7, newd)
 ```
 
 ## Visualise spore dispersal predictions
