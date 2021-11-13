@@ -390,7 +390,6 @@ library(&quot;ggpubr&quot;)
 library(&quot;gratia&quot;)
 library(&quot;here&quot;)
 library(&quot;mgcv&quot;)
-library(&quot;mgcViz&quot;)
 
 theme_set(theme_pubclean())</code></pre>
 </div>
@@ -437,6 +436,7 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 ## 22 N                     0 N                   0          0 upwind  
 ## 23 S                   180 N                   0        180 downwind
 ## 24 W                   270 N                   0        270 lateral</code></pre>
+<p>Because of the number of zeros in the data, we will use a <a href="https://en.wikipedia.org/wiki/Tweedie_distribution">Tweedie family</a> for the models to help account for this, <em>i.e.</em> in the model functions you will see <code>family =  "tw"</code> for this.</p>
 <div id="model-1" class="section level3">
 <h3>Model 1</h3>
 <ul>
@@ -448,20 +448,21 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
   spore_cm2 ~ distance_m:time_min +
     s(field, bs = &quot;re&quot;),
   data = mod_dat,
-  method = &quot;REML&quot;
+  method = &quot;REML&quot;,
+  family = &quot;tw&quot;
 )
 m1</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.711) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 4.27  total = 6.27 
+## 4.72  total = 6.72 
 ## 
-## REML score: 2602.536</code></pre>
+## REML score: 1722.582</code></pre>
 </div>
 <div id="model-2" class="section level3">
 <h3>Model 2</h3>
@@ -476,21 +477,22 @@ m1</code></pre>
     s(field, bs = &quot;re&quot;) +
     s(downwind, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m2</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.627) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;) + s(downwind, 
 ##     bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 4.05 1.98  total = 8.03 
+## 4.63 1.99  total = 8.62 
 ## 
-## REML score: 2531.749</code></pre>
+## REML score: 1591.738</code></pre>
 </div>
 <div id="model-3" class="section level3">
 <h3>Model 3</h3>
@@ -505,21 +507,22 @@ m2</code></pre>
     s(field, bs = &quot;re&quot;) +
     s(downwind, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m3</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.627) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ distance_m:time_min + s(wind_speed, bs = &quot;re&quot;) + 
 ##     s(field, bs = &quot;re&quot;) + s(downwind, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 0.0004 4.0483 1.9793  total = 8.03 
+## 0.00 4.63 1.99  total = 8.62 
 ## 
-## REML score: 2531.749</code></pre>
+## REML score: 1591.738</code></pre>
 </div>
 <div id="model-4" class="section level3">
 <h3>Model 4</h3>
@@ -534,21 +537,22 @@ m3</code></pre>
     s(distance_m, k = 3) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m4</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.604) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
 ##     k = 3) + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.54 3.33  total = 9.87 
+## 1.00 3.46  total = 9.46 
 ## 
-## REML score: 2504.107</code></pre>
+## REML score: 1549.849</code></pre>
 </div>
 <div id="model-4.1" class="section level3">
 <h3>Model 4.1</h3>
@@ -564,21 +568,22 @@ m4</code></pre>
     s(time_min, bs = &quot;re&quot;) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m4.1</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.604) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
 ##     k = 3) + s(time_min, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.54 0.00 3.33  total = 9.87 
+## 1.00 0.00 3.46  total = 9.46 
 ## 
-## REML score: 2504.107</code></pre>
+## REML score: 1549.849</code></pre>
 </div>
 <div id="model-5" class="section level3">
 <h3>Model 5</h3>
@@ -593,21 +598,46 @@ m4.1</code></pre>
     s(distance_m, k = 3) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m5</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.603) 
+## Link function: log 
 ## 
 ## Formula:
 ## spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) + s(field, 
 ##     bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.54 4.09  total = 9.63 
+## 1.00 4.59  total = 9.59 
 ## 
-## REML score: 2503.903</code></pre>
+## REML score: 1548.587</code></pre>
+</div>
+<div id="model-5.1" class="section level3">
+<h3>Model 5.1</h3>
+<pre class="r"><code>m5.1 &lt;- gam(
+  spore_cm2 ~ time_min + downwind + distance_m +
+    s(wind_speed, k = 6) +
+    s(field, bs = &quot;re&quot;),
+  method = &quot;REML&quot;,
+  data = mod_dat,
+  family = &quot;tw&quot;
+)
+m5.1</code></pre>
+<pre><code>## 
+## Family: Tweedie(p=1.605) 
+## Link function: log 
+## 
+## Formula:
+## spore_cm2 ~ time_min + downwind + distance_m + s(wind_speed, 
+##     k = 6) + s(field, bs = &quot;re&quot;)
+## 
+## Estimated degrees of freedom:
+## 1.64 2.77  total = 9.41 
+## 
+## REML score: 1552.389</code></pre>
 </div>
 <div id="model-6" class="section level3">
 <h3>Model 6</h3>
@@ -618,27 +648,26 @@ m5</code></pre>
 <li>Random effects: <code>field</code>, <code>time_min</code></li>
 </ul>
 <pre class="r"><code>m6 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind + rel_hum +
-    temp + wind_speed + smut_incidence +
-    s(distance_m, k = 3) +
+  spore_cm2 ~ distance_m + downwind + time_min +
+    s(wind_speed, k = 6) +
     s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
-  data = mod_dat
+  data = mod_dat,
+  family = &quot;tw&quot;
 )
 m6</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.605) 
+## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + rel_hum + temp + 
-##     wind_speed + smut_incidence + s(distance_m, k = 3) + s(field, 
-##     bs = &quot;re&quot;)
+## spore_cm2 ~ distance_m + downwind + time_min + s(wind_speed, 
+##     k = 6) + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.542 0.915  total = 10.46 
+## 1.64 2.77  total = 9.41 
 ## 
-## REML score: 2504.34     rank: 16/17</code></pre>
+## REML score: 1552.389</code></pre>
 </div>
 </div>
 <div id="model-aic" class="section level2">
@@ -651,84 +680,57 @@ m6</code></pre>
   m4 = m4,
   m4.1 = m4.1,
   m5 = m5,
+  m5.1 = m5.1,
   m6 = m6
 )
 map_df(models, glance, .id = &quot;model&quot;) %&gt;%
   arrange(AIC)</code></pre>
-<pre><code>## # A tibble: 7 × 8
+<pre><code>## # A tibble: 8 × 8
 ##   model    df logLik   AIC   BIC deviance df.residual  nobs
 ##   &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt; &lt;int&gt;
-## 1 m6    10.5  -2498. 5019. 5070.  196855.        566.   576
-## 2 m4     9.87 -2498. 5019. 5070.  197053.        566.   576
-## 3 m4.1   9.87 -2498. 5019. 5070.  197053.        566.   576
-## 4 m5     9.63 -2498. 5019. 5070.  197125.        566.   576
-## 5 m2     8.03 -2511. 5041. 5082.  206249.        568.   576
-## 6 m3     8.03 -2511. 5041. 5082.  206249.        568.   576
-## 7 m1     6.27 -2587. 5189. 5222.  268529.        570.   576</code></pre>
+## 1 m5     9.59 -1528. 3079. 3131.    2097.        566.   576
+## 2 m4     9.46 -1528. 3079. 3131.    2097.        567.   576
+## 3 m4.1   9.46 -1528. 3079. 3131.    2097.        567.   576
+## 4 m5.1   9.41 -1528. 3079. 3131.    2097.        567.   576
+## 5 m6     9.41 -1528. 3079. 3131.    2097.        567.   576
+## 6 m2     8.62 -1562. 3147. 3194.    2295.        567.   576
+## 7 m3     8.62 -1562. 3147. 3194.    2295.        567.   576
+## 8 m1     6.72 -1699. 3416. 3455.    3265.        569.   576</code></pre>
+<p>Based on the AIC, model m5.1 looks to be the best model for our data.</p>
 </div>
-<div id="anova" class="section level2">
-<h2>ANOVA</h2>
-<pre class="r"><code>anova(m1, m2, m3, m4, m4.1, m5, m6, test = &quot;F&quot;)</code></pre>
-<pre><code>## Analysis of Deviance Table
-## 
-## Model 1: spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;)
-## Model 2: spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;) + s(downwind, 
-##     bs = &quot;re&quot;)
-## Model 3: spore_cm2 ~ distance_m:time_min + s(wind_speed, bs = &quot;re&quot;) + 
-##     s(field, bs = &quot;re&quot;) + s(downwind, bs = &quot;re&quot;)
-## Model 4: spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
-##     k = 3) + s(field, bs = &quot;re&quot;)
-## Model 5: spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
-##     k = 3) + s(time_min, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;)
-## Model 6: spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) + s(field, 
-##     bs = &quot;re&quot;)
-## Model 7: spore_cm2 ~ time_min + distance_m + downwind + rel_hum + temp + 
-##     wind_speed + smut_incidence + s(distance_m, k = 3) + s(field, 
-##     bs = &quot;re&quot;)
-##   Resid. Df Resid. Dev         Df Deviance       F    Pr(&gt;F)    
-## 1    568.77     268529                                          
-## 2    566.74     206249  2.0313332    62280 88.0900 &lt; 2.2e-16 ***
-## 3    566.74     206249  0.0053769        0  0.0146   0.02541 *  
-## 4    564.52     197053  2.2199250     9196 11.9020 3.475e-06 ***
-## 5    564.52     197053  0.0000000        0                      
-## 6    564.38     197125  0.1312158      -72                      
-## 7    564.89     196855 -0.5068690      269                      
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Based on the AIC and ANOVA, model m5 looks to be the best model for our data.</p>
-</div>
-<div id="inspect-model-m5" class="section level2">
-<h2>Inspect model m5</h2>
-<pre class="r"><code>appraise(m5)</code></pre>
+<div id="inspect-model-m5.1" class="section level2">
+<h2>Inspect model m5.1</h2>
+<pre class="r"><code>appraise(m5.1)</code></pre>
 <p><img src="model_files/figure-html/summarise-m5-1.png" width="672" /></p>
-<pre class="r"><code>summary(m5)</code></pre>
+<pre class="r"><code>summary(m5.1)</code></pre>
 <pre><code>## 
-## Family: gaussian 
-## Link function: identity 
+## Family: Tweedie(p=1.605) 
+## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) + s(field, 
-##     bs = &quot;re&quot;)
+## spore_cm2 ~ time_min + downwind + distance_m + s(wind_speed, 
+##     k = 6) + s(field, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##                  Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)      26.64001    3.23106   8.245 1.16e-15 ***
-## time_min          0.03253    0.01058   3.075  0.00221 ** 
-## downwindlateral -28.39860    2.28906 -12.406  &lt; 2e-16 ***
-## downwindupwind  -31.19358    2.69277 -11.584  &lt; 2e-16 ***
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      3.5617472  0.2319278  15.357  &lt; 2e-16 ***
+## time_min         0.0036833  0.0007147   5.154 3.53e-07 ***
+## downwindlateral -2.2142633  0.1303586 -16.986  &lt; 2e-16 ***
+## downwindupwind  -3.2390925  0.1928119 -16.799  &lt; 2e-16 ***
+## distance_m      -0.0034339  0.0004714  -7.285 1.09e-12 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                 edf Ref.df     F  p-value    
-## s(distance_m) 1.543  1.791 11.55 0.000288 ***
-## s(field)      4.086  5.000  4.70 3.52e-05 ***
+##                 edf Ref.df     F p-value   
+## s(wind_speed) 1.639  1.707 4.843  0.0355 * 
+## s(field)      2.769  4.000 2.877  0.0012 **
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.298   Deviance explained = 30.9%
-## -REML = 2503.9  Scale est. = 348.05    n = 576</code></pre>
-<pre class="r"><code>draw(m5)</code></pre>
+## R-sq.(adj) =  0.433   Deviance explained = 48.1%
+## -REML = 1552.4  Scale est. = 3.0123    n = 576</code></pre>
+<pre class="r"><code>draw(m5.1)</code></pre>
 <p><img src="model_files/figure-html/visualise-gam-1.png" width="672" /></p>
 </div>
 <div id="predict-spore-dispersal" class="section level2">
@@ -740,17 +742,28 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
   time_min = c(90, 180, 270),
   downwind = c(&quot;downwind&quot;, &quot;lateral&quot;, &quot;upwind&quot;),
   distance_m = seq(0, 400, 100),
+  wind_speed = 0:30,
   field = 5
 )
-newd$pred_spore_cm2 &lt;- predict.gam(m5, newd)</code></pre>
+newd$pred_spore_cm2 &lt;- predict.gam(m5.1, newd)</code></pre>
 </div>
 <div id="visualise-spore-dispersal-predictions" class="section level2">
 <h2>Visualise spore dispersal predictions</h2>
 <pre class="r"><code>newd %&gt;%
-  ggplot(aes(distance_m, pred_spore_cm2, col = downwind)) +
-  geom_point() +
-  geom_line() +
-  scale_colour_viridis_d() +
+  ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
+  stat_summary(
+    mapping = aes(x = distance_m, y = pred_spore_cm2),
+    fun.min = function(z) {
+      quantile(z, 0.25)
+    },
+    fun.max = function(z) {
+      quantile(z, 0.75)
+    },
+    fun = median
+  ) +
+geom_smooth() +
+  scale_fill_viridis_d(&quot;Prevailing wind&quot;) +
+  scale_colour_viridis_d(&quot;Prevailing Wind&quot;) +
   facet_grid(. ~ time_min) +
   scale_x_continuous(sec.axis = sec_axis(
     ~ . ,
@@ -759,8 +772,7 @@ newd$pred_spore_cm2 &lt;- predict.gam(m5, newd)</code></pre>
     labels = NULL
   )) +
   labs(x = &quot;Distance from harvesting field (m)&quot;,
-       y = &quot;Spores / m²&quot;,
-       col = &quot;Prevailing wind&quot;) +
+       y = &quot;Spores / m²&quot;) +
   theme(
     legend.position = &quot;top&quot;,
     legend.justification = &quot;center&quot;,
@@ -768,9 +780,14 @@ newd$pred_spore_cm2 &lt;- predict.gam(m5, newd)</code></pre>
     legend.background = element_blank(),
     legend.key = element_blank()
   ) +
-  guides(colour = guide_legend(title.position = &quot;top&quot;,
-                               title.hjust = 0.5))</code></pre>
-<p><img src="model_files/figure-html/graph-predictions-1.png" width="672" /></p>
+  guides(fill = guide_legend(title.position = &quot;top&quot;,
+                             title.hjust = 0.5))</code></pre>
+<div class="figure">
+<img src="model_files/figure-html/graph-predictions-1.png" alt="Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points." width="672" />
+<p class="caption">
+Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points.
+</p>
+</div>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots/spore_prediction.png&quot;,

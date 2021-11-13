@@ -39,7 +39,9 @@ theme_set(theme_pubclean())
 load(here("data/dat.Rdata"))
 ```
 
-### Add cardinal directions
+### Data prep
+
+#### Add cardinal directions
 
 We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam's code for chickpea ascochyta blight spore dispersal).
 
@@ -68,6 +70,8 @@ coord_deg <- tibble(
 coord_deg
 ```
 
+Create a `spore_raw` object that has spore and weather data.
+
 ```{r join-data}
 spore_raw <- spore_data %>%
   left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
@@ -75,9 +79,13 @@ spore_raw <- spore_data %>%
 spore_raw
 ```
 
-## Plot spore dispersal density
+Create a `data.frame` that incorporates the weather data with the cardinal directions object we created above.
 
-### Data prep
+```{r join-wind-data}
+meteo_dat <- meteo_data %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees)
+```
 
 Create a `data.frame` that has `field`, `trap_coord`, `distance_m`, `time_min` and `sub_sample` summarised with mean spores for graphing spore density by polar direction.
 
@@ -104,6 +112,8 @@ spore_dat <-
 
 spore_dat
 ```
+
+## Plot spore dispersal density
 
 ### Plot spore densities
 
@@ -136,6 +146,18 @@ ggplot(spore_data, aes(x = as.factor(distance_m), y = n_spore)) +
   scale_colour_viridis_d("Time (minutes)") +
   labs(y = expression(Spores/cm^{2}),
        x = "Distance (m)")
+```
+
+#### Check windspeed effect
+
+```{r spore-windspeed}
+spore_data %>%
+  left_join(meteo_dat, by = "field") %>%
+  ggplot(aes(x = wind_speed, y = n_spore)) +
+  geom_hex() +
+  geom_smooth() +
+  labs(y = expression(Spores / cm^{2}),
+  x = "Wind Speed (m/s)")
 ```
 
 #### Polar coordinates
@@ -214,16 +236,6 @@ ggsave(
 ```
 
 ## Plot wind data
-
-### Data prep
-
-Create a `data.frame` that incorporates the weather data with the cardinal directions object we created above.
-
-```{r join-wind-data}
-meteo_dat <- meteo_data %>%
-  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
-  rename(wind_degrees = degrees)
-```
 
 ### Wind roses
 

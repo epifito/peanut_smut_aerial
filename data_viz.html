@@ -394,8 +394,10 @@ theme_set(theme_pubclean())</code></pre>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
 <pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))</code></pre>
-<div id="add-cardinal-directions" class="section level3">
-<h3>Add cardinal directions</h3>
+<div id="data-prep" class="section level3">
+<h3>Data prep</h3>
+<div id="add-cardinal-directions" class="section level4">
+<h4>Add cardinal directions</h4>
 <p>We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam’s code for chickpea ascochyta blight spore dispersal).</p>
 <pre class="r"><code>coord_deg &lt;- tibble(
   dir = c(
@@ -438,6 +440,7 @@ coord_deg</code></pre>
 ## 14 WNW     292. 
 ## 15 NW      315  
 ## 16 NNW     338.</code></pre>
+<p>Create a <code>spore_raw</code> object that has spore and weather data.</p>
 <pre class="r"><code>spore_raw &lt;- spore_data %&gt;%
   left_join(coord_deg, by = c(&quot;trap_coord&quot; = &quot;dir&quot;)) %&gt;%
   rename(trap_degrees = degrees)
@@ -456,12 +459,10 @@ spore_raw</code></pre>
 ##  9 1     N                 300       90          1     1       1            0
 ## 10 1     N                 300       90          1     2       0            0
 ## # … with 1,142 more rows</code></pre>
-</div>
-</div>
-<div id="plot-spore-dispersal-density" class="section level2">
-<h2>Plot spore dispersal density</h2>
-<div id="data-prep" class="section level3">
-<h3>Data prep</h3>
+<p>Create a <code>data.frame</code> that incorporates the weather data with the cardinal directions object we created above.</p>
+<pre class="r"><code>meteo_dat &lt;- meteo_data %&gt;%
+  left_join(coord_deg, by = c(&quot;wind_dir&quot; = &quot;dir&quot;)) %&gt;%
+  rename(wind_degrees = degrees)</code></pre>
 <p>Create a <code>data.frame</code> that has <code>field</code>, <code>trap_coord</code>, <code>distance_m</code>, <code>time_min</code> and <code>sub_sample</code> summarised with mean spores for graphing spore density by polar direction.</p>
 <pre class="r"><code>spore_dat &lt;- 
   spore_raw %&gt;%
@@ -499,6 +500,10 @@ spore_dat</code></pre>
 ## 10 1_E_2… 1     E                 200           90      270          2     0.417
 ## # … with 566 more rows</code></pre>
 </div>
+</div>
+</div>
+<div id="plot-spore-dispersal-density" class="section level2">
+<h2>Plot spore dispersal density</h2>
 <div id="plot-spore-densities" class="section level3">
 <h3>Plot spore densities</h3>
 <p>Create a density plot of the observed spore dispersal values.</p>
@@ -523,6 +528,17 @@ spore_dat</code></pre>
   labs(y = expression(Spores/cm^{2}),
        x = &quot;Distance (m)&quot;)</code></pre>
 <p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="672" /></p>
+<div id="check-windspeed-effect" class="section level4">
+<h4>Check windspeed effect</h4>
+<pre class="r"><code>spore_data %&gt;%
+  left_join(meteo_dat, by = &quot;field&quot;) %&gt;%
+  ggplot(aes(x = wind_speed, y = n_spore)) +
+  geom_hex() +
+  geom_smooth() +
+  labs(y = expression(Spores / cm^{2}),
+  x = &quot;Wind Speed (m/s)&quot;)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
+</div>
 <div id="polar-coordinates" class="section level4">
 <h4>Polar coordinates</h4>
 <p>Create polar coordinate plots that display spore density in each cardinal direction.</p>
@@ -597,13 +613,6 @@ spore_dat</code></pre>
 </div>
 <div id="plot-wind-data" class="section level2">
 <h2>Plot wind data</h2>
-<div id="data-prep-1" class="section level3">
-<h3>Data prep</h3>
-<p>Create a <code>data.frame</code> that incorporates the weather data with the cardinal directions object we created above.</p>
-<pre class="r"><code>meteo_dat &lt;- meteo_data %&gt;%
-  left_join(coord_deg, by = c(&quot;wind_dir&quot; = &quot;dir&quot;)) %&gt;%
-  rename(wind_degrees = degrees)</code></pre>
-</div>
 <div id="wind-roses" class="section level3">
 <h3>Wind roses</h3>
 <p>Using the <code>wind_rose()</code> from <em>clifro</em>, create windrose plots to visualise windspeeds and directions during the harvest and spread events.</p>

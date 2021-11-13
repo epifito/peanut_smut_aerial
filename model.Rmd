@@ -31,7 +31,6 @@ library("ggpubr")
 library("gratia")
 library("here")
 library("mgcv")
-library("mgcViz")
 
 theme_set(theme_pubclean())
 ```
@@ -57,6 +56,8 @@ mod_dat %>%
   print(n = Inf)
 ```
 
+Because of the number of zeros in the data, we will use a [Tweedie family](https://en.wikipedia.org/wiki/Tweedie_distribution) for the models to help account for this, _i.e._ in the model functions you will see `family =  "tw"` for this.
+
 ### Model 1
 
 * Response: `spore_cm2`
@@ -68,7 +69,8 @@ m1 <- gam(
   spore_cm2 ~ distance_m:time_min +
     s(field, bs = "re"),
   data = mod_dat,
-  method = "REML"
+  method = "REML",
+  family = "tw"
 )
 m1
 ```
@@ -86,7 +88,8 @@ m2 <- gam(
     s(field, bs = "re") +
     s(downwind, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m2
 ```
@@ -104,7 +107,8 @@ m3 <- gam(
     s(field, bs = "re") +
     s(downwind, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m3
 ```
@@ -122,7 +126,8 @@ m4 <- gam(
     s(distance_m, k = 3) +
     s(field, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m4
 ```
@@ -141,7 +146,8 @@ m4.1 <- gam(
     s(time_min, bs = "re") +
     s(field, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m4.1
 ```
@@ -159,9 +165,26 @@ m5 <- gam(
     s(distance_m, k = 3) +
     s(field, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m5
+```
+
+### Model 5.1
+
+
+
+```{r m5.1}
+m5.1 <- gam(
+  spore_cm2 ~ time_min + downwind + distance_m +
+    s(wind_speed, k = 6) +
+    s(field, bs = "re"),
+  method = "REML",
+  data = mod_dat,
+  family = "tw"
+)
+m5.1
 ```
 
 ### Model 6
@@ -173,12 +196,12 @@ m5
 
 ```{r m6}
 m6 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind + rel_hum +
-    temp + wind_speed + smut_incidence +
-    s(distance_m, k = 3) +
+  spore_cm2 ~ distance_m + downwind + time_min +
+    s(wind_speed, k = 6) +
     s(field, bs = "re"),
   method = "REML",
-  data = mod_dat
+  data = mod_dat,
+  family = "tw"
 )
 m6
 ```
@@ -195,29 +218,25 @@ models <- list(
   m4 = m4,
   m4.1 = m4.1,
   m5 = m5,
+  m5.1 = m5.1,
   m6 = m6
 )
 map_df(models, glance, .id = "model") %>%
   arrange(AIC)
 ```
 
-## ANOVA
 
-```{r anova}
-anova(m1, m2, m3, m4, m4.1, m5, m6, test = "F")
-```
+Based on the AIC, model m5.1 looks to be the best model for our data.
 
-Based on the AIC and ANOVA, model m5 looks to be the best model for our data.
-
-## Inspect model m5
+## Inspect model m5.1
 
 ```{r summarise-m5}
-appraise(m5)
-summary(m5)
+appraise(m5.1)
+summary(m5.1)
 ```
 
 ```{r visualise-gam}
-draw(m5)
+draw(m5.1)
 ```
 
 ## Predict spore dispersal
@@ -228,19 +247,30 @@ newd <- expand_grid(
   time_min = c(90, 180, 270),
   downwind = c("downwind", "lateral", "upwind"),
   distance_m = seq(0, 400, 100),
+  wind_speed = 0:30,
   field = 5
 )
-newd$pred_spore_cm2 <- predict.gam(m5, newd)
+newd$pred_spore_cm2 <- predict.gam(m5.1, newd)
 ```
 
 ## Visualise spore dispersal predictions
 
-```{r graph-predictions}
+```{r graph-predictions, fig.cap="Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points."}
 newd %>%
-  ggplot(aes(distance_m, pred_spore_cm2, col = downwind)) +
-  geom_point() +
-  geom_line() +
-  scale_colour_viridis_d() +
+  ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
+  stat_summary(
+    mapping = aes(x = distance_m, y = pred_spore_cm2),
+    fun.min = function(z) {
+      quantile(z, 0.25)
+    },
+    fun.max = function(z) {
+      quantile(z, 0.75)
+    },
+    fun = median
+  ) +
+geom_smooth() +
+  scale_fill_viridis_d("Prevailing wind") +
+  scale_colour_viridis_d("Prevailing Wind") +
   facet_grid(. ~ time_min) +
   scale_x_continuous(sec.axis = sec_axis(
     ~ . ,
@@ -249,8 +279,7 @@ newd %>%
     labels = NULL
   )) +
   labs(x = "Distance from harvesting field (m)",
-       y = "Spores / m²",
-       col = "Prevailing wind") +
+       y = "Spores / m²") +
   theme(
     legend.position = "top",
     legend.justification = "center",
@@ -258,8 +287,8 @@ newd %>%
     legend.background = element_blank(),
     legend.key = element_blank()
   ) +
-  guides(colour = guide_legend(title.position = "top",
-                               title.hjust = 0.5))
+  guides(fill = guide_legend(title.position = "top",
+                             title.hjust = 0.5))
 ```
 
 ```{r save-prediction-graph, eval=FALSE}
