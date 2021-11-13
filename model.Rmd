@@ -171,31 +171,31 @@ m5 <- gam(
 m5
 ```
 
-### Model 5.1
+### Model 6
 
+* Response: `spore_cm2`
+* Linear predictors: `time_min`, `distance_m`, `downwind`
+* Random effects: `field`
 
-
-```{r m5.1}
-m5.1 <- gam(
-  spore_cm2 ~ time_min + downwind + distance_m +
-    s(wind_speed, k = 6) +
-    s(field, bs = "re"),
+```{r m6}
+m6 <- gam(
+  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = "re"),
   method = "REML",
   data = mod_dat,
   family = "tw"
 )
-m5.1
+m6
 ```
 
-### Model 6
+### Model 7
 
 * Response: `spore_cm2`
 * Linear predictors: `time_min`, `distance_m`, `downwind`, `wind_speed`, `rel_hum`, `temp`, `wind_speed`, `smut_incidence`
 * Smoothed predictors: `distance_m`
 * Random effects: `field`, `time_min`
 
-```{r m6}
-m6 <- gam(
+```{r m7}
+m7 <- gam(
   spore_cm2 ~ distance_m + downwind + time_min +
     s(wind_speed, k = 6) +
     s(field, bs = "re"),
@@ -203,7 +203,7 @@ m6 <- gam(
   data = mod_dat,
   family = "tw"
 )
-m6
+m7
 ```
 
 ## Model AIC
@@ -218,25 +218,25 @@ models <- list(
   m4 = m4,
   m4.1 = m4.1,
   m5 = m5,
-  m5.1 = m5.1,
-  m6 = m6
+  m6 = m6,
+  m7 = m7
 )
 map_df(models, glance, .id = "model") %>%
   arrange(AIC)
 ```
 
 
-Based on the AIC, model m5.1 looks to be the best model for our data.
+Based on the AIC, model m6 looks to be the best model for our data.
 
-## Inspect model m5.1
+## Inspect model m6
 
-```{r summarise-m5}
-appraise(m5.1)
-summary(m5.1)
+```{r summarise-m6}
+appraise(m6)
+summary(m6)
 ```
 
 ```{r visualise-gam}
-draw(m5.1)
+draw(m6)
 ```
 
 ## Predict spore dispersal
@@ -250,25 +250,19 @@ newd <- expand_grid(
   wind_speed = 0:30,
   field = 5
 )
-newd$pred_spore_cm2 <- predict.gam(m5.1, newd)
+newd$pred_spore_cm2 <- predict(m6, newd)
 ```
 
 ## Visualise spore dispersal predictions
 
-```{r graph-predictions, fig.cap="Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points."}
+The GAM will predict spores to disperse at negative values, since this is not possible, we will set any values that are less than zero to zero in the model's output before plotting.
+
+```{r graph-predictions, fig.cap="Predictions of spore dispersal (spores per meter squared) at 0m to 400m for three time points, 90 min, 180 min, 270 min after peanut harvest commenced."}
 newd %>%
+  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
   ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
-  stat_summary(
-    mapping = aes(x = distance_m, y = pred_spore_cm2),
-    fun.min = function(z) {
-      quantile(z, 0.25)
-    },
-    fun.max = function(z) {
-      quantile(z, 0.75)
-    },
-    fun = median
-  ) +
-geom_smooth() +
+  geom_point() +
+  geom_smooth() +
   scale_fill_viridis_d("Prevailing wind") +
   scale_colour_viridis_d("Prevailing Wind") +
   facet_grid(. ~ time_min) +

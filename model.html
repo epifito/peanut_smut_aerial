@@ -615,39 +615,41 @@ m5</code></pre>
 ## 
 ## REML score: 1548.587</code></pre>
 </div>
-<div id="model-5.1" class="section level3">
-<h3>Model 5.1</h3>
-<pre class="r"><code>m5.1 &lt;- gam(
-  spore_cm2 ~ time_min + downwind + distance_m +
-    s(wind_speed, k = 6) +
-    s(field, bs = &quot;re&quot;),
+<div id="model-6" class="section level3">
+<h3>Model 6</h3>
+<ul>
+<li>Response: <code>spore_cm2</code></li>
+<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code></li>
+<li>Random effects: <code>field</code></li>
+</ul>
+<pre class="r"><code>m6 &lt;- gam(
+  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat,
   family = &quot;tw&quot;
 )
-m5.1</code></pre>
+m6</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.605) 
+## Family: Tweedie(p=1.603) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ time_min + downwind + distance_m + s(wind_speed, 
-##     k = 6) + s(field, bs = &quot;re&quot;)
+## spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.64 2.77  total = 9.41 
+## 4.59  total = 9.59 
 ## 
-## REML score: 1552.389</code></pre>
+## REML score: 1553.303</code></pre>
 </div>
-<div id="model-6" class="section level3">
-<h3>Model 6</h3>
+<div id="model-7" class="section level3">
+<h3>Model 7</h3>
 <ul>
 <li>Response: <code>spore_cm2</code></li>
 <li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>wind_speed</code>, <code>rel_hum</code>, <code>temp</code>, <code>wind_speed</code>, <code>smut_incidence</code></li>
 <li>Smoothed predictors: <code>distance_m</code></li>
 <li>Random effects: <code>field</code>, <code>time_min</code></li>
 </ul>
-<pre class="r"><code>m6 &lt;- gam(
+<pre class="r"><code>m7 &lt;- gam(
   spore_cm2 ~ distance_m + downwind + time_min +
     s(wind_speed, k = 6) +
     s(field, bs = &quot;re&quot;),
@@ -655,7 +657,7 @@ m5.1</code></pre>
   data = mod_dat,
   family = &quot;tw&quot;
 )
-m6</code></pre>
+m7</code></pre>
 <pre><code>## 
 ## Family: Tweedie(p=1.605) 
 ## Link function: log 
@@ -680,57 +682,55 @@ m6</code></pre>
   m4 = m4,
   m4.1 = m4.1,
   m5 = m5,
-  m5.1 = m5.1,
-  m6 = m6
+  m6 = m6,
+  m7 = m7
 )
 map_df(models, glance, .id = &quot;model&quot;) %&gt;%
   arrange(AIC)</code></pre>
 <pre><code>## # A tibble: 8 × 8
 ##   model    df logLik   AIC   BIC deviance df.residual  nobs
 ##   &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt; &lt;int&gt;
-## 1 m5     9.59 -1528. 3079. 3131.    2097.        566.   576
-## 2 m4     9.46 -1528. 3079. 3131.    2097.        567.   576
-## 3 m4.1   9.46 -1528. 3079. 3131.    2097.        567.   576
-## 4 m5.1   9.41 -1528. 3079. 3131.    2097.        567.   576
-## 5 m6     9.41 -1528. 3079. 3131.    2097.        567.   576
+## 1 m6     9.59 -1528. 3079. 3130.    2097.        566.   576
+## 2 m5     9.59 -1528. 3079. 3131.    2097.        566.   576
+## 3 m4     9.46 -1528. 3079. 3131.    2097.        567.   576
+## 4 m4.1   9.46 -1528. 3079. 3131.    2097.        567.   576
+## 5 m7     9.41 -1528. 3079. 3131.    2097.        567.   576
 ## 6 m2     8.62 -1562. 3147. 3194.    2295.        567.   576
 ## 7 m3     8.62 -1562. 3147. 3194.    2295.        567.   576
 ## 8 m1     6.72 -1699. 3416. 3455.    3265.        569.   576</code></pre>
-<p>Based on the AIC, model m5.1 looks to be the best model for our data.</p>
+<p>Based on the AIC, model m6 looks to be the best model for our data.</p>
 </div>
-<div id="inspect-model-m5.1" class="section level2">
-<h2>Inspect model m5.1</h2>
-<pre class="r"><code>appraise(m5.1)</code></pre>
-<p><img src="model_files/figure-html/summarise-m5-1.png" width="672" /></p>
-<pre class="r"><code>summary(m5.1)</code></pre>
+<div id="inspect-model-m6" class="section level2">
+<h2>Inspect model m6</h2>
+<pre class="r"><code>appraise(m6)</code></pre>
+<p><img src="model_files/figure-html/summarise-m6-1.png" width="672" /></p>
+<pre class="r"><code>summary(m6)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.605) 
+## Family: Tweedie(p=1.603) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ time_min + downwind + distance_m + s(wind_speed, 
-##     k = 6) + s(field, bs = &quot;re&quot;)
+## spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##                   Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)      3.5617472  0.2319278  15.357  &lt; 2e-16 ***
-## time_min         0.0036833  0.0007147   5.154 3.53e-07 ***
-## downwindlateral -2.2142633  0.1303586 -16.986  &lt; 2e-16 ***
-## downwindupwind  -3.2390925  0.1928119 -16.799  &lt; 2e-16 ***
-## distance_m      -0.0034339  0.0004714  -7.285 1.09e-12 ***
+## (Intercept)      3.5277770  0.2730250  12.921  &lt; 2e-16 ***
+## time_min         0.0036944  0.0007135   5.178 3.12e-07 ***
+## distance_m      -0.0034690  0.0004707  -7.370 6.07e-13 ***
+## downwindlateral -2.1506668  0.1305058 -16.479  &lt; 2e-16 ***
+## downwindupwind  -3.2287850  0.1927349 -16.752  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                 edf Ref.df     F p-value   
-## s(wind_speed) 1.639  1.707 4.843  0.0355 * 
-## s(field)      2.769  4.000 2.877  0.0012 **
+##            edf Ref.df     F p-value    
+## s(field) 4.592      5 11.57  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.433   Deviance explained = 48.1%
-## -REML = 1552.4  Scale est. = 3.0123    n = 576</code></pre>
-<pre class="r"><code>draw(m5.1)</code></pre>
+## R-sq.(adj) =  0.446   Deviance explained = 48.2%
+## -REML = 1553.3  Scale est. = 3.0105    n = 576</code></pre>
+<pre class="r"><code>draw(m6)</code></pre>
 <p><img src="model_files/figure-html/visualise-gam-1.png" width="672" /></p>
 </div>
 <div id="predict-spore-dispersal" class="section level2">
@@ -745,23 +745,16 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
   wind_speed = 0:30,
   field = 5
 )
-newd$pred_spore_cm2 &lt;- predict.gam(m5.1, newd)</code></pre>
+newd$pred_spore_cm2 &lt;- predict(m6, newd)</code></pre>
 </div>
 <div id="visualise-spore-dispersal-predictions" class="section level2">
 <h2>Visualise spore dispersal predictions</h2>
+<p>The GAM will predict spores to disperse at negative values, since this is not possible, we will set any values that are less than zero to zero in the model’s output before plotting.</p>
 <pre class="r"><code>newd %&gt;%
+  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
   ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
-  stat_summary(
-    mapping = aes(x = distance_m, y = pred_spore_cm2),
-    fun.min = function(z) {
-      quantile(z, 0.25)
-    },
-    fun.max = function(z) {
-      quantile(z, 0.75)
-    },
-    fun = median
-  ) +
-geom_smooth() +
+  geom_point() +
+  geom_smooth() +
   scale_fill_viridis_d(&quot;Prevailing wind&quot;) +
   scale_colour_viridis_d(&quot;Prevailing Wind&quot;) +
   facet_grid(. ~ time_min) +
@@ -783,9 +776,9 @@ geom_smooth() +
   guides(fill = guide_legend(title.position = &quot;top&quot;,
                              title.hjust = 0.5))</code></pre>
 <div class="figure">
-<img src="model_files/figure-html/graph-predictions-1.png" alt="Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points." width="672" />
+<img src="model_files/figure-html/graph-predictions-1.png" alt="Predictions of spore dispersal (spores per meter squared) at 0m to 400m for three time points, 90 min, 180 min, 270 min after peanut harvest commenced." width="672" />
 <p class="caption">
-Predictions of spore dispersal at 0 to 400m. Points indicate median values with upper and lower 25% quartile and 75% quartiles represented with vertical lines with a smoothed line fit through the points.
+Predictions of spore dispersal (spores per meter squared) at 0m to 400m for three time points, 90 min, 180 min, 270 min after peanut harvest commenced.
 </p>
 </div>
 <pre class="r"><code>ggsave(
