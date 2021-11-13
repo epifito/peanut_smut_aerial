@@ -150,14 +150,26 @@ ggplot(spore_data, aes(x = as.factor(distance_m), y = n_spore)) +
 
 #### Check windspeed effect
 
+Create a hexbin plot to display the number of spores by windspeed and fit a smothed line to these variables.
+
 ```{r spore-windspeed}
 spore_data %>%
   left_join(meteo_dat, by = "field") %>%
   ggplot(aes(x = wind_speed, y = n_spore)) +
+  scale_fill_viridis_c() +
   geom_hex() +
   geom_smooth() +
-  labs(y = expression(Spores / cm^{2}),
-  x = "Wind Speed (m/s)")
+  labs(y = expression(Spores / cm ^ {
+    2
+  }),
+  x = "Wind Speed (m/s)") +
+  theme(
+    legend.position = "top",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(fill = guide_legend(title.position = "top",
+                             title.hjust = 0.5))
 ```
 
 #### Polar coordinates

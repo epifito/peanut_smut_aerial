@@ -530,13 +530,24 @@ spore_dat</code></pre>
 <p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="672" /></p>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
+<p>Create a hexbin plot to display the number of spores by windspeed and fit a smothed line to these variables.</p>
 <pre class="r"><code>spore_data %&gt;%
   left_join(meteo_dat, by = &quot;field&quot;) %&gt;%
   ggplot(aes(x = wind_speed, y = n_spore)) +
+  scale_fill_viridis_c() +
   geom_hex() +
   geom_smooth() +
-  labs(y = expression(Spores / cm^{2}),
-  x = &quot;Wind Speed (m/s)&quot;)</code></pre>
+  labs(y = expression(Spores / cm ^ {
+    2
+  }),
+  x = &quot;Wind Speed (m/s)&quot;) +
+  theme(
+    legend.position = &quot;top&quot;,
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(fill = guide_legend(title.position = &quot;top&quot;,
+                             title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
 </div>
 <div id="polar-coordinates" class="section level4">
