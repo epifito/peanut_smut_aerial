@@ -159,9 +159,7 @@ spore_data %>%
   scale_fill_viridis_c() +
   geom_hex() +
   geom_smooth() +
-  labs(y = expression(Spores / cm ^ {
-    2
-  }),
+  labs(y = expression(Spores / cm^{2}),
   x = "Wind Speed (m/s)") +
   theme(
     legend.position = "top",
