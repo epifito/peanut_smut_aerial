@@ -1,7 +1,5 @@
 ---
 title: ""
-author: ""
-date: ""
 output:
   html_document:
     theme: simplex
@@ -14,24 +12,26 @@ output:
 
 # About
 
-Peanut smut, caused by *Thecaphora frezii*, has caused significant losses in Argentinian peanut production in recent years.  
+Peanut smut, caused by *Thecaphora frezii*, has caused significant losses in Argentinian peanut production in recent years.
 
-*T. frezii* is a soil-borne pathogen with the ability to survive long-term as teliospores in soil. The pathogen aggressively invades the pods and transforms kernels into a mass of spores. 
+*T. frezii* is a soil-borne pathogen with the ability to survive long-term as teliospores in soil.
+The pathogen aggressively invades the pods and transforms kernels into a mass of spores.
 
-![](figs/sdp.png) 
+![](figs/sdp.png)
 
-The main mechanism of inoculum spread is the spore liberation from broken infected pods during the harvest process. 
+The main mechanism of inoculum spread is the spore liberation from broken infected pods during the harvest process.
 
 ![](figs/harvest.png) 
 
-There is very limited information available on the amount of spores of T. frezii spread in peanut harvest. The purposes of this research were to (i) estimate the aerial spore spread of Thecaphora frezii in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut. 
+There is very limited information available on the amount of spores of *T. frezii* spread in peanut harvest.
+The purposes of this research were to (i) estimate the aerial spore spread of *Thecaphora frezii* in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut. 
 
 ![](figs/mm.png) 
 
 ## Data sources
 
+The data collected as a part of this research are available in our GitHub repository.
 [Datasets](https://github.com/juanchiem/peanut_smut_aerial/tree/main/data)
-
 
 ## Main outcomes
 

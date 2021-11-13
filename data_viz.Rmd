@@ -1,6 +1,5 @@
 ---
 title: "Visualise data"
-author: ""
 output:
   html_document:
     theme: simplex
@@ -40,7 +39,9 @@ theme_set(theme_pubclean())
 load(here("data/dat.Rdata"))
 ```
 
-### Add cardinal directions
+### Data prep
+
+#### Add cardinal directions
 
 We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam's code for chickpea ascochyta blight spore dispersal).
 
@@ -69,6 +70,8 @@ coord_deg <- tibble(
 coord_deg
 ```
 
+Create a `spore_raw` object that has spore and weather data.
+
 ```{r join-data}
 spore_raw <- spore_data %>%
   left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
@@ -76,9 +79,13 @@ spore_raw <- spore_data %>%
 spore_raw
 ```
 
-## Plot spore dispersal density
+Create a `data.frame` that incorporates the weather data with the cardinal directions object we created above.
 
-### Data prep
+```{r join-wind-data}
+meteo_dat <- meteo_data %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees)
+```
 
 Create a `data.frame` that has `field`, `trap_coord`, `distance_m`, `time_min` and `sub_sample` summarised with mean spores for graphing spore density by polar direction.
 
@@ -101,15 +108,69 @@ spore_dat <-
     time_min = first(time_min),
     sub_sample = first(sub_sample),
     spore_cm2 = mean(n_spore) / 1.2
-  ) # %>%
-# group_by(field, trap_degrees, sub_sample) %>%
-# mutate(summed_count_spores =
-#          case_when(distance_m == 0 ~ sum(n_spore),
-#                    TRUE ~ n_spore))
+  )
+
 spore_dat
 ```
 
+## Plot spore dispersal density
+
 ### Plot spore densities
+
+Create a density plot of the observed spore dispersal values.
+
+```{r spore-kernel-density}
+ggplot(spore_data, aes(y = n_spore)) +
+  geom_density()
+```
+
+Create a scatter plot and use `stat_smooth()` to fit a line.
+
+```{r spore-dot-density-by-distance}
+ggplot(spore_data, aes(x = distance_m, y = n_spore)) +
+  geom_point() +
+  scale_fill_viridis_c() +
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k = 3)) +
+  labs(y = expression(Spores/cm^{2}),
+       x = "Distance (m)") +
+  facet_grid(time_min ~ .)
+```
+
+Create a violin plot with each time as a colour.
+
+```{r spore-violin-density-by-distance}
+ggplot(spore_data, aes(x = as.factor(distance_m), y = n_spore)) +
+  geom_violin(aes(fill = as.factor(time_min),
+                  colour = as.factor(time_min))) +
+  scale_fill_viridis_d("Time (minutes)") +
+  scale_colour_viridis_d("Time (minutes)") +
+  labs(y = expression(Spores/cm^{2}),
+       x = "Distance (m)")
+```
+
+#### Check windspeed effect
+
+Create a hexbin plot to display the number of spores by windspeed and fit a smothed line to these variables.
+
+```{r spore-windspeed}
+spore_data %>%
+  left_join(meteo_dat, by = "field") %>%
+  ggplot(aes(x = wind_speed, y = n_spore)) +
+  scale_fill_viridis_c() +
+  geom_hex() +
+  geom_smooth() +
+  labs(y = expression(Spores / cm^{2}),
+  x = "Wind Speed (m/s)") +
+  theme(
+    legend.position = "top",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  ) +
+  guides(fill = guide_legend(title.position = "top",
+                             title.hjust = 0.5))
+```
+
+#### Polar coordinates
 
 Create polar coordinate plots that display spore density in each cardinal direction.
 
@@ -185,16 +246,6 @@ ggsave(
 ```
 
 ## Plot wind data
-
-### Data prep
-
-Create a `data.frame` that incoporates the weather data with the cardinal directions object we created above.
-
-```{r join-wind-data}
-meteo_dat <- meteo_data %>%
-  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
-  rename(wind_degrees = degrees)
-```
 
 ### Wind roses
 
@@ -307,7 +358,7 @@ save(mod_dat, file = here("data/mod_dat.Rdata"))
 
 ## Plot smoothed spore dispersal
 
-Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or lateral.
+Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or "lateral".
 
 ```{r smoothed-dispersal}
 mod_dat %>%
