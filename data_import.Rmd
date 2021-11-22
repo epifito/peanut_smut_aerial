@@ -21,11 +21,17 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Load libraries
+## Load libraries and function
+
+A specific function for circular averaging the wind direction is necessary to summarise these data.
+This function will be loaded from `./R/circular_averaging.R` after loading the necessary libraries.
 
 ```{r libraries}
 library("tidyverse")
 library("here")
+
+# load circular.averaging()
+source(here("./R/circular_averaging.R"))
 ```
 
 ## Import compiled dataset from local files.
@@ -35,9 +41,26 @@ library("here")
 Import spore trap data and inspect.
 
 ```{r spore-data}
-spore_data <- read_csv(here("data/spore_data.csv")) %>%
-  mutate(field = as.factor(field))
-ftable(xtabs(~ field + time_min + trap_coord, spore_data))
+spore_data <- read_csv(
+  here("data/spore_data.csv"),
+  col_types = list(field = col_factor(),
+                   trap_coord = col_factor()
+  ))
+
+```
+
+Summarise the spore data into the total number of spores per trap's subsample and sub-subsamples, the `trap_id` column.
+We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
+
+```{r summarise-spore-data}
+spore_data <- 
+  spore_data %>%
+  mutate(trap_id = as.factor(paste(field,
+                                   trap_coord,
+                                   distance_m,
+                                   sep = "_"))) %>%
+  group_by(field, trap_coord, distance_m, trap_id, time_min) %>%
+  summarise(spore_cm2 = mean(n_spore) / 1.2)
 
 glimpse(spore_data)
 ```
@@ -47,14 +70,111 @@ glimpse(spore_data)
 Import weather data and inspect.
 
 ```{r meteo-data}
-meteo_data <- read_csv(here("data/wind.csv")) %>%
-  mutate(field = as.factor(field))
+meteo_data <- read_csv(here("data/wind.csv"),
+                       col_types = list(field = col_factor()))
+
+# some sites go past 270 minutes, remove those data.
+meteo_data <- 
+  meteo_data %>% 
+  filter(minute_lap <= 270)
 
 glimpse(meteo_data)
 ```
 
-## Save data sets as Rdata files
+### Data prep for analysis
 
-```{r}
-save(spore_data, meteo_data, file = "data/dat.Rdata")
+#### Add cardinal directions
+
+We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam's code for chickpea ascochyta blight spore dispersal).
+
+```{r cardinal-directions}
+coord_deg <- tibble(
+  dir = c(
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW"
+  ),
+  degrees = seq(0, 337.5 , by = 22.5),
+)
 ```
+
+Create a `spore_data` object that has spore and trap degrees (location as a cardinal direction).
+
+```{r add-spore-trap-location}
+spore_data <- 
+  spore_data %>%
+  left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
+  rename(trap_degrees = degrees)
+```
+
+Create a `meteo_data` object that has the wind direction in degrees.
+
+```{r add-wind-direction-degrees}
+meteo_data <- 
+  meteo_data %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees)
+```
+
+#### Summarise the weather data into 90, 180 and 270 minute interval bins
+
+This is where the `circular.averaging()` is needed since you can't just take the `mean` value of wind direction in degrees here.
+
+```{r bin-time-slices}
+meteo_data <-
+  meteo_data %>%
+  mutate(time_slice =
+             case_when(
+               minute_lap <= 90 ~ 90,
+               minute_lap > 90 & minute_lap <= 180 ~ 180,
+               TRUE ~ 270
+             )
+           ) %>%
+  group_by(field, time_slice) %>%
+  summarise(
+    rh = mean(rel_hum),
+    temp = mean(temp),
+    wind_speed = mean(wind_speed),
+    wind_degrees = circular.averaging(wind_degrees)
+  )
+```
+
+## Merge the spore data with the weather data
+
+Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min` and then create a column classifying the weather station as "upwind", "downwind" or "lateral" for wind direction in the resulting object.
+
+```{r merge-spore-weather}
+mod_dat <- left_join(meteo_data,
+                 spore_data,
+                 by = c("field" = "field",
+                        "time_slice" = "time_min")) %>%
+  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
+  mutate(downwind = case_when(
+    between(degree_dif, 157.5, 202.5) ~ "downwind",
+    between(degree_dif, 22.5, 157.5) |
+      between(degree_dif, 202.5, 337.5)  ~ "lateral",
+    TRUE ~ "upwind"
+  ))
+
+mod_dat
+```
+
+Save data object for fitting models.
+
+```{r save-mod-dat, eval=FALSE}
+save(mod_dat, file = here("data/mod_dat.Rdata"))
+```
+

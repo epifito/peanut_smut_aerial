@@ -338,6 +338,13 @@ div.tocify {
   </a>
 </li>
 <li>
+  <a href="data_import.html">
+    <span class="fas fa-table"></span>
+     
+    Data Import
+  </a>
+</li>
+<li>
   <a href="data_viz.html">
     <span class="fas fa-chart-area"></span>
      
@@ -346,7 +353,7 @@ div.tocify {
 </li>
 <li>
   <a href="model.html">
-    <span class="fas fa-file-code-o"></span>
+    <span class="fas fa-file-code"></span>
      
     Model Fitting
   </a>
@@ -381,70 +388,160 @@ div.tocify {
 </div>
 
 
-<div id="load-libraries" class="section level2">
-<h2>Load libraries</h2>
+<div id="load-libraries-and-function" class="section level2">
+<h2>Load libraries and function</h2>
+<p>A specific function for circular averaging the wind direction is necessary to summarise these data. This function will be loaded from <code>./R/circular_averaging.R</code> after loading the necessary libraries.</p>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
-library(&quot;here&quot;)</code></pre>
+library(&quot;here&quot;)
+
+# load circular.averaging()
+source(here(&quot;./R/circular_averaging.R&quot;))</code></pre>
 </div>
 <div id="import-compiled-dataset-from-local-files." class="section level2">
 <h2>Import compiled dataset from local files.</h2>
 <div id="spore-data" class="section level3">
 <h3>Spore data</h3>
 <p>Import spore trap data and inspect.</p>
-<pre class="r"><code>spore_data &lt;- read_csv(here(&quot;data/spore_data.csv&quot;)) %&gt;%
-  mutate(field = as.factor(field))
-ftable(xtabs(~ field + time_min + trap_coord, spore_data))</code></pre>
-<pre><code>##                trap_coord  E  N NE NW  S SE SW  W
-## field time_min                                   
-## 1     90                  16 16  0  0 16  0  0 16
-##       180                 16 16  0  0 16  0  0 16
-##       270                 16 16  0  0 16  0  0 16
-## 2     90                  16 16  0  0 16  0  0 16
-##       180                 16 16  0  0 16  0  0 16
-##       270                 16 16  0  0 16  0  0 16
-## 3     90                   0  0 16 16  0 16 16  0
-##       180                  0  0 16 16  0 16 16  0
-##       270                  0  0 16 16  0 16 16  0
-## 4     90                  16 16  0  0 16  0  0 16
-##       180                 16 16  0  0 16  0  0 16
-##       270                 16 16  0  0 16  0  0 16
-## 5     90                   0  0 16 16  0 16 16  0
-##       180                  0  0 16 16  0 16 16  0
-##       270                  0  0 16 16  0 16 16  0
-## 6     90                  16 16  0  0 16  0  0 16
-##       180                 16 16  0  0 16  0  0 16
-##       270                 16 16  0  0 16  0  0 16</code></pre>
-<pre class="r"><code>glimpse(spore_data)</code></pre>
-<pre><code>## Rows: 1,152
-## Columns: 7
+<pre class="r"><code>spore_data &lt;- read_csv(
+  here(&quot;data/spore_data.csv&quot;),
+  col_types = list(field = col_factor(),
+                   trap_coord = col_factor()
+  ))</code></pre>
+<p>Summarise the spore data into the total number of spores per trap’s subsample and sub-subsamples, the <code>trap_id</code> column. We’ll keep the <code>field</code> col to join the weather data and the <code>trap_coord</code> col here for joining with another data frame that has the cardinal directions in it for further analysis.</p>
+<pre class="r"><code>spore_data &lt;- 
+  spore_data %&gt;%
+  mutate(trap_id = as.factor(paste(field,
+                                   trap_coord,
+                                   distance_m,
+                                   sep = &quot;_&quot;))) %&gt;%
+  group_by(field, trap_coord, distance_m, trap_id, time_min) %&gt;%
+  summarise(spore_cm2 = mean(n_spore) / 1.2)
+
+glimpse(spore_data)</code></pre>
+<pre><code>## Rows: 288
+## Columns: 6
+## Groups: field, trap_coord, distance_m, trap_id [96]
 ## $ field      &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
-## $ trap_coord &lt;chr&gt; &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;, &quot;N&quot;,…
-## $ distance_m &lt;dbl&gt; 100, 100, 100, 100, 200, 200, 200, 200, 300, 300, 300, 300,…
-## $ time_min   &lt;dbl&gt; 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90,…
-## $ sub_sample &lt;dbl&gt; 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2,…
-## $ sub        &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,…
-## $ n_spore    &lt;dbl&gt; 2, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2, 0,…</code></pre>
+## $ trap_coord &lt;fct&gt; N, N, N, N, N, N, N, N, N, N, N, N, E, E, E, E, E, E, E, E,…
+## $ distance_m &lt;dbl&gt; 100, 100, 100, 200, 200, 200, 300, 300, 300, 400, 400, 400,…
+## $ trap_id    &lt;fct&gt; 1_N_100, 1_N_100, 1_N_100, 1_N_200, 1_N_200, 1_N_200, 1_N_3…
+## $ time_min   &lt;dbl&gt; 90, 180, 270, 90, 180, 270, 90, 180, 270, 90, 180, 270, 90,…
+## $ spore_cm2  &lt;dbl&gt; 0.4166667, 0.8333333, 0.6250000, 0.4166667, 0.6250000, 2.91…</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
 <p>Import weather data and inspect.</p>
-<pre class="r"><code>meteo_data &lt;- read_csv(here(&quot;data/wind.csv&quot;)) %&gt;%
-  mutate(field = as.factor(field))
+<pre class="r"><code>meteo_data &lt;- read_csv(here(&quot;data/wind.csv&quot;),
+                       col_types = list(field = col_factor()))
+
+# some sites go past 270 minutes, remove those data.
+meteo_data &lt;- 
+  meteo_data %&gt;% 
+  filter(minute_lap &lt;= 270)
 
 glimpse(meteo_data)</code></pre>
-<pre><code>## Rows: 358
+<pre><code>## Rows: 330
 ## Columns: 6
 ## $ field      &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
-## $ minute_lap &lt;dbl&gt; 0, 0, 0, 15, 15, 15, 30, 30, 30, 45, 45, 45, 60, 60, 60, 75…
+## $ minute_lap &lt;dbl&gt; 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 7…
 ## $ rel_hum    &lt;dbl&gt; 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65,…
 ## $ temp       &lt;dbl&gt; 16.0, 16.0, 16.0, 16.2, 16.2, 16.2, 19.5, 19.5, 19.5, 19.7,…
 ## $ wind_speed &lt;dbl&gt; 6.2, 9.0, 5.7, 6.2, 5.9, 5.7, 5.9, 2.2, 4.2, 1.2, 2.5, 3.2,…
 ## $ wind_dir   &lt;chr&gt; &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;E&quot;, &quot;NE&quot;, &quot;NE&quot;, &quot;N…</code></pre>
 </div>
+<div id="data-prep-for-analysis" class="section level3">
+<h3>Data prep for analysis</h3>
+<div id="add-cardinal-directions" class="section level4">
+<h4>Add cardinal directions</h4>
+<p>We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam’s code for chickpea ascochyta blight spore dispersal).</p>
+<pre class="r"><code>coord_deg &lt;- tibble(
+  dir = c(
+    &quot;N&quot;,
+    &quot;NNE&quot;,
+    &quot;NE&quot;,
+    &quot;ENE&quot;,
+    &quot;E&quot;,
+    &quot;ESE&quot;,
+    &quot;SE&quot;,
+    &quot;SSE&quot;,
+    &quot;S&quot;,
+    &quot;SSW&quot;,
+    &quot;SW&quot;,
+    &quot;WSW&quot;,
+    &quot;W&quot;,
+    &quot;WNW&quot;,
+    &quot;NW&quot;,
+    &quot;NNW&quot;
+  ),
+  degrees = seq(0, 337.5 , by = 22.5),
+)</code></pre>
+<p>Create a <code>spore_data</code> object that has spore and trap degrees (location as a cardinal direction).</p>
+<pre class="r"><code>spore_data &lt;- 
+  spore_data %&gt;%
+  left_join(coord_deg, by = c(&quot;trap_coord&quot; = &quot;dir&quot;)) %&gt;%
+  rename(trap_degrees = degrees)</code></pre>
+<p>Create a <code>meteo_data</code> object that has the wind direction in degrees.</p>
+<pre class="r"><code>meteo_data &lt;- 
+  meteo_data %&gt;%
+  left_join(coord_deg, by = c(&quot;wind_dir&quot; = &quot;dir&quot;)) %&gt;%
+  rename(wind_degrees = degrees)</code></pre>
 </div>
-<div id="save-data-sets-as-rdata-files" class="section level2">
-<h2>Save data sets as Rdata files</h2>
-<pre class="r"><code>save(spore_data, meteo_data, file = &quot;data/dat.Rdata&quot;)</code></pre>
+<div id="summarise-the-weather-data-into-90-180-and-270-minute-interval-bins" class="section level4">
+<h4>Summarise the weather data into 90, 180 and 270 minute interval bins</h4>
+<p>This is where the <code>circular.averaging()</code> is needed since you can’t just take the <code>mean</code> value of wind direction in degrees here.</p>
+<pre class="r"><code>meteo_data &lt;-
+  meteo_data %&gt;%
+  mutate(time_slice =
+             case_when(
+               minute_lap &lt;= 90 ~ 90,
+               minute_lap &gt; 90 &amp; minute_lap &lt;= 180 ~ 180,
+               TRUE ~ 270
+             )
+           ) %&gt;%
+  group_by(field, time_slice) %&gt;%
+  summarise(
+    rh = mean(rel_hum),
+    temp = mean(temp),
+    wind_speed = mean(wind_speed),
+    wind_degrees = circular.averaging(wind_degrees)
+  )</code></pre>
+</div>
+</div>
+</div>
+<div id="merge-the-spore-data-with-the-weather-data" class="section level2">
+<h2>Merge the spore data with the weather data</h2>
+<p>Use <code>left_join</code> to merge the raw spore data, <code>spore_raw</code> and weather data, <code>meteo_data</code> on <code>field</code> and <code>time_slice</code>/<code>time_min</code> and then create a column classifying the weather station as “upwind”, “downwind” or “lateral” for wind direction in the resulting object.</p>
+<pre class="r"><code>mod_dat &lt;- left_join(meteo_data,
+                 spore_data,
+                 by = c(&quot;field&quot; = &quot;field&quot;,
+                        &quot;time_slice&quot; = &quot;time_min&quot;)) %&gt;%
+  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %&gt;%
+  mutate(downwind = case_when(
+    between(degree_dif, 157.5, 202.5) ~ &quot;downwind&quot;,
+    between(degree_dif, 22.5, 157.5) |
+      between(degree_dif, 202.5, 337.5)  ~ &quot;lateral&quot;,
+    TRUE ~ &quot;upwind&quot;
+  ))
+
+mod_dat</code></pre>
+<pre><code>## # A tibble: 288 × 13
+## # Groups:   field [6]
+##    field time_slice    rh  temp wind_speed wind_degrees trap_coord distance_m
+##    &lt;fct&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
+##  1 1             90    65  18.9       5.36         76.2 N                 100
+##  2 1             90    65  18.9       5.36         76.2 N                 200
+##  3 1             90    65  18.9       5.36         76.2 N                 300
+##  4 1             90    65  18.9       5.36         76.2 N                 400
+##  5 1             90    65  18.9       5.36         76.2 E                 100
+##  6 1             90    65  18.9       5.36         76.2 E                 200
+##  7 1             90    65  18.9       5.36         76.2 E                 300
+##  8 1             90    65  18.9       5.36         76.2 E                 400
+##  9 1             90    65  18.9       5.36         76.2 W                 100
+## 10 1             90    65  18.9       5.36         76.2 W                 200
+## # … with 278 more rows, and 5 more variables: trap_id &lt;fct&gt;, spore_cm2 &lt;dbl&gt;,
+## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, downwind &lt;chr&gt;</code></pre>
+<p>Save data object for fitting models.</p>
+<pre class="r"><code>save(mod_dat, file = here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
 
 

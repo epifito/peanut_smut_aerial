@@ -38,13 +38,7 @@ theme_set(theme_pubclean())
 ## Load data
 
 ```{r load-data}
-load(here("data/dat.Rdata"))
 load(here("data/mod_dat.Rdata"))
-
-# add a factor col for the spore traps in each field respectively
-mod_dat$trap_id <-
-  as.factor(paste0(mod_dat$field, mod_dat$trap_coord, mod_dat$distance_m))
-mod_dat$sub_sample <- as.factor(mod_dat$sub_sample)
 ```
 
 ## Inspect the mod_dat object
@@ -54,7 +48,6 @@ mod_dat %>%
   distinct(field, trap_coord, .keep_all = TRUE) %>%
   select(trap_coord,
          trap_degrees,
-         wind_dir,
          wind_degrees,
          degree_dif,
          downwind,
@@ -67,15 +60,17 @@ Because of the number of zeros in the data, we will use a [Tweedie family](https
 ### Model m1
 
 * Response: `spore_cm2`
-* Linear predictors: `distance_m:time_min`
-* Random effects: `field`
+* Linear predictors: `time_slice`, `distance_m`, `downwind`
+* Smoothed predictors: `wind_speed`
+* Random effects: `trap_id`
 
 ```{r m1}
 m1 <- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(field, bs = "re"),
-  data = mod_dat,
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = "re"),
   method = "REML",
+  data = mod_dat,
   family = "tw"
 )
 m1
@@ -84,15 +79,16 @@ m1
 ### Model m2
 
 * Response: `spore_cm2`
-* Linear predictors: `distance_m:time_min`
-* Smoothed predictors: `downwind`
-* Random effects: `field`
+* Linear predictors: `time_slice`, `distance_m`, `downwind`
+* Smoothed predictors: `wind_speed`
+* Random effects: `trap_id`, `field`
 
 ```{r m2}
 m2 <- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(field, bs = "re") +
-    s(downwind, bs = "re"),
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = "re") +
+    s(field, bs = "re"),
   method = "REML",
   data = mod_dat,
   family = "tw"
@@ -103,187 +99,22 @@ m2
 ### Model m3
 
 * Response: `spore_cm2`
-* Linear predictors: `distance_m:time_min`
-* Random effects: `field`, `downwind`, `wind_speed`
+* Linear predictors: `time_slice`, `distance_m`, `downwind`
+* Smoothed predictors: `wind_speed`
+* Random effects: `trap_id`, `field`, `time_slice`
 
 ```{r m3}
 m3 <- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(wind_speed, bs = "re") +
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = "re") +
     s(field, bs = "re") +
-    s(downwind, bs = "re"),
+    s(time_slice, bs = "re"),
   method = "REML",
   data = mod_dat,
   family = "tw"
 )
 m3
-```
-
-### Model m4
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `downwind`, `wind_speed`
-* Smoothed predictors: `distance_m`
-* Random effects: `field`
-
-```{r m4}
-m4 <- gam(
-  spore_cm2 ~ time_min + downwind + wind_speed +
-    s(distance_m, k = 3) +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m4
-```
-
-### Model m5
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `downwind`, `wind_speed`
-* Smoothed predictors: `distance_m`
-* Random effects: `field`, `time_min`
-
-```{r m5}
-m5 <- gam(
-  spore_cm2 ~ time_min + downwind + wind_speed +
-    s(distance_m, k = 3) +
-    s(time_min, bs = "re") +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m5
-```
-
-### Model m6
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `downwind`
-* Smoothed predictors: `distance_m`
-* Random effects: `field`
-
-```{r m6}
-m6 <- gam(
-  spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m6
-```
-
-### Model m7
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`
-* Random effects: `field`
-
-```{r m7}
-m7 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m7
-```
-
-### Model m8
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`
-* Smoothed predictors: `wind_speed`
-* Random effects: `field`
-
-```{r m8}
-m8 <- gam(
-  spore_cm2 ~ distance_m + downwind + time_min +
-    s(wind_speed, k = 6) +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m8
-```
-
-### Model m9
-
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`, `smut_incidence`
-* Smoothed predictors: `wind_speed`
-* Random effects: `field`
-
-```{r m9}
-m9 <- gam(
-  spore_cm2 ~ distance_m + downwind + time_min + `smut_incidence` +
-    s(wind_speed, k = 6) +
-    s(field, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m9
-```
-
-### Model m10
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`, `smut_incidence`
-* Smoothed predictors: `wind_speed`
-* Random effects: `trap_id`, `sub_sample`
-
-```{r m10}
-m10 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6, by = downwind) +
-    s(trap_id, sub_sample, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m10
-```
-
-### Model m11
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`, `smut_incidence`
-* Smoothed predictors: `wind_speed`
-* Random effects: `trap_id` and `sub_sample` grouped by `trap_id`
-
-```{r m11}
-m11 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6) +
-    s(trap_id, bs = "re") +
-    s(sub_sample, by = trap_id, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m11
-```
-
-### Model m12
-* Response: `spore_cm2`
-* Linear predictors: `time_min`, `distance_m`, `downwind`, `smut_incidence`
-* Smoothed predictors: `wind_speed`
-* Random effects: `trap_id`, `sub_sample`
-
-```{r m12}
-m12 <- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6) +
-    s(trap_id, bs = "re") +
-    s(sub_sample, bs = "re"),
-  method = "REML",
-  data = mod_dat,
-  family = "tw"
-)
-m12
 ```
 
 ## Model AIC
@@ -294,45 +125,34 @@ Check models for best fit using AIC.
 models <- list(
   m1 = m1,
   m2 = m2,
-  m3 = m3,
-  m4 = m4,
-  m5 = m5,
-  m6 = m6,
-  m7 = m7,
-  m8 = m8,
-  m9 = m9,
-  m10 = m10,
-  m11 = m11,
-  m12 = m12
+  m3 = m3
 )
 map_df(models, glance, .id = "model") %>%
   arrange(AIC, BIC)
 ```
 
-Based on the AIC and BIC values, model m12 looks to be the best model for our data.
+Based on the AIC and BIC values, model m3 looks to be the best model for our data.
 
-## Inspect Model m12
+## Inspect Model m3
 
 ### Check model
 
-```{r gam-check-m12}
-gam.check(m12)
+```{r gam-check-m3}
+gam.check(m3)
 ```
 
-The model did fully converge after 5 iterations but wind speed is residuals are not randomly distributed.
-The diagnostic plots show some issues with the fit, indicating that we really need more data to fit a proper model if we were interested in fully predicting spore dispersal, but for our purposes, explaining the dispersal, this model is good enough.
-However, in the future, collecting more data so that `k` could be increased would be useful, but since this is the data that we have, this appears to be the best model that describes it.
+The model fully converged after 9 iterations.
+All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
+The Q-Q plot generally falls along the line indicating a sufficient fit.
+There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
+The response versus fitted values clusters nicely around the 1:1 line.
+In all, this model looks to explain the spore dispersal data very well.
 
-### Summarise model
+### Summarise and visualise model m3
 
-```{r appraise-m12}
-summary(m12)
-```
-
-### Visualise the model
-
-```{r visualise-m12}
-draw(m12)
+```{r appraise-m3}
+summary(m3)
+plot(m3)
 ```
 
 ## Predict spore dispersal
@@ -340,32 +160,34 @@ draw(m12)
 ```{r predict}
 mod_dat %>% distinct(downwind) %>% pull()
 newd <- expand_grid(
-  time_min = c(90, 180, 270),
+  time_slice = c(90, 180, 270),
   downwind = c("downwind", "lateral", "upwind"),
   distance_m = seq(0, 400, 100),
   wind_speed = 0:30,
+  field = 1,
   trap_id = as.factor(apply(expand.grid(
-    1, c("N", "S", "E", "W"), c(100, 200, 300, 400)
+    1, c("_N_", "_S_", "_E_", "_W_"), c(100, 200, 300, 400)
   ),
   1, paste, collapse = "")),
   sub_sample = as.factor(c(1, 2))
 )
   
-newd$pred_spore_cm2 <- predict(m12, newd)
+newd$pred_spore_cm2 <- predict(m3, newd)
 ```
 
 ## Visualise spore dispersal predictions
 
-The GAM will predict spores to disperse at negative values, since this is not possible, we will set any values that are less than zero to zero in the model's output before plotting.
+Visualise the spore dispersal predictions for the three time-slices, 90, 180 and 270 minutes at 0m to 400m.
 
 ```{r graph-predictions, fig.cap="Predictions of spore dispersal (spores per meter squared) at 0m to 400m for three time points, 90 min, 180 min, 270 min after peanut harvest commenced."}
 newd %>%
-  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
   ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
-  geom_smooth(method = "gam", formula = y ~ s(x, k = 5), size = 1) +
+  geom_smooth(method = "gam",
+              formula = y ~ s(x, k = 5),
+              size = 1) +
   scale_fill_viridis_d("Prevailing wind") +
   scale_colour_viridis_d("Prevailing Wind") +
-  facet_grid(. ~ time_min) +
+  facet_grid(. ~ time_slice) +
   scale_x_continuous(sec.axis = sec_axis(
     ~ . ,
     name = "Minutes since harvest beginning",
@@ -394,6 +216,3 @@ ggsave(
   scale = 1.2
 )
 ```
-
-
-
