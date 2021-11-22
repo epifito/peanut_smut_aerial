@@ -338,6 +338,13 @@ div.tocify {
   </a>
 </li>
 <li>
+  <a href="data_import.html">
+    <span class="fas fa-table"></span>
+     
+    Data Import
+  </a>
+</li>
+<li>
   <a href="data_viz.html">
     <span class="fas fa-chart-area"></span>
      
@@ -346,7 +353,7 @@ div.tocify {
 </li>
 <li>
   <a href="model.html">
-    <span class="fas fa-file-code-o"></span>
+    <span class="fas fa-file-code"></span>
      
     Model Fitting
   </a>
@@ -395,13 +402,7 @@ theme_set(theme_pubclean())</code></pre>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
-<pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))
-load(here(&quot;data/mod_dat.Rdata&quot;))
-
-# add a factor col for the spore traps in each field respectively
-mod_dat$trap_id &lt;-
-  as.factor(paste0(mod_dat$field, mod_dat$trap_coord, mod_dat$distance_m))
-mod_dat$sub_sample &lt;- as.factor(mod_dat$sub_sample)</code></pre>
+<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
 <div id="inspect-the-mod_dat-object" class="section level2">
 <h2>Inspect the mod_dat object</h2>
@@ -409,409 +410,133 @@ mod_dat$sub_sample &lt;- as.factor(mod_dat$sub_sample)</code></pre>
   distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
   select(trap_coord,
          trap_degrees,
-         wind_dir,
          wind_degrees,
          degree_dif,
          downwind,
          trap_id) %&gt;%
   print(n = Inf)</code></pre>
 <pre><code>## # A tibble: 24 × 7
-##    trap_coord trap_degrees wind_dir wind_degrees degree_dif downwind trap_id
-##    &lt;chr&gt;             &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt; &lt;fct&gt;    &lt;fct&gt;  
-##  1 E                    90 NE                 45         45 lateral  1E100  
-##  2 N                     0 NE                 45         45 lateral  1N100  
-##  3 S                   180 NE                 45        135 lateral  1S100  
-##  4 W                   270 NE                 45        225 lateral  1W100  
-##  5 E                    90 S                 180         90 lateral  2E100  
-##  6 N                     0 S                 180        180 downwind 2N100  
-##  7 S                   180 S                 180          0 upwind   2S100  
-##  8 W                   270 S                 180         90 lateral  2W100  
-##  9 NE                   45 SE                135         90 lateral  3NE100 
-## 10 NW                  315 SE                135        180 downwind 3NW100 
-## 11 SE                  135 SE                135          0 upwind   3SE100 
-## 12 SW                  225 SE                135         90 lateral  3SW100 
-## 13 E                    90 NE                 45         45 lateral  4E100  
-## 14 N                     0 NE                 45         45 lateral  4N100  
-## 15 S                   180 NE                 45        135 lateral  4S100  
-## 16 W                   270 NE                 45        225 lateral  4W100  
-## 17 NE                   45 NE                 45          0 upwind   5NE100 
-## 18 NW                  315 NE                 45        270 lateral  5NW100 
-## 19 SE                  135 NE                 45         90 lateral  5SE100 
-## 20 SW                  225 NE                 45        180 downwind 5SW100 
-## 21 E                    90 N                   0         90 lateral  6E100  
-## 22 N                     0 N                   0          0 upwind   6N100  
-## 23 S                   180 N                   0        180 downwind 6S100  
-## 24 W                   270 N                   0        270 lateral  6W100</code></pre>
+## # Groups:   field [6]
+##    field trap_coord trap_degrees wind_degrees degree_dif downwind trap_id 
+##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;    &lt;fct&gt;   
+##  1 1     N                     0        76.2      76.2   lateral  1_N_100 
+##  2 1     E                    90        76.2      13.8   upwind   1_E_100 
+##  3 1     W                   270        76.2     194.    downwind 1_W_100 
+##  4 1     S                   180        76.2     104.    lateral  1_S_100 
+##  5 2     N                     0       201.      201.    downwind 2_N_100 
+##  6 2     E                    90       201.      111.    lateral  2_E_100 
+##  7 2     W                   270       201.       68.7   lateral  2_W_100 
+##  8 2     S                   180       201.       21.3   upwind   2_S_100 
+##  9 3     NE                   45       135.       90.3   lateral  3_NE_100
+## 10 3     SE                  135       135.        0.313 upwind   3_SE_100
+## 11 3     NW                  315       135.      180.    downwind 3_NW_100
+## 12 3     SW                  225       135.       89.7   lateral  3_SW_100
+## 13 4     N                     0        35.9      35.9   lateral  4_N_100 
+## 14 4     E                    90        35.9      54.1   lateral  4_E_100 
+## 15 4     W                   270        35.9     234.    lateral  4_W_100 
+## 16 4     S                   180        35.9     144.    lateral  4_S_100 
+## 17 5     NE                   45        29.9      15.1   upwind   5_NE_100
+## 18 5     SE                  135        29.9     105.    lateral  5_SE_100
+## 19 5     NW                  315        29.9     285.    lateral  5_NW_100
+## 20 5     SW                  225        29.9     195.    downwind 5_SW_100
+## 21 6     N                     0         2.16      2.16  upwind   6_N_100 
+## 22 6     E                    90         2.16     87.8   lateral  6_E_100 
+## 23 6     W                   270         2.16    268.    lateral  6_W_100 
+## 24 6     S                   180         2.16    178.    downwind 6_S_100</code></pre>
 <p>Because of the number of zeros in the data, we will use a <a href="https://en.wikipedia.org/wiki/Tweedie_distribution">Tweedie family</a> for the models to help account for this, <em>i.e.</em> in the model functions you will see <code>family =  "tw"</code> for this.</p>
 <div id="model-m1" class="section level3">
 <h3>Model m1</h3>
 <ul>
 <li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>distance_m:time_min</code></li>
-<li>Random effects: <code>field</code></li>
+<li>Linear predictors: <code>time_slice</code>, <code>distance_m</code>, <code>downwind</code></li>
+<li>Smoothed predictors: <code>wind_speed</code></li>
+<li>Random effects: <code>trap_id</code></li>
 </ul>
 <pre class="r"><code>m1 &lt;- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(field, bs = &quot;re&quot;),
-  data = mod_dat,
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
+  data = mod_dat,
   family = &quot;tw&quot;
 )
 m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.711) 
+## Family: Tweedie(p=1.479) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;)
+## spore_cm2 ~ time_slice + distance_m + downwind + s(wind_speed, 
+##     k = 18) + s(trap_id, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 4.72  total = 6.72 
+##  3.45 81.35  total = 89.8 
 ## 
-## REML score: 1722.582</code></pre>
+## REML score: 689.3144</code></pre>
 </div>
 <div id="model-m2" class="section level3">
 <h3>Model m2</h3>
 <ul>
 <li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>distance_m:time_min</code></li>
-<li>Smoothed predictors: <code>downwind</code></li>
-<li>Random effects: <code>field</code></li>
+<li>Linear predictors: <code>time_slice</code>, <code>distance_m</code>, <code>downwind</code></li>
+<li>Smoothed predictors: <code>wind_speed</code></li>
+<li>Random effects: <code>trap_id</code>, <code>field</code></li>
 </ul>
 <pre class="r"><code>m2 &lt;- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(field, bs = &quot;re&quot;) +
-    s(downwind, bs = &quot;re&quot;),
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = &quot;re&quot;) +
+    s(field, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat,
   family = &quot;tw&quot;
 )
 m2</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.627) 
+## Family: Tweedie(p=1.478) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ distance_m:time_min + s(field, bs = &quot;re&quot;) + s(downwind, 
-##     bs = &quot;re&quot;)
+## spore_cm2 ~ time_slice + distance_m + downwind + s(wind_speed, 
+##     k = 18) + s(trap_id, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 4.63 1.99  total = 8.62 
+##  2.97 78.73  2.76  total = 89.46 
 ## 
-## REML score: 1591.738</code></pre>
+## REML score: 688.1356</code></pre>
 </div>
 <div id="model-m3" class="section level3">
 <h3>Model m3</h3>
 <ul>
 <li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>distance_m:time_min</code></li>
-<li>Random effects: <code>field</code>, <code>downwind</code>, <code>wind_speed</code></li>
+<li>Linear predictors: <code>time_slice</code>, <code>distance_m</code>, <code>downwind</code></li>
+<li>Smoothed predictors: <code>wind_speed</code></li>
+<li>Random effects: <code>trap_id</code>, <code>field</code>, <code>time_slice</code></li>
 </ul>
 <pre class="r"><code>m3 &lt;- gam(
-  spore_cm2 ~ distance_m:time_min +
-    s(wind_speed, bs = &quot;re&quot;) +
+  spore_cm2 ~ time_slice + distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = &quot;re&quot;) +
     s(field, bs = &quot;re&quot;) +
-    s(downwind, bs = &quot;re&quot;),
+    s(time_slice, bs = &quot;re&quot;),
   method = &quot;REML&quot;,
   data = mod_dat,
   family = &quot;tw&quot;
 )
 m3</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.627) 
+## Family: Tweedie(p=1.478) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ distance_m:time_min + s(wind_speed, bs = &quot;re&quot;) + 
-##     s(field, bs = &quot;re&quot;) + s(downwind, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 0.00 4.63 1.99  total = 8.62 
-## 
-## REML score: 1591.738</code></pre>
-</div>
-<div id="model-m4" class="section level3">
-<h3>Model m4</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>downwind</code>, <code>wind_speed</code></li>
-<li>Smoothed predictors: <code>distance_m</code></li>
-<li>Random effects: <code>field</code></li>
-</ul>
-<pre class="r"><code>m4 &lt;- gam(
-  spore_cm2 ~ time_min + downwind + wind_speed +
-    s(distance_m, k = 3) +
-    s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m4</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.604) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
-##     k = 3) + s(field, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 1.00 3.46  total = 9.46 
-## 
-## REML score: 1549.849</code></pre>
-</div>
-<div id="model-m5" class="section level3">
-<h3>Model m5</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>downwind</code>, <code>wind_speed</code></li>
-<li>Smoothed predictors: <code>distance_m</code></li>
-<li>Random effects: <code>field</code>, <code>time_min</code></li>
-</ul>
-<pre class="r"><code>m5 &lt;- gam(
-  spore_cm2 ~ time_min + downwind + wind_speed +
-    s(distance_m, k = 3) +
-    s(time_min, bs = &quot;re&quot;) +
-    s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m5</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.604) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + downwind + wind_speed + s(distance_m, 
-##     k = 3) + s(time_min, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 1.00 0.00 3.46  total = 9.46 
-## 
-## REML score: 1549.849</code></pre>
-</div>
-<div id="model-m6" class="section level3">
-<h3>Model m6</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>downwind</code></li>
-<li>Smoothed predictors: <code>distance_m</code></li>
-<li>Random effects: <code>field</code></li>
-</ul>
-<pre class="r"><code>m6 &lt;- gam(
-  spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) +
-    s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m6</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.603) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + downwind + s(distance_m, k = 3) + s(field, 
+## spore_cm2 ~ time_slice + distance_m + downwind + s(wind_speed, 
+##     k = 18) + s(trap_id, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;) + s(time_slice, 
 ##     bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 1.00 4.59  total = 9.59 
+##  2.97 78.73  2.76  0.00  total = 89.46 
 ## 
-## REML score: 1548.587</code></pre>
-</div>
-<div id="model-m7" class="section level3">
-<h3>Model m7</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code></li>
-<li>Random effects: <code>field</code></li>
-</ul>
-<pre class="r"><code>m7 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m7</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.603) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + s(field, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 4.59  total = 9.59 
-## 
-## REML score: 1553.303</code></pre>
-</div>
-<div id="model-m8" class="section level3">
-<h3>Model m8</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code></li>
-<li>Smoothed predictors: <code>wind_speed</code></li>
-<li>Random effects: <code>field</code></li>
-</ul>
-<pre class="r"><code>m8 &lt;- gam(
-  spore_cm2 ~ distance_m + downwind + time_min +
-    s(wind_speed, k = 6) +
-    s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m8</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.605) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ distance_m + downwind + time_min + s(wind_speed, 
-##     k = 6) + s(field, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 1.64 2.77  total = 9.41 
-## 
-## REML score: 1552.389</code></pre>
-</div>
-<div id="model-m9" class="section level3">
-<h3>Model m9</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>smut_incidence</code></li>
-<li>Smoothed predictors: <code>wind_speed</code></li>
-<li>Random effects: <code>field</code></li>
-</ul>
-<pre class="r"><code>m9 &lt;- gam(
-  spore_cm2 ~ distance_m + downwind + time_min + `smut_incidence` +
-    s(wind_speed, k = 6) +
-    s(field, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m9</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.605) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ distance_m + downwind + time_min + smut_incidence + 
-##     s(wind_speed, k = 6) + s(field, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-## 1.00 2.35  total = 9.35 
-## 
-## REML score: 1553.366</code></pre>
-</div>
-<div id="model-m10" class="section level3">
-<h3>Model m10</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>smut_incidence</code></li>
-<li>Smoothed predictors: <code>wind_speed</code></li>
-<li>Random effects: <code>trap_id</code>, <code>sub_sample</code></li>
-</ul>
-<pre class="r"><code>m10 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6, by = downwind) +
-    s(trap_id, sub_sample, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m10</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.393) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + s(wind_speed, 
-##     k = 6, by = downwind) + s(trap_id, sub_sample, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-##   2.24   3.64   1.43 134.72  total = 147.03 
-## 
-## REML score: 1393.691</code></pre>
-</div>
-<div id="model-m11" class="section level3">
-<h3>Model m11</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>smut_incidence</code></li>
-<li>Smoothed predictors: <code>wind_speed</code></li>
-<li>Random effects: <code>trap_id</code> and <code>sub_sample</code> grouped by <code>trap_id</code></li>
-</ul>
-<pre class="r"><code>m11 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6) +
-    s(trap_id, bs = &quot;re&quot;) +
-    s(sub_sample, by = trap_id, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m11</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.381) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + s(wind_speed, 
-##     k = 6) + s(trap_id, bs = &quot;re&quot;) + s(sub_sample, by = trap_id, 
-##     bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-##  1.0001 74.1731  0.9014  0.0002  1.6014  0.0000  0.0000 
-##  0.0000  1.6557  0.0000  0.0000  0.0000  0.0000  0.0000 
-##  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0027 
-##  0.0000  0.0000  0.0000  0.0000  0.0000  1.2552  0.0000 
-##  0.0000  0.0000  1.4896  0.0000  0.0001  0.0000  0.0000 
-##  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000  0.0000 
-##  0.1876  0.0000  1.5149  0.1474  0.0000  0.0000  0.0000 
-##  0.0000  1.6977  1.6097  0.0000  0.0000  0.0000  0.0000 
-##  0.0000  0.0000  0.0000  0.0000  0.0808  0.0000  0.0000 
-##  0.0000  0.0000  0.0000  0.0000  0.0000  0.1838  0.0000 
-##  0.7639  0.0001  1.5124  0.0000  0.0000  0.1483  0.0001 
-##  0.2474  0.0000  0.0001  0.0000  0.0155  0.0000  0.0000 
-##  0.9699  0.0000  0.0000  0.0000  0.0000  0.0001  0.0000 
-##  0.0000  0.5290  0.4666  0.0000  1.3752  0.0000  0.0000 
-##  total = 98.53 
-## 
-## REML score: 1318.147</code></pre>
-</div>
-<div id="model-m12" class="section level3">
-<h3>Model m12</h3>
-<ul>
-<li>Response: <code>spore_cm2</code></li>
-<li>Linear predictors: <code>time_min</code>, <code>distance_m</code>, <code>downwind</code>, <code>smut_incidence</code></li>
-<li>Smoothed predictors: <code>wind_speed</code></li>
-<li>Random effects: <code>trap_id</code>, <code>sub_sample</code></li>
-</ul>
-<pre class="r"><code>m12 &lt;- gam(
-  spore_cm2 ~ time_min + distance_m + downwind +
-    s(wind_speed, k = 6) +
-    s(trap_id, bs = &quot;re&quot;) +
-    s(sub_sample, bs = &quot;re&quot;),
-  method = &quot;REML&quot;,
-  data = mod_dat,
-  family = &quot;tw&quot;
-)
-m12</code></pre>
-<pre><code>## 
-## Family: Tweedie(p=1.374) 
-## Link function: log 
-## 
-## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + s(wind_speed, 
-##     k = 6) + s(trap_id, bs = &quot;re&quot;) + s(sub_sample, bs = &quot;re&quot;)
-## 
-## Estimated degrees of freedom:
-##  1.001 80.881  0.247  total = 87.13 
-## 
-## REML score: 1322.293</code></pre>
+## REML score: 688.1356</code></pre>
 </div>
 </div>
 <div id="model-aic" class="section level2">
@@ -820,128 +545,111 @@ m12</code></pre>
 <pre class="r"><code>models &lt;- list(
   m1 = m1,
   m2 = m2,
-  m3 = m3,
-  m4 = m4,
-  m5 = m5,
-  m6 = m6,
-  m7 = m7,
-  m8 = m8,
-  m9 = m9,
-  m10 = m10,
-  m11 = m11,
-  m12 = m12
+  m3 = m3
 )
 map_df(models, glance, .id = &quot;model&quot;) %&gt;%
   arrange(AIC, BIC)</code></pre>
-<pre><code>## # A tibble: 12 × 8
-##    model     df logLik   AIC   BIC deviance df.residual  nobs
-##    &lt;chr&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt; &lt;int&gt;
-##  1 m12    87.1  -1146. 2475. 2872.     715.        489.   576
-##  2 m11    98.5  -1129. 2481. 2969.     670.        477.   576
-##  3 m10   147.   -1153. 2611. 3274.     714.        429.   576
-##  4 m7      9.59 -1528. 3079. 3130.    2097.        566.   576
-##  5 m6      9.59 -1528. 3079. 3131.    2097.        566.   576
-##  6 m9      9.35 -1528. 3079. 3131.    2097.        567.   576
-##  7 m4      9.46 -1528. 3079. 3131.    2097.        567.   576
-##  8 m5      9.46 -1528. 3079. 3131.    2097.        567.   576
-##  9 m8      9.41 -1528. 3079. 3131.    2097.        567.   576
-## 10 m2      8.62 -1562. 3147. 3194.    2295.        567.   576
-## 11 m3      8.62 -1562. 3147. 3194.    2295.        567.   576
-## 12 m1      6.72 -1699. 3416. 3455.    3265.        569.   576</code></pre>
-<p>Based on the AIC and BIC values, model m12 looks to be the best model for our data.</p>
+<pre><code>## # A tibble: 3 × 8
+##   model    df logLik   AIC   BIC deviance df.residual  nobs
+##   &lt;chr&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt; &lt;int&gt;
+## 1 m3     89.5  -517. 1221. 1563.     220.        199.   288
+## 2 m2     89.5  -517. 1221. 1563.     220.        199.   288
+## 3 m1     89.8  -518. 1223. 1566.     220.        198.   288</code></pre>
+<p>Based on the AIC and BIC values, model m3 looks to be the best model for our data.</p>
 </div>
-<div id="inspect-model-m12" class="section level2">
-<h2>Inspect Model m12</h2>
+<div id="inspect-model-m3" class="section level2">
+<h2>Inspect Model m3</h2>
 <div id="check-model" class="section level3">
 <h3>Check model</h3>
-<pre class="r"><code>gam.check(m12)</code></pre>
-<p><img src="model_files/figure-html/gam-check-m12-1.png" width="672" /></p>
+<pre class="r"><code>gam.check(m3)</code></pre>
+<p><img src="model_files/figure-html/gam-check-m3-1.png" width="672" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 5 iterations.
-## Gradient range [-8.526417e-05,5.676235e-05]
-## (score 1322.293 &amp; scale 1.3313).
-## Hessian positive definite, eigenvalue range [3.634049e-05,460.3881].
-## Model rank =  108 / 108 
+## full convergence after 9 iterations.
+## Gradient range [-5.70728e-06,5.051855e-06]
+## (score 688.1356 &amp; scale 0.9165479).
+## Hessian positive definite, eigenvalue range [3.194353e-16,221.1686].
+## Model rank =  125 / 125 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                   k&#39;    edf k-index p-value  
-## s(wind_speed)  5.000  1.001    0.85    0.02 *
-## s(trap_id)    96.000 80.881      NA      NA  
-## s(sub_sample)  2.000  0.247      NA      NA  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>The model did fully converge after 5 iterations but wind speed is residuals are not randomly distributed. The diagnostic plots show some issues with the fit, indicating that we really need more data to fit a proper model if we were interested in fully predicting spore dispersal, but for our purposes, explaining the dispersal, this model is good enough. However, in the future, collecting more data so that <code>k</code> could be increased would be useful, but since this is the data that we have, this appears to be the best model that describes it.</p>
+##                      k&#39;       edf k-index p-value
+## s(wind_speed)  1.70e+01  2.97e+00    0.90    0.23
+## s(trap_id)     9.60e+01  7.87e+01      NA      NA
+## s(field)       6.00e+00  2.76e+00      NA      NA
+## s(time_slice)  1.00e+00 -1.23e-16    0.93    0.46</code></pre>
+<p>The model fully converged after 9 iterations. All of the predictive factors included were significant at <em>P</em> &gt; 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit. The Q-Q plot generally falls along the line indicating a sufficient fit. There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape. The response versus fitted values clusters nicely around the 1:1 line. In all, this model looks to explain the spore dispersal data very well.</p>
 </div>
-<div id="summarise-model" class="section level3">
-<h3>Summarise model</h3>
-<pre class="r"><code>summary(m12)</code></pre>
+<div id="summarise-and-visualise-model-m3" class="section level3">
+<h3>Summarise and visualise model m3</h3>
+<pre class="r"><code>summary(m3)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.374) 
+## Family: Tweedie(p=1.478) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ time_min + distance_m + downwind + s(wind_speed, 
-##     k = 6) + s(trap_id, bs = &quot;re&quot;) + s(sub_sample, bs = &quot;re&quot;)
+## spore_cm2 ~ time_slice + distance_m + downwind + s(wind_speed, 
+##     k = 18) + s(trap_id, bs = &quot;re&quot;) + s(field, bs = &quot;re&quot;) + s(time_slice, 
+##     bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##                   Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)      3.4290693  0.4619755   7.423 5.13e-13 ***
-## time_min         0.0036997  0.0003989   9.275  &lt; 2e-16 ***
-## distance_m      -0.0036582  0.0012514  -2.923  0.00362 ** 
-## downwindlateral -2.9509766  0.3809744  -7.746 5.52e-14 ***
-## downwindupwind  -3.2338553  0.4784438  -6.759 3.97e-11 ***
+## (Intercept)      2.0340993  0.4696802   4.331 2.36e-05 ***
+## time_slice       0.0031893  0.0007442   4.285 2.84e-05 ***
+## distance_m      -0.0036068  0.0013525  -2.667  0.00829 ** 
+## downwindlateral -1.0768738  0.2272603  -4.739 4.10e-06 ***
+## downwindupwind  -1.7949412  0.3806819  -4.715 4.54e-06 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                   edf Ref.df      F p-value    
-## s(wind_speed)  1.0007  1.001  8.534 0.00365 ** 
-## s(trap_id)    80.8806 91.000 14.616 &lt; 2e-16 ***
-## s(sub_sample)  0.2468  1.000  0.315 0.25945    
+##                      edf Ref.df      F  p-value    
+## s(wind_speed)  2.967e+00  3.465  2.688   0.0217 *  
+## s(trap_id)     7.873e+01 94.000  9.095 1.88e-06 ***
+## s(field)       2.763e+00  5.000 57.555   0.1251    
+## s(time_slice) -1.226e-16  1.000  0.000   0.6354    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.821   Deviance explained = 87.6%
-## -REML = 1322.3  Scale est. = 1.3313    n = 576</code></pre>
-</div>
-<div id="visualise-the-model" class="section level3">
-<h3>Visualise the model</h3>
-<pre class="r"><code>draw(m12)</code></pre>
-<p><img src="model_files/figure-html/visualise-m12-1.png" width="672" /></p>
+## R-sq.(adj) =  0.855   Deviance explained = 90.4%
+## -REML = 688.14  Scale est. = 0.91655   n = 288</code></pre>
+<pre class="r"><code>plot(m3)</code></pre>
+<p><img src="model_files/figure-html/appraise-m3-1.png" width="672" /><img src="model_files/figure-html/appraise-m3-2.png" width="672" /><img src="model_files/figure-html/appraise-m3-3.png" width="672" /><img src="model_files/figure-html/appraise-m3-4.png" width="672" /></p>
 </div>
 </div>
 <div id="predict-spore-dispersal" class="section level2">
 <h2>Predict spore dispersal</h2>
 <pre class="r"><code>mod_dat %&gt;% distinct(downwind) %&gt;% pull()</code></pre>
-<pre><code>## [1] lateral  downwind upwind  
-## Levels: downwind lateral upwind</code></pre>
+<pre><code>##  [1] &quot;lateral&quot;  &quot;upwind&quot;   &quot;downwind&quot; &quot;downwind&quot; &quot;lateral&quot;  &quot;upwind&quot;  
+##  [7] &quot;lateral&quot;  &quot;upwind&quot;   &quot;downwind&quot; &quot;lateral&quot;  &quot;upwind&quot;   &quot;lateral&quot; 
+## [13] &quot;downwind&quot; &quot;upwind&quot;   &quot;lateral&quot;  &quot;downwind&quot;</code></pre>
 <pre class="r"><code>newd &lt;- expand_grid(
-  time_min = c(90, 180, 270),
+  time_slice = c(90, 180, 270),
   downwind = c(&quot;downwind&quot;, &quot;lateral&quot;, &quot;upwind&quot;),
   distance_m = seq(0, 400, 100),
   wind_speed = 0:30,
+  field = 1,
   trap_id = as.factor(apply(expand.grid(
-    1, c(&quot;N&quot;, &quot;S&quot;, &quot;E&quot;, &quot;W&quot;), c(100, 200, 300, 400)
+    1, c(&quot;_N_&quot;, &quot;_S_&quot;, &quot;_E_&quot;, &quot;_W_&quot;), c(100, 200, 300, 400)
   ),
   1, paste, collapse = &quot;&quot;)),
   sub_sample = as.factor(c(1, 2))
 )
   
-newd$pred_spore_cm2 &lt;- predict(m12, newd)</code></pre>
+newd$pred_spore_cm2 &lt;- predict(m3, newd)</code></pre>
 </div>
 <div id="visualise-spore-dispersal-predictions" class="section level2">
 <h2>Visualise spore dispersal predictions</h2>
-<p>The GAM will predict spores to disperse at negative values, since this is not possible, we will set any values that are less than zero to zero in the model’s output before plotting.</p>
+<p>Visualise the spore dispersal predictions for the three time-slices, 90, 180 and 270 minutes at 0m to 400m.</p>
 <pre class="r"><code>newd %&gt;%
-  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
   ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
-  geom_smooth(method = &quot;gam&quot;, formula = y ~ s(x, k = 5), size = 1) +
+  geom_smooth(method = &quot;gam&quot;,
+              formula = y ~ s(x, k = 5),
+              size = 1) +
   scale_fill_viridis_d(&quot;Prevailing wind&quot;) +
   scale_colour_viridis_d(&quot;Prevailing Wind&quot;) +
-  facet_grid(. ~ time_min) +
+  facet_grid(. ~ time_slice) +
   scale_x_continuous(sec.axis = sec_axis(
     ~ . ,
     name = &quot;Minutes since harvest beginning&quot;,
