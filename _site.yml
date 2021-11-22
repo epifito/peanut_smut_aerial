@@ -6,11 +6,14 @@ navbar:
     - text: "Home"
       icon: fas fa-home 
       href: index.html
+    - text: "Data Import"
+      icon: fas fa-table
+      href: data_import.html
     - text: "Data Visualization"
       icon: fas fa-chart-area 
       href: data_viz.html
     - text: "Model Fitting"
-      icon: fas fa-file-code-o 
+      icon: fas fa-file-code
       href: model.html
 
       
