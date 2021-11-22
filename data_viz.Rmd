@@ -270,3 +270,81 @@ ggsave(
   scale = 1.2
 )
 ```
+
+
+## Spore Type frequency
+
+```{r}
+library(tidyverse)
+dat_spore_type <- read_csv("data/spore_type.csv")
+```
+
+```{r}
+head(dat_spore_type)
+```
+
+```{r}
+dat_spore_type %>% 
+  group_by(meter, spore_nuclei, .drop=FALSE) %>%
+  summarise(count = mean(count)) %>% 
+  mutate(percent = count/sum(count)) %>%   
+  ggplot(aes(x=meter, y=percent, fill=factor(spore_nuclei) ))+ 
+  geom_bar(position="fill", stat="identity")+
+  labs(y="Spore type frequency", x="Distance from harvesting field (m)", 
+       fill="Nuclei per\npropagle unit")+
+  scale_fill_viridis_d(direction = -1)+
+  geom_text(aes(label = round(percent,2)), position = position_stack(vjust = .5), 
+            col = "white", fontface = "bold", size = 3)+
+  theme_bw(base_size = 9)
+```
+
+```{r, eval=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots/spore_type.png",
+  width = 8,
+  height = 8,
+  units = "cm",
+  dpi = 300,
+  scale = 1.5
+)
+```
+
+## Spore size
+
+```{r}
+dat_spore_size <- read_csv("data/spore_size.csv")
+```
+
+```{r}
+head(dat_spore_size)
+```
+
+```{r}
+library(ggridges)
+dat_spore_size %>%
+  filter(image_id!=34) %>% 
+  mutate(d_mean = (d1+d2)/2) %>% 
+  ggplot(aes(x = d_mean, y = factor(spore_type))) +
+  geom_density_ridges(aes(stat ="density", fill = factor(spore_type)), 
+                      alpha =0.5,
+                      jittered_points = TRUE, scale = .5, rel_min_height = .01,
+                      point_shape = "|", point_size = 1, size = 0.25,
+                      position = position_points_jitter(height = 0))+
+  labs(x= expression(paste(
+  "Mean diameter (",mu, m,  ")", sep="")), 
+       y = "Spore type", fill = "") + 
+  guides(fill="none")
+```
+
+```{r, eval=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots/spore_size.png",
+  width = 8,
+  height = 8,
+  units = "cm",
+  dpi = 300,
+  scale = 1.5
+)
+```
