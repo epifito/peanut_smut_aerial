@@ -610,7 +610,7 @@ wind_rose +
 </div>
 <div id="spore-type-frequency" class="section level2">
 <h2>Spore type frequency</h2>
-<pre class="r"><code>dat_spore_type &lt;- read_csv(&quot;data/spore_type.csv&quot;)</code></pre>
+<pre class="r"><code>dat_spore_type &lt;- read_csv(here(&quot;data/spore_type.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_type)</code></pre>
 <pre><code>## # A tibble: 6 × 4
 ##   meter   rep spore_nuclei count
@@ -655,7 +655,7 @@ wind_rose +
 </div>
 <div id="spore-size" class="section level2">
 <h2>Spore size</h2>
-<pre class="r"><code>dat_spore_size &lt;- read_csv(&quot;data/spore_size.csv&quot;)</code></pre>
+<pre class="r"><code>dat_spore_size &lt;- read_csv(here(&quot;data/spore_size.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_size)</code></pre>
 <pre><code>## # A tibble: 6 × 4
 ##   image_id spore_type    d1    d2

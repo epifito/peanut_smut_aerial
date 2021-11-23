@@ -271,7 +271,7 @@ ggsave(
 ## Spore type frequency
 
 ```{r load-spore-type}
-dat_spore_type <- read_csv("data/spore_type.csv")
+dat_spore_type <- read_csv(here("data/spore_type.csv"))
 ```
 
 ```{r check-spore-type}
@@ -317,7 +317,7 @@ ggsave(
 ## Spore size
 
 ```{r load-spore-size}
-dat_spore_size <- read_csv("data/spore_size.csv")
+dat_spore_size <- read_csv(here("data/spore_size.csv"))
 ```
 
 ```{r inspect-spore-size}
