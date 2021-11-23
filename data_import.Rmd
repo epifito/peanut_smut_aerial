@@ -131,25 +131,124 @@ meteo_data <-
 
 #### Summarise the weather data into 90, 180 and 270 minute interval bins
 
-This is where the `circular.averaging()` is needed since you can't just take the `mean` value of wind direction in degrees here.
+The weather data are summarised from 0 to 90, 0 to 180 and 0 to 270 minutes to align with the spore trapping data.
+
+This is where the `circular.averaging()` is needed since we cannot simply take the `mean` value of wind direction in degrees here.
 
 ```{r bin-time-slices}
-meteo_data <-
+m <-
   meteo_data %>%
   mutate(time_slice =
-             case_when(
-               minute_lap <= 90 ~ 90,
-               minute_lap > 90 & minute_lap <= 180 ~ 180,
-               TRUE ~ 270
-             )
-           ) %>%
-  group_by(field, time_slice) %>%
-  summarise(
-    rh = mean(rel_hum),
-    temp = mean(temp),
-    wind_speed = mean(wind_speed),
-    wind_degrees = circular.averaging(wind_degrees)
-  )
+           case_when(
+             minute_lap <= 90 ~ 90,
+             minute_lap > 90 & minute_lap <= 180 ~ 180,
+             TRUE ~ 270
+           ))
+
+rh_90 <-
+  m %>%
+  filter(time_slice == 90) %>%
+  group_by(field) %>%
+  summarise(rh = mean(rel_hum))
+
+rh_180 <-
+  m %>%
+  filter(time_slice == 90 | time_slice == 180) %>%
+  group_by(field) %>%
+  summarise(rh = mean(rel_hum))
+
+rh_270 <-
+  m %>%
+  group_by(field) %>%
+  summarise(rh = mean(rel_hum))
+
+rh <-
+  bind_rows(list(
+    "90" = rh_90,
+    "180" = rh_180,
+    "270" = rh_270
+  ), .id = "time_slice")
+
+
+temp_90 <-
+  m %>%
+  filter(time_slice == 90) %>%
+  group_by(field) %>%
+  summarise(temp = mean(temp))
+
+temp_180 <-
+  m %>%
+  filter(time_slice == 90 | time_slice == 180) %>%
+  group_by(field) %>%
+  summarise(temp = mean(temp))
+
+temp_270 <-
+  m %>%
+  group_by(field) %>%
+  summarise(temp = mean(temp))
+
+temp <-
+  bind_rows(list(
+    "90" = temp_90,
+    "180" = temp_180,
+    "270" = temp_270
+  ), .id = "time_slice")
+
+wind_speed_90 <-
+  m %>%
+  filter(time_slice == 90) %>%
+  group_by(field) %>%
+  summarise(wind_speed = mean(wind_speed))
+
+wind_speed_180 <-
+  m %>%
+  filter(time_slice == 90 | time_slice == 180) %>%
+  group_by(field) %>%
+  summarise(wind_speed = mean(wind_speed))
+
+wind_speed_270 <-
+  m %>%
+  group_by(field) %>%
+  summarise(wind_speed = mean(wind_speed))
+
+wind_speed <-
+  bind_rows(list(
+    "90" = wind_speed_90,
+    "180" = wind_speed_180,
+    "270" = wind_speed_270
+  ), .id = "time_slice")
+
+wind_degrees_90 <-
+  m %>%
+  filter(time_slice == 90) %>%
+  group_by(field) %>%
+  summarise(wind_degrees = circular.averaging(wind_degrees))
+
+wind_degrees_180 <-
+  m %>%
+  filter(time_slice == 90 | time_slice == 180) %>%
+  group_by(field) %>%
+  summarise(wind_degrees = circular.averaging(wind_degrees))
+
+wind_degrees_270 <-
+  m %>%
+  group_by(field) %>%
+  summarise(wind_degrees = circular.averaging(wind_degrees))
+
+wind_degrees <-
+  bind_rows(list(
+    "90" = wind_degrees_90,
+    "180" = wind_degrees_180,
+    "270" = wind_degrees_270
+  ), .id = "time_slice")
+
+meteo_data <-
+  rh %>% 
+  left_join(temp, by = c("field", "time_slice")) %>% 
+  left_join(wind_speed, by = c("field", "time_slice")) %>% 
+  left_join(wind_degrees, by = c("field", "time_slice")) %>% 
+  mutate(time_slice = as.numeric(time_slice)) %>% 
+  arrange(field, time_slice)
 ```
 
 ## Merge the spore data with the weather data
