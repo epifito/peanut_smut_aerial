@@ -55,7 +55,7 @@ mod_dat %>%
   print(n = Inf)
 ```
 
-Because of the number of zeros in the data, we will use a [Tweedie family](https://en.wikipedia.org/wiki/Tweedie_distribution) for the models to help account for this, _i.e._ in the model functions you will see `family =  "tw"` for this.
+Because of the number of zeros in the data, we will use a [Tweedie family](https://en.wikipedia.org/wiki/Tweedie_distribution) for the models to help account for this, _i.e._ in the model functions you will see `family = "tw"` for this.
 
 ### Model m1
 
@@ -101,20 +101,39 @@ m2
 * Response: `spore_cm2`
 * Linear predictors: `time_slice`, `distance_m`, `downwind`
 * Smoothed predictors: `wind_speed`
-* Random effects: `trap_id`, `field`, `time_slice`
+* Random effects: `trap_id`, `time_slice`
 
 ```{r m3}
 m3 <- gam(
   spore_cm2 ~ time_slice + distance_m + downwind +
     s(wind_speed, k = 18) +
     s(trap_id, bs = "re") +
-    s(field, bs = "re") +
     s(time_slice, bs = "re"),
   method = "REML",
   data = mod_dat,
   family = "tw"
 )
 m3
+```
+
+### Model m4
+
+* Response: `spore_cm2`
+* Linear predictors: `distance_m`, `downwind`
+* Smoothed predictors: `wind_speed`
+* Random effects: `trap_id`, `time_slice`
+
+```{r m4}
+m4 <- gam(
+  spore_cm2 ~ distance_m + downwind +
+    s(wind_speed, k = 18) +
+    s(trap_id, bs = "re") +
+    s(time_slice, bs = "re"),
+  method = "REML",
+  data = mod_dat,
+  family = "tw"
+)
+m4
 ```
 
 ## Model AIC
@@ -125,20 +144,21 @@ Check models for best fit using AIC.
 models <- list(
   m1 = m1,
   m2 = m2,
-  m3 = m3
+  m3 = m3,
+  m4 = m4
 )
 map_df(models, glance, .id = "model") %>%
   arrange(AIC, BIC)
 ```
 
-Based on the AIC and BIC values, model m3 looks to be the best model for our data.
+Based on the AIC and BIC values, model m4 looks to be the best model for our data.
 
-## Inspect Model m3
+## Inspect Model m4
 
 ### Check model
 
-```{r gam-check-m3}
-gam.check(m3)
+```{r gam-check-m4}
+gam.check(m4)
 ```
 
 The model fully converged after 9 iterations.
@@ -148,17 +168,16 @@ There is a bit of a pattern in the residual vs linear predictors but the histogr
 The response versus fitted values clusters nicely around the 1:1 line.
 In all, this model looks to explain the spore dispersal data very well.
 
-### Summarise and visualise model m3
+### Summarise and visualise model m4
 
-```{r appraise-m3}
-summary(m3)
-plot(m3)
+```{r appraise-m4}
+summary(m4)
+plot(m4)
 ```
 
 ## Predict spore dispersal
 
 ```{r predict}
-mod_dat %>% distinct(downwind) %>% pull()
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
   downwind = c("downwind", "lateral", "upwind"),
@@ -172,39 +191,22 @@ newd <- expand_grid(
   sub_sample = as.factor(c(1, 2))
 )
   
-newd$pred_spore_cm2 <- predict(m3, newd)
+newd$pred_spore_cm2 <- predict(m4, newd)
 ```
 
 ## Visualise spore dispersal predictions
 
-Visualise the spore dispersal predictions for the three time-slices, 90, 180 and 270 minutes at 0m to 400m.
+Visualise the spore dispersal predictions for 0m, 100m, 200m, 300m, 400m for traps placed upwind, lateral and downwind of the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
-```{r graph-predictions, fig.cap="Predictions of spore dispersal (spores per meter squared) at 0m to 400m for three time points, 90 min, 180 min, 270 min after peanut harvest commenced."}
+```{r graph-predictions}
 newd %>%
-  ggplot(aes(x = distance_m, y = pred_spore_cm2, col = downwind)) +
-  geom_smooth(method = "gam",
-              formula = y ~ s(x, k = 5),
-              size = 1) +
-  scale_fill_viridis_d("Prevailing wind") +
-  scale_colour_viridis_d("Prevailing Wind") +
-  facet_grid(. ~ time_slice) +
-  scale_x_continuous(sec.axis = sec_axis(
-    ~ . ,
-    name = "Minutes since harvest beginning",
-    breaks = NULL,
-    labels = NULL
-  )) +
+  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
+  ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
+  geom_violin() +
+  facet_grid(. ~ downwind) +
   labs(x = "Distance from harvesting field (m)",
-       y = "Spores / m²") +
-  theme(
-    legend.position = "top",
-    legend.justification = "center",
-    legend.direction = "horizontal",
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
-  guides(fill = guide_legend(title.position = "top",
-                             title.hjust = 0.5))
+       y = "Predicted Spores / m²"
+  )
 ```
 
 ```{r save-prediction-graph, eval=FALSE}
