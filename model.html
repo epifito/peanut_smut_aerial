@@ -568,17 +568,17 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
 ## full convergence after 9 iterations.
 ## Gradient range [-5.70728e-06,5.051855e-06]
 ## (score 688.1356 &amp; scale 0.9165479).
-## Hessian positive definite, eigenvalue range [3.194353e-16,221.1686].
+## Hessian positive definite, eigenvalue range [3.330669e-16,221.1686].
 ## Model rank =  125 / 125 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
 ##                      k&#39;       edf k-index p-value
-## s(wind_speed)  1.70e+01  2.97e+00    0.90    0.23
+## s(wind_speed)  1.70e+01  2.97e+00    0.90    0.29
 ## s(trap_id)     9.60e+01  7.87e+01      NA      NA
 ## s(field)       6.00e+00  2.76e+00      NA      NA
-## s(time_slice)  1.00e+00 -1.23e-16    0.93    0.46</code></pre>
+## s(time_slice)  1.00e+00 -3.82e-16    0.93    0.46</code></pre>
 <p>The model fully converged after 9 iterations. All of the predictive factors included were significant at <em>P</em> &gt; 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit. The Q-Q plot generally falls along the line indicating a sufficient fit. There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape. The response versus fitted values clusters nicely around the 1:1 line. In all, this model looks to explain the spore dispersal data very well.</p>
 </div>
 <div id="summarise-and-visualise-model-m3" class="section level3">
@@ -605,10 +605,10 @@ map_df(models, glance, .id = &quot;model&quot;) %&gt;%
 ## 
 ## Approximate significance of smooth terms:
 ##                      edf Ref.df      F  p-value    
-## s(wind_speed)  2.967e+00  3.465  2.688   0.0217 *  
+## s(wind_speed)  2.967e+00  3.465  2.688  0.02170 *  
 ## s(trap_id)     7.873e+01 94.000  9.095 1.88e-06 ***
-## s(field)       2.763e+00  5.000 57.555   0.1251    
-## s(time_slice) -1.226e-16  1.000  0.000   0.6354    
+## s(field)       2.763e+00  5.000 57.555  0.12512    
+## s(time_slice) -3.822e-16  1.000  0.000  0.00645 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
