@@ -66,10 +66,7 @@ Create a violin plot with each time as a colour.
 
 ```{r spore-violin-density-by-distance}
 ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
-  geom_violin(aes(fill = as.factor(time_slice),
-                  colour = as.factor(time_slice))) +
-  scale_fill_viridis_d("Time (minutes)") +
-  scale_colour_viridis_d("Time (minutes)") +
+  geom_violin() +
   labs(y = expression(Spores/cm^{2}),
        x = "Distance (m)")
 ```
@@ -228,8 +225,8 @@ Plot spore dispersal with smoothed lines for spore traps that are classified as 
 mod_dat %>%
   ggplot(aes(distance_m, spore_cm2, col = downwind)) +
   geom_point() +
-  geom_smooth(se = F) +
-  facet_grid(field ~ time_slice) +
+  geom_smooth(se = FALSE) +
+  facet_grid(field ~ .) +
   scale_x_continuous(
     sec.axis = sec_axis(
       ~ . ,
@@ -271,31 +268,38 @@ ggsave(
 )
 ```
 
+## Spore type frequency
 
-## Spore Type frequency
-
-```{r}
-library(tidyverse)
-dat_spore_type <- read_csv("data/spore_type.csv")
+```{r load-spore-type}
+dat_spore_type <- read_csv(here("data/spore_type.csv"))
 ```
 
-```{r}
+```{r check-spore-type}
 head(dat_spore_type)
 ```
 
-```{r}
-dat_spore_type %>% 
-  group_by(meter, spore_nuclei, .drop=FALSE) %>%
-  summarise(count = mean(count)) %>% 
-  mutate(percent = count/sum(count)) %>%   
-  ggplot(aes(x=meter, y=percent, fill=factor(spore_nuclei) ))+ 
-  geom_bar(position="fill", stat="identity")+
-  labs(y="Spore type frequency", x="Distance from harvesting field (m)", 
-       fill="Nuclei per\npropagle unit")+
-  scale_fill_viridis_d(direction = -1)+
-  geom_text(aes(label = round(percent,2)), position = position_stack(vjust = .5), 
-            col = "white", fontface = "bold", size = 3)+
-  theme_bw(base_size = 9)
+```{r plot-spore-type}
+dat_spore_type %>%
+  group_by(meter, spore_nuclei, .drop = FALSE) %>%
+  summarise(count = mean(count)) %>%
+  mutate(percent = count / sum(count)) %>%
+  ggplot(aes(
+    x = meter,
+    y = percent,
+    fill = factor(spore_nuclei)
+  )) +
+  geom_bar(position = "fill", stat = "identity") +
+  labs(y = "Spore type frequency",
+       x = "Distance from harvesting field (m)",
+       fill = "Nuclei per\npropagle unit") +
+  scale_fill_viridis_d(direction = -1) +
+  geom_text(
+    aes(label = round(percent, 2)),
+    position = position_stack(vjust = 0.5),
+    col = "white",
+    fontface = "bold",
+    size = 3
+  )
 ```
 
 ```{r, eval=FALSE}
@@ -312,29 +316,35 @@ ggsave(
 
 ## Spore size
 
-```{r}
-dat_spore_size <- read_csv("data/spore_size.csv")
+```{r load-spore-size}
+dat_spore_size <- read_csv(here("data/spore_size.csv"))
 ```
 
-```{r}
+```{r inspect-spore-size}
 head(dat_spore_size)
 ```
 
-```{r}
+```{r spore-size-ridges}
 library(ggridges)
 dat_spore_size %>%
-  filter(image_id!=34) %>% 
-  mutate(d_mean = (d1+d2)/2) %>% 
+  filter(image_id != 34) %>%
+  mutate(d_mean = (d1 + d2) / 2) %>%
   ggplot(aes(x = d_mean, y = factor(spore_type))) +
-  geom_density_ridges(aes(stat ="density", fill = factor(spore_type)), 
-                      alpha =0.5,
-                      jittered_points = TRUE, scale = .5, rel_min_height = .01,
-                      point_shape = "|", point_size = 1, size = 0.25,
-                      position = position_points_jitter(height = 0))+
-  labs(x= expression(paste(
-  "Mean diameter (",mu, m,  ")", sep="")), 
-       y = "Spore type", fill = "") + 
-  guides(fill="none")
+  geom_density_ridges(
+    aes(stat = "density"),
+    alpha = 0.5,
+    jittered_points = TRUE,
+    scale = 0.5,
+    rel_min_height = 0.01,
+    point_shape = "|",
+    point_size = 1,
+    size = 0.25,
+    position = position_points_jitter(height = 0)
+  ) +
+  labs(x = expression(paste("Mean diameter (", mu, m, ")")),
+       y = "Spore type",
+       fill = "") +
+  guides(fill = "none")
 ```
 
 ```{r, eval=FALSE}
