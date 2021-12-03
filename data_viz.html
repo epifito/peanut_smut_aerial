@@ -447,7 +447,7 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
 <div id="polar-coordinates" class="section level4">
 <h4>Polar coordinates</h4>
-<p>Create polar coordinate plots that display spore density in each cardinal direction.</p>
+<p>Create polar coordinate plots that display spore density in each cardinal direction. Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90. So, here the figure shows an additive effect of the number of spores that were captured over time. These are not discrete time_slices shown here, they do overlap.</p>
 <pre class="r"><code>ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,

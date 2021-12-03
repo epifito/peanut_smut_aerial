@@ -393,6 +393,7 @@ div.tocify {
 <p>A specific function for circular averaging the wind direction is necessary to summarise these data. This function will be loaded from <code>./R/circular_averaging.R</code> after loading the necessary libraries.</p>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
 library(&quot;here&quot;)
+library(&quot;geometry&quot;)
 
 # load circular.averaging()
 source(here(&quot;./R/circular_averaging.R&quot;))</code></pre>
@@ -407,24 +408,19 @@ source(here(&quot;./R/circular_averaging.R&quot;))</code></pre>
   col_types = list(field = col_factor(),
                    trap_coord = col_factor()
   ))</code></pre>
-<p>Summarise the spore data into the total number of spores per trap’s subsample and sub-subsamples, the <code>trap_id</code> column. We’ll keep the <code>field</code> col to join the weather data and the <code>trap_coord</code> col here for joining with another data frame that has the cardinal directions in it for further analysis.</p>
+<p>Summarise the spore data into the mean number of spores per centimeter squared combining the traps’ samples and sub-subsamples. We’ll keep the <code>field</code> col to join the weather data and the <code>trap_coord</code> col here for joining with another data frame that has the cardinal directions in it for further analysis.</p>
 <pre class="r"><code>spore_data &lt;- 
   spore_data %&gt;%
-  mutate(trap_id = as.factor(paste(field,
-                                   trap_coord,
-                                   distance_m,
-                                   sep = &quot;_&quot;))) %&gt;%
-  group_by(field, trap_coord, distance_m, trap_id, time_min) %&gt;%
+  group_by(field, trap_coord, distance_m, time_min) %&gt;%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
 
 glimpse(spore_data)</code></pre>
 <pre><code>## Rows: 288
-## Columns: 6
-## Groups: field, trap_coord, distance_m, trap_id [96]
+## Columns: 5
+## Groups: field, trap_coord, distance_m [96]
 ## $ field      &lt;fct&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
 ## $ trap_coord &lt;fct&gt; N, N, N, N, N, N, N, N, N, N, N, N, E, E, E, E, E, E, E, E,…
 ## $ distance_m &lt;dbl&gt; 100, 100, 100, 200, 200, 200, 300, 300, 300, 400, 400, 400,…
-## $ trap_id    &lt;fct&gt; 1_N_100, 1_N_100, 1_N_100, 1_N_200, 1_N_200, 1_N_200, 1_N_3…
 ## $ time_min   &lt;dbl&gt; 90, 180, 270, 90, 180, 270, 90, 180, 270, 90, 180, 270, 90,…
 ## $ spore_cm2  &lt;dbl&gt; 0.4166667, 0.8333333, 0.6250000, 0.4166667, 0.6250000, 2.91…</code></pre>
 </div>
@@ -493,11 +489,12 @@ glimpse(meteo_data)</code></pre>
 <pre class="r"><code>m &lt;-
   meteo_data %&gt;%
   mutate(time_slice =
-           case_when(
-             minute_lap &lt;= 90 ~ 90,
-             minute_lap &gt; 90 &amp; minute_lap &lt;= 180 ~ 180,
-             TRUE ~ 270
-           ))
+             case_when(
+               minute_lap &lt;= 90 ~ 90,
+               minute_lap &gt; 90 &amp; minute_lap &lt;= 180 ~ 180,
+               TRUE ~ 270
+             )
+           )
 
 rh_90 &lt;-
   m %&gt;%
@@ -608,23 +605,30 @@ meteo_data &lt;-
 </div>
 <div id="merge-the-spore-data-with-the-weather-data" class="section level2">
 <h2>Merge the spore data with the weather data</h2>
-<p>Use <code>left_join</code> to merge the raw spore data, <code>spore_raw</code> and weather data, <code>meteo_data</code> on <code>field</code> and <code>time_slice</code>/<code>time_min</code> and then create a column classifying the weather station as “upwind”, “downwind” or “lateral” for wind direction in the resulting object.</p>
+<p>Use <code>left_join</code> to merge the raw spore data, <code>spore_raw</code> and weather data, <code>meteo_data</code> on <code>field</code> and <code>time_slice</code>/<code>time_min</code> and then create a column classifying the weather station as “upwind”, -1; “downwind”, 1; or “lateral”, 0 for wind direction in the resulting object. Then add columns for the x and y locations on a Cartesian grid of the traps.</p>
 <pre class="r"><code>mod_dat &lt;- left_join(meteo_data,
-                 spore_data,
-                 by = c(&quot;field&quot; = &quot;field&quot;,
-                        &quot;time_slice&quot; = &quot;time_min&quot;)) %&gt;%
+                     spore_data,
+                     by = c(&quot;field&quot; = &quot;field&quot;,
+                            &quot;time_slice&quot; = &quot;time_min&quot;)) %&gt;%
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %&gt;%
-  mutate(downwind = case_when(
-    between(degree_dif, 157.5, 202.5) ~ &quot;downwind&quot;,
-    between(degree_dif, 22.5, 157.5) |
-      between(degree_dif, 202.5, 337.5)  ~ &quot;lateral&quot;,
-    TRUE ~ &quot;upwind&quot;
-  ))
+  mutate(downwind = 
+    case_when(
+      between(degree_dif, 157.5, 202.5) ~ 1L,
+      between(degree_dif, 22.5, 157.5) |
+        between(degree_dif, 202.5, 337.5)  ~ 0L,
+      TRUE ~ -1L
+  )) %&gt;%
+  mutate(time_slice = as.integer(time_slice))
+
+# create Cartesian coords
+xy &lt;- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
+
+mod_dat &lt;- bind_cols(mod_dat, xy)
 
 mod_dat</code></pre>
-<pre><code>## # A tibble: 288 × 13
+<pre><code>## # A tibble: 288 × 14
 ##    time_slice field    rh  temp wind_speed wind_degrees trap_coord distance_m
-##         &lt;dbl&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
+##         &lt;int&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
 ##  1         90 1        65  18.9       5.36         76.2 N                 100
 ##  2         90 1        65  18.9       5.36         76.2 N                 200
 ##  3         90 1        65  18.9       5.36         76.2 N                 300
@@ -635,8 +639,8 @@ mod_dat</code></pre>
 ##  8         90 1        65  18.9       5.36         76.2 E                 400
 ##  9         90 1        65  18.9       5.36         76.2 W                 100
 ## 10         90 1        65  18.9       5.36         76.2 W                 200
-## # … with 278 more rows, and 5 more variables: trap_id &lt;fct&gt;, spore_cm2 &lt;dbl&gt;,
-## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, downwind &lt;chr&gt;</code></pre>
+## # … with 278 more rows, and 6 more variables: spore_cm2 &lt;dbl&gt;,
+## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, downwind &lt;int&gt;, x &lt;dbl&gt;, y &lt;dbl&gt;</code></pre>
 <p>Save data object for fitting models.</p>
 <pre class="r"><code>save(mod_dat, file = here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
