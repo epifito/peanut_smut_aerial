@@ -1,0 +1,152 @@
+---
+title: "Fit GAM models of spore counts"
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    code_folding: hide
+    toc_depth: 2
+    css: style.css
+---
+
+```{r markdown-settings, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Load libraries
+
+```{r session settings}
+library("tidyverse")
+library("broom")
+library("ggplot2")
+library("ggpubr")
+library("gratia")
+library("here")
+library("mgcv")
+
+theme_set(theme_pubclean())
+```
+
+## Load data
+
+```{r load-data}
+load(here("data/mod_dat.Rdata"))
+```
+
+## Inspect the mod_dat object
+
+```{r inspect-mod-dat}
+mod_dat %>%
+  distinct(field, trap_coord, .keep_all = TRUE) %>%
+  select(trap_coord,
+         trap_degrees,
+         wind_degrees,
+         wind_speed,
+         distance_m,
+         downwind) %>%
+  print(n = Inf)
+```
+
+Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
+
+```{r m1}
+mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
+
+m1 <- gam(
+  spore_cm2 ~ s(y, x, k = 20) +
+    s(time_slice, k = 3) +
+    s(degree_dif, k = 72) +
+    s(distance_m, k = 4) +
+    s(field, xy, bs = "re"),
+  data = mod_dat,
+  select = TRUE,
+  method = "REML",
+  family = "tw"
+)
+
+m1
+```
+
+## Inspect Model m1
+
+### Check model
+
+```{r gam-check-m1}
+gam.check(m1)
+summary(m1)
+```
+
+The model fully converged after 10 iterations.
+All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
+The Q-Q plot generally falls along the line indicating a sufficient fit.
+There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
+The response versus fitted values clusters nicely around the 1:1 line.
+In all, this model looks to explain the spore dispersal data very well.
+
+#### Check for autocorrelation
+
+Because the data represent spatially and temporally correlated data, it's best to check for any autocorrelation in the residuals.
+
+```{r gam-autocorrelation}
+acf(residuals(m1))
+pacf(residuals(m1))
+```
+
+This looks OK.
+There is no major pattern discernible in the ACF or PACF plots that show cause for concern.
+
+### Summarise and visualise model m1
+
+```{r appraise-m1}
+draw(m1)
+```
+
+## Predict spore dispersal
+
+```{r predict}
+dist <- seq(0, 400, by = 100)
+
+newd <- expand_grid(
+  time_slice = c(90, 180, 270),
+  degree_dif = 1:360,
+  distance_m = dist,
+  wind_speed = 0:30,
+  x = dist,
+  y = dist,
+  xy = paste(dist, -dist),
+  field = 1)
+  
+newd$pred_spore_cm2 <- predict(m1, newd)
+```
+
+## Visualise spore dispersal predictions
+
+Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
+
+```{r graph-predictions}
+newd %>%
+  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
+  ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
+  geom_violin() +
+  labs(x = "Distance from harvesting field (m)",
+       y = "Predicted Spores / cm²"
+  )
+```
+
+```{r save-prediction-graph, eval=TRUE}
+ggsave(
+  last_plot(),
+  file = "plots/spore_prediction.png",
+  w = 5,
+  h = 2,
+  scale = 1.2
+)
+```
