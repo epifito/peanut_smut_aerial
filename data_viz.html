@@ -393,9 +393,16 @@ div.tocify {
 <pre class="r"><code>library(&quot;tidyverse&quot;)
 library(&quot;ggpubr&quot;)
 library(&quot;here&quot;)
-library(&quot;clifro&quot;)
+library(&quot;clifro&quot;)</code></pre>
+<pre class="r"><code>theme_set(theme_pubclean())
 
-theme_set(theme_pubclean())</code></pre>
+central_top_legend &lt;- theme(
+    legend.position = &quot;top&quot;,
+    legend.justification = &quot;center&quot;,
+    legend.direction = &quot;horizontal&quot;,
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  )</code></pre>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
@@ -411,14 +418,20 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
   geom_density()</code></pre>
 <p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="672" /></p>
 <p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
-<pre class="r"><code>ggplot(mod_dat, aes(x = distance_m, y = spore_cm2)) +
+<pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;% 
+  ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-  geom_smooth(method = &quot;gam&quot;, formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
+    geom_smooth(col=&quot;grey50&quot;, method = &quot;gam&quot;, 
+                formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
   labs(y = expression(Spores/cm^{2}),
        x = &quot;Distance (m)&quot;) +
-  facet_grid(time_slice ~ .)</code></pre>
+  facet_grid(time_slice ~ .)
+spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
+<p>(Alternative plot - we should choose one)</p>
+<pre class="r"><code>spore_dot_density_by_distance +  facet_grid( .~ time_slice)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-dot-density-by-distancem%20alternative%20B-1.png" width="672" /></p>
 <p>Create a violin plot with each time as a colour.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
   geom_violin() +
@@ -431,16 +444,12 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 <pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
   scale_fill_viridis_c() +
   geom_hex() +
-  geom_smooth() +
+  geom_smooth(col=&quot;grey50&quot;) +
   labs(y = expression(Spores / cm ^ {
     2
   }),
   x = &quot;Wind Speed (m/s)&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(fill = guide_legend(title.position = &quot;top&quot;,
                              title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
@@ -497,11 +506,7 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
   ) +
   ylab(&quot;Distance (m)&quot;) +
   xlab(&quot;&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(color = guide_legend(title.position = &quot;top&quot;,
                               title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/plot-spores-1.png" width="672" /></p>
@@ -542,14 +547,14 @@ wind_rose +
     end = .8
   ) +
   labs(x = &quot;&quot;, y = &quot;&quot;) +
-  theme(legend.position = &#39;top&#39;) +
+  central_top_legend +
+  theme_pubclean()+
   guides(fill = guide_legend(
     title.position = &quot;top&quot;,
     title.hjust = 0.5,
     keywidth = unit(1, &quot;lines&quot;),
     keyheight = unit(1, &quot;lines&quot;)
-  )) +
-  theme_pubclean()</code></pre>
+  ))</code></pre>
 <p><img src="data_viz_files/figure-html/wind-rose-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
@@ -565,11 +570,11 @@ wind_rose +
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
 <p>Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.</p>
-<pre class="r"><code>mod_dat %&gt;%
+<pre class="r"><code>smoothed_dispersal &lt;- mod_dat %&gt;%
   ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
-  geom_smooth(se = FALSE) +
+  geom_smooth(col=&quot;grey50&quot;, se = FALSE) +
   geom_point(size = 2.5) +
-  facet_grid(field ~ .) +
+  facet_grid(field~.) +
   scale_x_continuous(
     sec.axis = sec_axis(
       ~ . ,
@@ -590,16 +595,14 @@ wind_rose +
   labs(col = &quot;Prevailing wind&quot;,
        x = &quot;Distance from harvesting field (m)&quot;,
        y = &quot;Smut spores / m² at trap&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.justification = &quot;center&quot;,
-    legend.direction = &quot;horizontal&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(colour = guide_legend(title.position = &quot;top&quot;,
-                               title.hjust = 0.5))</code></pre>
+                               title.hjust = 0.5))
+smoothed_dispersal</code></pre>
 <p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="672" /></p>
+<p>(Alternative plot - we should choose one)</p>
+<pre class="r"><code>smoothed_dispersal + facet_grid(.~field)</code></pre>
+<p><img src="data_viz_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots/spore_gradient.png&quot;,
