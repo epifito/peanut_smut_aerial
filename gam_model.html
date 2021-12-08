@@ -11,7 +11,7 @@
 
 
 
-<title>Visualise data</title>
+<title>Fit GAM models of spore counts</title>
 
 <script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -383,7 +383,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Visualise data</h1>
+<h1 class="title toc-ignore">Fit GAM models of spore counts</h1>
 
 </div>
 
@@ -391,310 +391,188 @@ div.tocify {
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
+library(&quot;broom&quot;)
+library(&quot;ggplot2&quot;)
 library(&quot;ggpubr&quot;)
+library(&quot;gratia&quot;)
 library(&quot;here&quot;)
-library(&quot;clifro&quot;)
+library(&quot;mgcv&quot;)
 
 theme_set(theme_pubclean())</code></pre>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
-<pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))
-load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
+<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
-<div id="plot-spore-dispersal-density" class="section level2">
-<h2>Plot spore dispersal density</h2>
-<div id="plot-spore-densities" class="section level3">
-<h3>Plot spore densities</h3>
-<p>Create a density plot of the observed spore dispersal values.</p>
-<pre class="r"><code>ggplot(mod_dat, aes(y = spore_cm2)) +
-  geom_density()</code></pre>
-<p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="672" /></p>
-<p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
-<pre class="r"><code>ggplot(mod_dat, aes(x = distance_m, y = spore_cm2)) +
-  geom_point() +
-  scale_fill_viridis_c() +
-  geom_smooth(method = &quot;gam&quot;, formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
-  labs(y = expression(Spores/cm^{2}),
-       x = &quot;Distance (m)&quot;) +
-  facet_grid(time_slice ~ .)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
-<p>Create a violin plot with each time as a colour.</p>
-<pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
-  geom_violin() +
-  labs(y = expression(Spores/cm^{2}),
-       x = &quot;Distance (m)&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="672" /></p>
-<div id="check-windspeed-effect" class="section level4">
-<h4>Check windspeed effect</h4>
-<p>Create a hexbin plot to display the number of spores by wind speed and fit a smoothed line to these variables.</p>
-<pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
-  scale_fill_viridis_c() +
-  geom_hex() +
-  geom_smooth() +
-  labs(y = expression(Spores / cm ^ {
-    2
-  }),
-  x = &quot;Wind Speed (m/s)&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
-  guides(fill = guide_legend(title.position = &quot;top&quot;,
-                             title.hjust = 0.5))</code></pre>
-<p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
-</div>
-<div id="polar-coordinates" class="section level4">
-<h4>Polar coordinates</h4>
-<p>Create polar coordinate plots that display spore density in each cardinal direction. Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90. So, here the figure shows an additive effect of the number of spores that were captured over time. These are not discrete time_slices shown here, they do overlap.</p>
-<pre class="r"><code>ggplot(data = mod_dat) +
-  aes(
-    x = trap_degrees,
-    y = distance_m,
-    colour = spore_cm2,
-    size = spore_cm2
-  ) +
-  facet_grid(time_slice ~ field) +
-  coord_polar(theta = &quot;x&quot;,
-              start = 0,
-              direction = 1) +
-  geom_count(alpha = 0.55) +
-  scale_colour_viridis_c(
-    direction = -1,
-    name = &quot;Smut spores/m²&quot;,
-    guide = &quot;legend&quot;,
-    breaks = c(10, 100, 200, 300),
-    begin = 0,
-    end = 0.8
-  ) +
-  scale_size(
-    range = c(1, 8),
-    name = &quot;Smut spores/m²&quot;,
-    breaks = c(10, 100, 200, 300)
-  ) +
-  scale_x_continuous(
-    breaks = c(0, 90, 180, 270),
-    expand = c(0, 0),
-    limits = c(0, 360),
-    labels = c(&quot;N&quot;, &quot;E&quot;, &quot;S&quot;, &quot;W&quot;),
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Field&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  scale_y_continuous(
-    breaks = c(0, 100, 200, 300, 400),
-    limits = c(0, 400),
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Minutes since harvest beginning&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  ylab(&quot;Distance (m)&quot;) +
-  xlab(&quot;&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
-  guides(color = guide_legend(title.position = &quot;top&quot;,
-                              title.hjust = 0.5))</code></pre>
-<p><img src="data_viz_files/figure-html/plot-spores-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots/spores_cardinal.png&quot;,
-  width = 20,
-  height = 10,
-  units = &quot;cm&quot;,
-  dpi = 600,
-  scale = 1.5
-)</code></pre>
-</div>
-</div>
-</div>
-<div id="plot-wind-data" class="section level2">
-<h2>Plot wind data</h2>
-<div id="wind-roses" class="section level3">
-<h3>Wind roses</h3>
-<p>Using the <code>wind_rose()</code> from <em>clifro</em>, create windrose plots to visualise windspeeds and directions during the harvest and spread events.</p>
-<pre class="r"><code>wind_rose &lt;-
-  with(
-    mod_dat,
-    windrose(
-      speed = wind_speed,
-      direction = wind_degrees,
-      facet = field,
-      n_speeds = 5,
-      n_col = 3
-    )
-  )
-
-wind_rose +
-  scale_fill_viridis_d(
-    name = &quot;Wind Speed (m/s)&quot;,
-    direction = -1,
-    begin = 0,
-    end = .8
-  ) +
-  labs(x = &quot;&quot;, y = &quot;&quot;) +
-  theme(legend.position = &#39;top&#39;) +
-  guides(fill = guide_legend(
-    title.position = &quot;top&quot;,
-    title.hjust = 0.5,
-    keywidth = unit(1, &quot;lines&quot;),
-    keyheight = unit(1, &quot;lines&quot;)
-  )) +
-  theme_pubclean()</code></pre>
-<p><img src="data_viz_files/figure-html/wind-rose-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots/wind_rose_6_tr.png&quot;,
-  width = 20,
-  height = 10,
-  units = &quot;cm&quot;,
-  dpi = 600,
-  scale = 1.5
-)</code></pre>
-</div>
-</div>
-<div id="plot-smoothed-spore-dispersal" class="section level2">
-<h2>Plot smoothed spore dispersal</h2>
-<p>Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.</p>
+<div id="inspect-the-mod_dat-object" class="section level2">
+<h2>Inspect the mod_dat object</h2>
 <pre class="r"><code>mod_dat %&gt;%
-  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
-  geom_smooth(se = FALSE) +
-  geom_point(size = 2.5) +
-  facet_grid(field ~ .) +
-  scale_x_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Minutes since harvest beginning&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  scale_y_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Field&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  scale_colour_viridis_c() +
-  labs(col = &quot;Prevailing wind&quot;,
-       x = &quot;Distance from harvesting field (m)&quot;,
-       y = &quot;Smut spores / m² at trap&quot;) +
-  theme(
-    legend.position = &quot;top&quot;,
-    legend.justification = &quot;center&quot;,
-    legend.direction = &quot;horizontal&quot;,
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
-  guides(colour = guide_legend(title.position = &quot;top&quot;,
-                               title.hjust = 0.5))</code></pre>
-<p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots/spore_gradient.png&quot;,
-  w = 6,
-  h = 4,
-  scale = 1.2
-)</code></pre>
+  distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
+  select(trap_coord,
+         trap_degrees,
+         degree_dif,
+         wind_degrees,
+         wind_speed,
+         distance_m) %&gt;%
+  print(n = Inf)</code></pre>
+<pre><code>## # A tibble: 24 × 6
+##    trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
+##    &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 N                     0     76.2          76.2        5.36        100
+##  2 E                    90     13.8          76.2        5.36        100
+##  3 W                   270    194.           76.2        5.36        100
+##  4 S                   180    104.           76.2        5.36        100
+##  5 N                     0    201.          201.        26.2         100
+##  6 E                    90    111.          201.        26.2         100
+##  7 W                   270     68.7         201.        26.2         100
+##  8 S                   180     21.3         201.        26.2         100
+##  9 NE                   45     90.3         135.        10.6         100
+## 10 SE                  135      0.313       135.        10.6         100
+## 11 NW                  315    180.          135.        10.6         100
+## 12 SW                  225     89.7         135.        10.6         100
+## 13 N                     0     35.9          35.9       14.0         100
+## 14 E                    90     54.1          35.9       14.0         100
+## 15 W                   270    234.           35.9       14.0         100
+## 16 S                   180    144.           35.9       14.0         100
+## 17 NE                   45     15.1          29.9       14.1         100
+## 18 SE                  135    105.           29.9       14.1         100
+## 19 NW                  315    285.           29.9       14.1         100
+## 20 SW                  225    195.           29.9       14.1         100
+## 21 N                     0      2.16          2.16      27.3         100
+## 22 E                    90     87.8           2.16      27.3         100
+## 23 W                   270    268.            2.16      27.3         100
+## 24 S                   180    178.            2.16      27.3         100</code></pre>
+<p>Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, <code>x</code> and <code>y</code>; the smoothed time slice variables, <code>time_slice</code>; the wind direction in relation to the traps’ placement, <code>degree_dif</code>; the traps’ distance from the harvest field, <code>distance_m</code>; and the field and traps themselves as a random effects, <code>field</code> and <code>xy</code>.</p>
+<pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
+
+m1 &lt;- gam(
+  spore_cm2 ~ s(y, x, k = 20) +
+    s(time_slice, k = 3) +
+    s(degree_dif, k = 72) +
+    s(distance_m, k = 4) +
+    s(field, xy, bs = &quot;re&quot;),
+  data = mod_dat,
+  select = TRUE,
+  method = &quot;REML&quot;,
+  family = &quot;tw&quot;
+)
+
+m1</code></pre>
+<pre><code>## 
+## Family: Tweedie(p=1.505) 
+## Link function: log 
+## 
+## Formula:
+## spore_cm2 ~ s(y, x, k = 20) + s(time_slice, k = 3) + s(degree_dif, 
+##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## 
+## Estimated degrees of freedom:
+##  7.457  0.978  5.622  0.276 65.088  total = 80.42 
+## 
+## REML score: 664.522</code></pre>
 </div>
-<div id="spore-type-frequency" class="section level2">
-<h2>Spore type frequency</h2>
-<pre class="r"><code>dat_spore_type &lt;- read_csv(here(&quot;data/spore_type.csv&quot;))</code></pre>
-<pre class="r"><code>head(dat_spore_type)</code></pre>
-<pre><code>## # A tibble: 6 × 4
-##   meter   rep spore_nuclei count
-##   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
-## 1   100     1            1     3
-## 2   100     1            2    35
-## 3   100     1            3    17
-## 4   100     1            4     4
-## 5   100     1            5     1
-## 6   100     2            1     3</code></pre>
-<pre class="r"><code>dat_spore_type %&gt;%
-  group_by(meter, spore_nuclei, .drop = FALSE) %&gt;%
-  summarise(count = mean(count)) %&gt;%
-  mutate(percent = count / sum(count)) %&gt;%
-  ggplot(aes(
-    x = meter,
-    y = percent,
-    fill = factor(spore_nuclei)
-  )) +
-  geom_bar(position = &quot;fill&quot;, stat = &quot;identity&quot;) +
-  labs(y = &quot;Spore type frequency&quot;,
-       x = &quot;Distance from harvesting field (m)&quot;,
-       fill = &quot;Nuclei per\npropagle unit&quot;) +
-  scale_fill_viridis_d(direction = -1) +
-  geom_text(
-    aes(label = round(percent, 2)),
-    position = position_stack(vjust = 0.5),
-    col = &quot;white&quot;,
-    fontface = &quot;bold&quot;,
-    size = 3
+<div id="inspect-model-m1" class="section level2">
+<h2>Inspect Model m1</h2>
+<div id="check-model" class="section level3">
+<h3>Check model</h3>
+<pre class="r"><code>gam.check(m1)</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="672" /></p>
+<pre><code>## 
+## Method: REML   Optimizer: outer newton
+## full convergence after 15 iterations.
+## Gradient range [-9.231083e-05,8.244591e-05]
+## (score 664.522 &amp; scale 0.9400171).
+## Hessian positive definite, eigenvalue range [2.536942e-05,215.3403].
+## Model rank =  288 / 288 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
+## indicate that k is too low, especially if edf is close to k&#39;.
+## 
+##                    k&#39;     edf k-index p-value  
+## s(y,x)         19.000   7.457    1.07    1.00  
+## s(time_slice)   2.000   0.978    0.90    0.24  
+## s(degree_dif)  71.000   5.622    0.85    0.03 *
+## s(distance_m)   3.000   0.276    1.01    0.90  
+## s(field,xy)   192.000  65.088      NA      NA  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary(m1)</code></pre>
+<pre><code>## 
+## Family: Tweedie(p=1.505) 
+## Link function: log 
+## 
+## Formula:
+## spore_cm2 ~ s(y, x, k = 20) + s(time_slice, k = 3) + s(degree_dif, 
+##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   0.6816     0.1136   6.002 8.59e-09 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##                   edf Ref.df      F  p-value    
+## s(y,x)         7.4571     19 27.602 0.021148 *  
+## s(time_slice)  0.9784      2 23.559  &lt; 2e-16 ***
+## s(degree_dif)  5.6220     71 52.463  &lt; 2e-16 ***
+## s(distance_m)  0.2758      3  0.143 0.000819 ***
+## s(field,xy)   65.0878     95  4.699  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.791   Deviance explained = 89.4%
+## -REML = 664.52  Scale est. = 0.94002   n = 288</code></pre>
+<p>The model fully converged after 10 iterations. All of the predictive factors included were significant at <em>P</em> &gt; 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit. The Q-Q plot generally falls along the line indicating a sufficient fit. There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape. The response versus fitted values clusters nicely around the 1:1 line. In all, this model looks to explain the spore dispersal data very well.</p>
+<div id="check-for-autocorrelation" class="section level4">
+<h4>Check for autocorrelation</h4>
+<p>Because the data represent spatially and temporally correlated data, it’s best to check for any autocorrelation in the residuals.</p>
+<pre class="r"><code>acf(residuals(m1))</code></pre>
+<p><img src="gam_model_files/figure-html/gam-autocorrelation-1.png" width="672" /></p>
+<pre class="r"><code>pacf(residuals(m1))</code></pre>
+<p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="672" /></p>
+<p>This looks OK. There is no major pattern discernible in the ACF or PACF plots that show cause for concern.</p>
+</div>
+</div>
+<div id="summarise-and-visualise-model-m1" class="section level3">
+<h3>Summarise and visualise model m1</h3>
+<pre class="r"><code>draw(m1)</code></pre>
+<p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="672" /></p>
+</div>
+</div>
+<div id="predict-spore-dispersal" class="section level2">
+<h2>Predict spore dispersal</h2>
+<pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
+
+newd &lt;- expand_grid(
+  time_slice = c(90, 180, 270),
+  degree_dif = 1:360,
+  distance_m = dist,
+  wind_speed = 0:30,
+  x = dist,
+  y = dist,
+  xy = paste(dist, -dist),
+  field = 1)
+  
+newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
+</div>
+<div id="visualise-spore-dispersal-predictions" class="section level2">
+<h2>Visualise spore dispersal predictions</h2>
+<p>Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.</p>
+<pre class="r"><code>newd %&gt;%
+  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
+  ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
+  geom_violin() +
+  labs(x = &quot;Distance from harvesting field (m)&quot;,
+       y = &quot;Predicted Spores / cm²&quot;
   )</code></pre>
-<p><img src="data_viz_files/figure-html/plot-spore-type-1.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/graph-predictions-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
-  file = &quot;plots/spore_type.png&quot;,
-  width = 8,
-  height = 8,
-  units = &quot;cm&quot;,
-  dpi = 300,
-  scale = 1.5
-)</code></pre>
-</div>
-<div id="spore-size" class="section level2">
-<h2>Spore size</h2>
-<pre class="r"><code>dat_spore_size &lt;- read_csv(here(&quot;data/spore_size.csv&quot;))</code></pre>
-<pre class="r"><code>head(dat_spore_size)</code></pre>
-<pre><code>## # A tibble: 6 × 4
-##   image_id spore_type    d1    d2
-##   &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 36                1  19.6  20.3
-## 2 42                1  18.5  17.6
-## 3 41                1  18.8  17.4
-## 4 45                1  18.3  21.2
-## 5 44                1  17.5  20.0
-## 6 46                1  18.1  18.1</code></pre>
-<pre class="r"><code>library(ggridges)
-dat_spore_size %&gt;%
-  filter(image_id != 34) %&gt;%
-  mutate(d_mean = (d1 + d2) / 2) %&gt;%
-  ggplot(aes(x = d_mean, y = factor(spore_type))) +
-  geom_density_ridges(
-    aes(stat = &quot;density&quot;),
-    alpha = 0.5,
-    jittered_points = TRUE,
-    scale = 0.5,
-    rel_min_height = 0.01,
-    point_shape = &quot;|&quot;,
-    point_size = 1,
-    size = 0.25,
-    position = position_points_jitter(height = 0)
-  ) +
-  labs(x = expression(paste(&quot;Mean diameter (&quot;, mu, m, &quot;)&quot;)),
-       y = &quot;Spore type&quot;,
-       fill = &quot;&quot;) +
-  guides(fill = &quot;none&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-size-ridges-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots/spore_size.png&quot;,
-  width = 8,
-  height = 8,
-  units = &quot;cm&quot;,
-  dpi = 300,
-  scale = 1.5
+  file = &quot;plots/spore_prediction.png&quot;,
+  w = 5,
+  h = 2,
+  scale = 1.2
 )</code></pre>
 </div>
 

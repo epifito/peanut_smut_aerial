@@ -1,0 +1,47 @@
+---
+title: "Analyse spore type frequency"
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    code_folding: hide
+    toc_depth: 2
+    css: style.css
+---
+
+```{r markdown-settings, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Load libraries
+
+```{r session settings}
+library("tidyverse")
+library("here")
+```
+
+## Import spore type data
+
+```{r import-data}
+dat_spore_type <- data.frame(read_csv(
+  here("data/spore_type.csv"),
+  col_types = list(rep = col_factor(),
+                   meter = col_factor(),
+                   spore_nuclei = col_integer(),
+                   count = col_factor())
+))
+```
+
+## Analyse spore type data
+
+```{r spore-type-analysis}
+
+```

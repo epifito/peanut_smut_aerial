@@ -14,7 +14,7 @@ navbar:
       href: data_viz.html
     - text: "Model Fitting"
       icon: fas fa-file-code
-      href: model.html
+      href: gam_model.html
 
       
   right:

@@ -29,6 +29,7 @@ This function will be loaded from `./R/circular_averaging.R` after loading the n
 ```{r libraries}
 library("tidyverse")
 library("here")
+library("geometry")
 
 # load circular.averaging()
 source(here("./R/circular_averaging.R"))
@@ -49,17 +50,13 @@ spore_data <- read_csv(
 
 ```
 
-Summarise the spore data into the total number of spores per trap's subsample and sub-subsamples, the `trap_id` column.
+Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
 ```{r summarise-spore-data}
 spore_data <- 
   spore_data %>%
-  mutate(trap_id = as.factor(paste(field,
-                                   trap_coord,
-                                   distance_m,
-                                   sep = "_"))) %>%
-  group_by(field, trap_coord, distance_m, trap_id, time_min) %>%
+  group_by(field, trap_coord, distance_m, time_min) %>%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
 
 glimpse(spore_data)
@@ -139,11 +136,12 @@ This is where the `circular.averaging()` is needed since we cannot simply take t
 m <-
   meteo_data %>%
   mutate(time_slice =
-           case_when(
-             minute_lap <= 90 ~ 90,
-             minute_lap > 90 & minute_lap <= 180 ~ 180,
-             TRUE ~ 270
-           ))
+             case_when(
+               minute_lap <= 90 ~ 90,
+               minute_lap > 90 & minute_lap <= 180 ~ 180,
+               TRUE ~ 270
+             )
+           )
 
 rh_90 <-
   m %>%
@@ -253,27 +251,27 @@ meteo_data <-
 
 ## Merge the spore data with the weather data
 
-Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min` and then create a column classifying the weather station as "upwind", "downwind" or "lateral" for wind direction in the resulting object.
+Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min`.
+Then add columns for the x and y locations on a Cartesian grid of the traps.
 
 ```{r merge-spore-weather}
 mod_dat <- left_join(meteo_data,
-                 spore_data,
-                 by = c("field" = "field",
-                        "time_slice" = "time_min")) %>%
+                     spore_data,
+                     by = c("field" = "field",
+                            "time_slice" = "time_min")) %>%
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
-  mutate(downwind = case_when(
-    between(degree_dif, 157.5, 202.5) ~ "downwind",
-    between(degree_dif, 22.5, 157.5) |
-      between(degree_dif, 202.5, 337.5)  ~ "lateral",
-    TRUE ~ "upwind"
-  ))
+  mutate(time_slice = as.integer(time_slice))
+
+# create Cartesian coords
+xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
+
+mod_dat <- bind_cols(mod_dat, xy)
 
 mod_dat
 ```
 
 Save data object for fitting models.
 
-```{r save-mod-dat, eval=FALSE}
+```{r save-mod-dat, eval=TRUE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```
-
