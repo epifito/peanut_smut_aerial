@@ -352,7 +352,7 @@ div.tocify {
   </a>
 </li>
 <li>
-  <a href="model.html">
+  <a href="gam_model.html">
     <span class="fas fa-file-code"></span>
      
     Model Fitting
@@ -391,8 +391,7 @@ div.tocify {
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
-library(&quot;here&quot;)
-library(&quot;BayesFactor&quot;)</code></pre>
+library(&quot;here&quot;)</code></pre>
 </div>
 <div id="import-spore-type-data" class="section level2">
 <h2>Import spore type data</h2>
@@ -406,83 +405,6 @@ library(&quot;BayesFactor&quot;)</code></pre>
 </div>
 <div id="analyse-spore-type-data" class="section level2">
 <h2>Analyse spore type data</h2>
-<pre class="r"><code>bf &lt;-
-  anovaBF(spore_nuclei ~ meter * count + rep,
-          whichRandom = &quot;rep&quot;,
-          data = dat_spore_type)
-
-plot(bf)</code></pre>
-<p><img src="spore_type_analysis_files/figure-html/spore-type-analysis-1.png" width="672" /></p>
-<p>The model with count and rep as a random factor is the preferred model.</p>
-<pre class="r"><code>bf_no_rep &lt;-
-  lmBF(spore_nuclei ~ count, data = dat_spore_type)
-bf_no_rep</code></pre>
-<pre><code>## Bayes factor analysis
-## --------------
-## [1] count : 562.3184 ±0%
-## 
-## Against denominator:
-##   Intercept only 
-## ---
-## Bayes factor type: BFlinearModel, JZS</code></pre>
-<pre class="r"><code>bf_only_rep &lt;-
-  lmBF(spore_nuclei ~ rep, whichRandom = &quot;rep&quot;, data = dat_spore_type)
-bf_only_rep</code></pre>
-<pre><code>## Bayes factor analysis
-## --------------
-## [1] rep : 0.0111875 ±0%
-## 
-## Against denominator:
-##   Intercept only 
-## ---
-## Bayes factor type: BFlinearModel, JZS</code></pre>
-<pre class="r"><code>bf2 &lt;- bf_no_rep / bf_only_rep
-bf2</code></pre>
-<pre><code>## Bayes factor analysis
-## --------------
-## [1] count : 50263.11 ±0%
-## 
-## Against denominator:
-##   spore_nuclei ~ rep 
-## ---
-## Bayes factor type: BFlinearModel, JZS</code></pre>
-<pre class="r"><code>bfall &lt;- c(bf, bf2)
-
-bf[4] / bf2</code></pre>
-<pre><code>## Bayes factor analysis
-## --------------
-## [1] meter + count + meter:count + rep : 8.707503e-05 ±2.56%
-## 
-## Against denominator:
-##   spore_nuclei ~ count 
-## ---
-## Bayes factor type: BFlinearModel, JZS</code></pre>
-<pre class="r"><code>summary(aov(spore_nuclei ~ meter * count + Error(rep / (meter * count)),
-            data = dat_spore_type))</code></pre>
-<pre><code>## 
-## Error: rep
-##       Df    Sum Sq   Mean Sq
-## meter  1 2.696e-31 2.696e-31
-## count  2 7.587e-31 3.794e-31
-## 
-## Error: rep:meter
-##       Df    Sum Sq   Mean Sq
-## meter  4 9.530e-31 2.382e-31
-## count 11 3.886e-30 3.533e-31
-## 
-## Error: rep:count
-##             Df Sum Sq Mean Sq F value Pr(&gt;F)
-## count       38 115.15   3.030   1.605  0.317
-## meter:count 18  46.42   2.579   1.366  0.391
-## Residuals    5   9.44   1.888               
-## 
-## Error: rep:meter:count
-##             Df Sum Sq Mean Sq
-## meter:count 12  17.49   1.457
-## 
-## Error: Within
-##           Df Sum Sq Mean Sq F value Pr(&gt;F)
-## Residuals  3    1.5     0.5</code></pre>
 </div>
 
 
