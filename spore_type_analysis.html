@@ -11,7 +11,7 @@
 
 
 
-<title>index.knit</title>
+<title>Analyse spore type frequency</title>
 
 <script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -33,6 +33,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
@@ -221,6 +222,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -348,7 +352,7 @@ div.tocify {
   </a>
 </li>
 <li>
-  <a href="gam_model.html">
+  <a href="model.html">
     <span class="fas fa-file-code"></span>
      
     Model Fitting
@@ -369,28 +373,116 @@ div.tocify {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
+
+<h1 class="title toc-ignore">Analyse spore type frequency</h1>
 
 </div>
 
 
-<div id="about" class="section level1">
-<h1>About</h1>
-<p>Peanut smut, caused by <em>Thecaphora frezii</em>, has caused significant losses in Argentinian peanut production in recent years.</p>
-<p><em>T. frezii</em> is a soil-borne pathogen with the ability to survive long-term as teliospores in soil. The pathogen aggressively invades the pods and transforms kernels into a mass of spores.</p>
-<p><img src="figs/sdp.png" /></p>
-<p>The main mechanism of inoculum spread is the spore liberation from broken infected pods during the harvest process.</p>
-<p><img src="figs/harvest.png" /></p>
-<p>There is very limited information available on the amount of spores of <em>T. frezii</em> spread in peanut harvest. The purposes of this research were to (i) estimate the aerial spore spread of <em>Thecaphora frezii</em> in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut.</p>
-<p><img src="figs/mm.png" /></p>
-<div id="data-sources" class="section level2">
-<h2>Data sources</h2>
-<p>The data collected as a part of this research are available in our GitHub repository. <a href="https://github.com/juanchiem/peanut_smut_aerial/tree/main/data">Datasets</a></p>
+<div id="load-libraries" class="section level2">
+<h2>Load libraries</h2>
+<pre class="r"><code>library(&quot;tidyverse&quot;)
+library(&quot;here&quot;)
+library(&quot;BayesFactor&quot;)</code></pre>
 </div>
-<div id="main-outcomes" class="section level2">
-<h2>Main outcomes</h2>
+<div id="import-spore-type-data" class="section level2">
+<h2>Import spore type data</h2>
+<pre class="r"><code>dat_spore_type &lt;- data.frame(read_csv(
+  here(&quot;data/spore_type.csv&quot;),
+  col_types = list(rep = col_factor(),
+                   meter = col_factor(),
+                   spore_nuclei = col_integer(),
+                   count = col_factor())
+))</code></pre>
 </div>
+<div id="analyse-spore-type-data" class="section level2">
+<h2>Analyse spore type data</h2>
+<pre class="r"><code>bf &lt;-
+  anovaBF(spore_nuclei ~ meter * count + rep,
+          whichRandom = &quot;rep&quot;,
+          data = dat_spore_type)
+
+plot(bf)</code></pre>
+<p><img src="spore_type_analysis_files/figure-html/spore-type-analysis-1.png" width="672" /></p>
+<p>The model with count and rep as a random factor is the preferred model.</p>
+<pre class="r"><code>bf_no_rep &lt;-
+  lmBF(spore_nuclei ~ count, data = dat_spore_type)
+bf_no_rep</code></pre>
+<pre><code>## Bayes factor analysis
+## --------------
+## [1] count : 562.3184 ±0%
+## 
+## Against denominator:
+##   Intercept only 
+## ---
+## Bayes factor type: BFlinearModel, JZS</code></pre>
+<pre class="r"><code>bf_only_rep &lt;-
+  lmBF(spore_nuclei ~ rep, whichRandom = &quot;rep&quot;, data = dat_spore_type)
+bf_only_rep</code></pre>
+<pre><code>## Bayes factor analysis
+## --------------
+## [1] rep : 0.0111875 ±0%
+## 
+## Against denominator:
+##   Intercept only 
+## ---
+## Bayes factor type: BFlinearModel, JZS</code></pre>
+<pre class="r"><code>bf2 &lt;- bf_no_rep / bf_only_rep
+bf2</code></pre>
+<pre><code>## Bayes factor analysis
+## --------------
+## [1] count : 50263.11 ±0%
+## 
+## Against denominator:
+##   spore_nuclei ~ rep 
+## ---
+## Bayes factor type: BFlinearModel, JZS</code></pre>
+<pre class="r"><code>bfall &lt;- c(bf, bf2)
+
+bf[4] / bf2</code></pre>
+<pre><code>## Bayes factor analysis
+## --------------
+## [1] meter + count + meter:count + rep : 8.707503e-05 ±2.56%
+## 
+## Against denominator:
+##   spore_nuclei ~ count 
+## ---
+## Bayes factor type: BFlinearModel, JZS</code></pre>
+<pre class="r"><code>summary(aov(spore_nuclei ~ meter * count + Error(rep / (meter * count)),
+            data = dat_spore_type))</code></pre>
+<pre><code>## 
+## Error: rep
+##       Df    Sum Sq   Mean Sq
+## meter  1 2.696e-31 2.696e-31
+## count  2 7.587e-31 3.794e-31
+## 
+## Error: rep:meter
+##       Df    Sum Sq   Mean Sq
+## meter  4 9.530e-31 2.382e-31
+## count 11 3.886e-30 3.533e-31
+## 
+## Error: rep:count
+##             Df Sum Sq Mean Sq F value Pr(&gt;F)
+## count       38 115.15   3.030   1.605  0.317
+## meter:count 18  46.42   2.579   1.366  0.391
+## Residuals    5   9.44   1.888               
+## 
+## Error: rep:meter:count
+##             Df Sum Sq Mean Sq
+## meter:count 12  17.49   1.457
+## 
+## Error: Within
+##           Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Residuals  3    1.5     0.5</code></pre>
 </div>
 
 
@@ -428,6 +520,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 <script>
 $(document).ready(function ()  {
@@ -442,7 +539,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3",
+      selectors: "h1,h2",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
@@ -452,7 +549,7 @@ $(document).ready(function ()  {
       scrollTo: 0
     };
     options.showAndHide = false;
-    options.smoothScroll = false;
+    options.smoothScroll = true;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");

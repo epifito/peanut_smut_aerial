@@ -96,6 +96,9 @@ ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
 #### Polar coordinates
 
 Create polar coordinate plots that display spore density in each cardinal direction.
+Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90.
+So, here the figure shows an additive effect of the number of spores that were captured over time.
+These are not discrete time_slices shown here, they do overlap.
 
 ```{r plot-spores}
 ggplot(data = mod_dat) +
@@ -219,13 +222,13 @@ ggsave(
 
 ## Plot smoothed spore dispersal
 
-Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or "lateral".
+Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.
 
 ```{r smoothed-dispersal}
 mod_dat %>%
-  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
-  geom_point() +
+  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
   geom_smooth(se = FALSE) +
+  geom_point(size = 2.5) +
   facet_grid(field ~ .) +
   scale_x_continuous(
     sec.axis = sec_axis(
@@ -243,7 +246,7 @@ mod_dat %>%
       labels = NULL
     )
   ) +
-  scale_colour_viridis_d() +
+  scale_colour_viridis_c() +
   labs(col = "Prevailing wind",
        x = "Distance from harvesting field (m)",
        y = "Smut spores / m² at trap") +
