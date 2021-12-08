@@ -352,7 +352,7 @@ div.tocify {
   </a>
 </li>
 <li>
-  <a href="model.html">
+  <a href="gam_model.html">
     <span class="fas fa-file-code"></span>
      
     Model Fitting
@@ -410,38 +410,38 @@ theme_set(theme_pubclean())</code></pre>
   distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
   select(trap_coord,
          trap_degrees,
+         degree_dif,
          wind_degrees,
          wind_speed,
-         distance_m,
-         downwind) %&gt;%
+         distance_m) %&gt;%
   print(n = Inf)</code></pre>
 <pre><code>## # A tibble: 24 × 6
-##    trap_coord trap_degrees wind_degrees wind_speed distance_m downwind
-##    &lt;chr&gt;             &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;    &lt;int&gt;
-##  1 N                     0        76.2        5.36        100        0
-##  2 E                    90        76.2        5.36        100       -1
-##  3 W                   270        76.2        5.36        100        1
-##  4 S                   180        76.2        5.36        100        0
-##  5 N                     0       201.        26.2         100        1
-##  6 E                    90       201.        26.2         100        0
-##  7 W                   270       201.        26.2         100        0
-##  8 S                   180       201.        26.2         100       -1
-##  9 NE                   45       135.        10.6         100        0
-## 10 SE                  135       135.        10.6         100       -1
-## 11 NW                  315       135.        10.6         100        1
-## 12 SW                  225       135.        10.6         100        0
-## 13 N                     0        35.9       14.0         100        0
-## 14 E                    90        35.9       14.0         100        0
-## 15 W                   270        35.9       14.0         100        0
-## 16 S                   180        35.9       14.0         100        0
-## 17 NE                   45        29.9       14.1         100       -1
-## 18 SE                  135        29.9       14.1         100        0
-## 19 NW                  315        29.9       14.1         100        0
-## 20 SW                  225        29.9       14.1         100        1
-## 21 N                     0         2.16      27.3         100       -1
-## 22 E                    90         2.16      27.3         100        0
-## 23 W                   270         2.16      27.3         100        0
-## 24 S                   180         2.16      27.3         100        1</code></pre>
+##    trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
+##    &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 N                     0     76.2          76.2        5.36        100
+##  2 E                    90     13.8          76.2        5.36        100
+##  3 W                   270    194.           76.2        5.36        100
+##  4 S                   180    104.           76.2        5.36        100
+##  5 N                     0    201.          201.        26.2         100
+##  6 E                    90    111.          201.        26.2         100
+##  7 W                   270     68.7         201.        26.2         100
+##  8 S                   180     21.3         201.        26.2         100
+##  9 NE                   45     90.3         135.        10.6         100
+## 10 SE                  135      0.313       135.        10.6         100
+## 11 NW                  315    180.          135.        10.6         100
+## 12 SW                  225     89.7         135.        10.6         100
+## 13 N                     0     35.9          35.9       14.0         100
+## 14 E                    90     54.1          35.9       14.0         100
+## 15 W                   270    234.           35.9       14.0         100
+## 16 S                   180    144.           35.9       14.0         100
+## 17 NE                   45     15.1          29.9       14.1         100
+## 18 SE                  135    105.           29.9       14.1         100
+## 19 NW                  315    285.           29.9       14.1         100
+## 20 SW                  225    195.           29.9       14.1         100
+## 21 N                     0      2.16          2.16      27.3         100
+## 22 E                    90     87.8           2.16      27.3         100
+## 23 W                   270    268.            2.16      27.3         100
+## 24 S                   180    178.            2.16      27.3         100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, <code>x</code> and <code>y</code>; the smoothed time slice variables, <code>time_slice</code>; the wind direction in relation to the traps’ placement, <code>degree_dif</code>; the traps’ distance from the harvest field, <code>distance_m</code>; and the field and traps themselves as a random effects, <code>field</code> and <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
@@ -489,10 +489,10 @@ m1</code></pre>
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
 ##                    k&#39;     edf k-index p-value  
-## s(y,x)         19.000   7.457    1.07    0.99  
-## s(time_slice)   2.000   0.978    0.90    0.25  
-## s(degree_dif)  71.000   5.622    0.85    0.04 *
-## s(distance_m)   3.000   0.276    1.01    0.89  
+## s(y,x)         19.000   7.457    1.07   0.995  
+## s(time_slice)   2.000   0.978    0.90   0.215  
+## s(degree_dif)  71.000   5.622    0.85   0.065 .
+## s(distance_m)   3.000   0.276    1.01   0.900  
 ## s(field,xy)   192.000  65.088      NA      NA  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>

@@ -48,10 +48,10 @@ mod_dat %>%
   distinct(field, trap_coord, .keep_all = TRUE) %>%
   select(trap_coord,
          trap_degrees,
+         degree_dif,
          wind_degrees,
          wind_speed,
-         distance_m,
-         downwind) %>%
+         distance_m) %>%
   print(n = Inf)
 ```
 
