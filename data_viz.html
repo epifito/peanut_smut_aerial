@@ -352,7 +352,7 @@ div.tocify {
   </a>
 </li>
 <li>
-  <a href="model.html">
+  <a href="gam_model.html">
     <span class="fas fa-file-code"></span>
      
     Model Fitting
@@ -564,11 +564,11 @@ wind_rose +
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
-<p>Plot spore dispersal with smoothed lines for spore traps that are classified as “upwind”, “downwind” or “lateral”.</p>
+<p>Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.</p>
 <pre class="r"><code>mod_dat %&gt;%
-  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
-  geom_point() +
+  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
   geom_smooth(se = FALSE) +
+  geom_point(size = 2.5) +
   facet_grid(field ~ .) +
   scale_x_continuous(
     sec.axis = sec_axis(
@@ -586,7 +586,7 @@ wind_rose +
       labels = NULL
     )
   ) +
-  scale_colour_viridis_d() +
+  scale_colour_viridis_c() +
   labs(col = &quot;Prevailing wind&quot;,
        x = &quot;Distance from harvesting field (m)&quot;,
        y = &quot;Smut spores / m² at trap&quot;) +
