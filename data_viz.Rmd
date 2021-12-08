@@ -222,13 +222,13 @@ ggsave(
 
 ## Plot smoothed spore dispersal
 
-Plot spore dispersal with smoothed lines for spore traps that are classified as "upwind", "downwind" or "lateral".
+Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.
 
 ```{r smoothed-dispersal}
 mod_dat %>%
-  ggplot(aes(distance_m, spore_cm2, col = downwind)) +
-  geom_point() +
+  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
   geom_smooth(se = FALSE) +
+  geom_point(size = 2.5) +
   facet_grid(field ~ .) +
   scale_x_continuous(
     sec.axis = sec_axis(
@@ -246,7 +246,7 @@ mod_dat %>%
       labels = NULL
     )
   ) +
-  scale_colour_viridis_d() +
+  scale_colour_viridis_c() +
   labs(col = "Prevailing wind",
        x = "Distance from harvesting field (m)",
        y = "Smut spores / m² at trap") +

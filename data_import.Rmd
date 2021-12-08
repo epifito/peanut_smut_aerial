@@ -251,7 +251,7 @@ meteo_data <-
 
 ## Merge the spore data with the weather data
 
-Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min` and then create a column classifying the weather station as "upwind", -1; "downwind", 1; or "lateral", 0 for wind direction in the resulting object.
+Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min`.
 Then add columns for the x and y locations on a Cartesian grid of the traps.
 
 ```{r merge-spore-weather}
@@ -260,13 +260,6 @@ mod_dat <- left_join(meteo_data,
                      by = c("field" = "field",
                             "time_slice" = "time_min")) %>%
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
-  mutate(downwind = 
-    case_when(
-      between(degree_dif, 157.5, 202.5) ~ 1L,
-      between(degree_dif, 22.5, 157.5) |
-        between(degree_dif, 202.5, 337.5)  ~ 0L,
-      TRUE ~ -1L
-  )) %>%
   mutate(time_slice = as.integer(time_slice))
 
 # create Cartesian coords
