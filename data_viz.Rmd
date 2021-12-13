@@ -28,8 +28,19 @@ library("tidyverse")
 library("ggpubr")
 library("here")
 library("clifro")
+```
 
+
+```{r plots settings}
 theme_set(theme_pubclean())
+
+central_top_legend <- theme(
+    legend.position = "top",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  )
 ```
 
 ## Load data
@@ -53,13 +64,22 @@ ggplot(mod_dat, aes(y = spore_cm2)) +
 Create a scatter plot and use `stat_smooth()` to fit a line.
 
 ```{r spore-dot-density-by-distance}
-ggplot(mod_dat, aes(x = distance_m, y = spore_cm2)) +
+spore_dot_density_by_distance <- mod_dat %>% 
+  ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs", k = 3)) +
+    geom_smooth(col="grey50", method = "gam", 
+                formula = y ~ s(x, bs = "cs", k = 3)) +
   labs(y = expression(Spores/cm^{2}),
        x = "Distance (m)") +
   facet_grid(time_slice ~ .)
+spore_dot_density_by_distance
+```
+
+(Alternative plot - we should choose one)
+
+```{r spore-dot-density-by-distancem alternative B}
+spore_dot_density_by_distance +  facet_grid( .~ time_slice)
 ```
 
 Create a violin plot showing spore distribution at the four distances.
@@ -79,16 +99,12 @@ Create a hexbin plot to display the number of spores by wind speed and fit a smo
 ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
   scale_fill_viridis_c() +
   geom_hex() +
-  geom_smooth() +
+  geom_smooth(col="grey50") +
   labs(y = expression(Spores / cm ^ {
     2
   }),
   x = "Wind Speed (m/s)") +
-  theme(
-    legend.position = "top",
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(fill = guide_legend(title.position = "top",
                              title.hjust = 0.5))
 ```
@@ -150,11 +166,7 @@ ggplot(data = mod_dat) +
   ) +
   ylab("Distance (m)") +
   xlab("") +
-  theme(
-    legend.position = "top",
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(color = guide_legend(title.position = "top",
                               title.hjust = 0.5))
 ```
@@ -198,14 +210,14 @@ wind_rose +
     end = .8
   ) +
   labs(x = "", y = "") +
-  theme(legend.position = 'top') +
+  central_top_legend +
+  theme_pubclean()+
   guides(fill = guide_legend(
     title.position = "top",
     title.hjust = 0.5,
     keywidth = unit(1, "lines"),
     keyheight = unit(1, "lines")
-  )) +
-  theme_pubclean()
+  ))
 ```
 
 ```{r}
@@ -224,12 +236,13 @@ ggsave(
 
 Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.
 
+
 ```{r smoothed-dispersal}
-mod_dat %>%
+smoothed_dispersal <- mod_dat %>%
   ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
-  geom_smooth(se = FALSE) +
+  geom_smooth(col="grey50", se = FALSE) +
   geom_point(size = 2.5) +
-  facet_grid(field ~ .) +
+  facet_grid(field~.) +
   scale_x_continuous(
     sec.axis = sec_axis(
       ~ . ,
@@ -250,15 +263,15 @@ mod_dat %>%
   labs(col = "Prevailing wind",
        x = "Distance from harvesting field (m)",
        y = "Smut spores / m² at trap") +
-  theme(
-    legend.position = "top",
-    legend.justification = "center",
-    legend.direction = "horizontal",
-    legend.background = element_blank(),
-    legend.key = element_blank()
-  ) +
+  central_top_legend+
   guides(colour = guide_legend(title.position = "top",
                                title.hjust = 0.5))
+smoothed_dispersal
+```
+
+(Alternative plot - we should choose one)
+```{r}
+smoothed_dispersal + facet_grid(.~field)
 ```
 
 ```{r, eval=FALSE}
@@ -270,6 +283,7 @@ ggsave(
   scale = 1.2
 )
 ```
+
 
 ## Spore type frequency
 
