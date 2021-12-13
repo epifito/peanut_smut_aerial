@@ -419,7 +419,7 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
        x = &quot;Distance (m)&quot;) +
   facet_grid(time_slice ~ .)</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
-<p>Create a violin plot with each time as a colour.</p>
+<p>Create a violin plot showing spore distribution at the four distances.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
   geom_violin() +
   labs(y = expression(Spores/cm^{2}),
