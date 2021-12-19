@@ -1,5 +1,5 @@
 ---
-title: "Fit GAM models of spore counts"
+title: "Fit GAM model of spore counts"
 output:
   html_document:
     theme: simplex
