@@ -72,14 +72,8 @@ spore_dot_density_by_distance <- mod_dat %>%
                 formula = y ~ s(x, bs = "cs", k = 3)) +
   labs(y = expression(Spores/cm^{2}),
        x = "Distance (m)") +
-  facet_grid(time_slice ~ .)
+  facet_grid( .~ time_slice)
 spore_dot_density_by_distance
-```
-
-(Alternative plot - we should choose one)
-
-```{r spore-dot-density-by-distancem alternative B}
-spore_dot_density_by_distance +  facet_grid( .~ time_slice)
 ```
 
 Create a violin plot showing spore distribution at the four distances.
@@ -242,7 +236,7 @@ smoothed_dispersal <- mod_dat %>%
   ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
   geom_smooth(col="grey50", se = FALSE) +
   geom_point(size = 2.5) +
-  facet_grid(field~.) +
+  facet_grid(.~field)+  
   scale_x_continuous(
     sec.axis = sec_axis(
       ~ . ,
@@ -267,11 +261,6 @@ smoothed_dispersal <- mod_dat %>%
   guides(colour = guide_legend(title.position = "top",
                                title.hjust = 0.5))
 smoothed_dispersal
-```
-
-(Alternative plot - we should choose one)
-```{r}
-smoothed_dispersal + facet_grid(.~field)
 ```
 
 ```{r, eval=FALSE}
@@ -331,6 +320,15 @@ ggsave(
 )
 ```
 
+```{r}
+dat_spore_type %>% 
+  group_by(meter, spore_nuclei) %>%
+  summarise(n = sum(count), .groups = 'drop') %>% 
+  spread(spore_nuclei, n) %>% 
+  column_to_rownames('meter') %>% 
+  chisq.test() 
+```
+
 ## Spore size
 
 ```{r load-spore-size}
@@ -342,26 +340,21 @@ head(dat_spore_size)
 ```
 
 ```{r spore-size-ridges}
-library(ggridges)
-dat_spore_size %>%
+med_spore_size <- dat_spore_size %>%
   filter(image_id != 34) %>%
   mutate(d_mean = (d1 + d2) / 2) %>%
-  ggplot(aes(x = d_mean, y = factor(spore_type))) +
-  geom_density_ridges(
-    aes(stat = "density"),
-    alpha = 0.5,
-    jittered_points = TRUE,
-    scale = 0.5,
-    rel_min_height = 0.01,
-    point_shape = "|",
-    point_size = 1,
-    size = 0.25,
-    position = position_points_jitter(height = 0)
-  ) +
+  group_by(spore_type) %>%
+  summarize(median=median(d_mean))
+
+dat_spore_size %>%
+  filter(image_id != 34) %>%
+  mutate(d_mean = (d1 + d2) / 2) %>% 
+  ggplot(aes(x=d_mean)) + 
+  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.4) +
+  geom_vline(data = med_spore_size, aes(xintercept = median), size=.2)+
   labs(x = expression(paste("Mean diameter (", mu, m, ")")),
-       y = "Spore type",
-       fill = "") +
-  guides(fill = "none")
+       y = "Density",
+       fill = "Spore type") 
 ```
 
 ```{r, eval=FALSE}

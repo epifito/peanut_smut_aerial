@@ -426,12 +426,9 @@ load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
                 formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
   labs(y = expression(Spores/cm^{2}),
        x = &quot;Distance (m)&quot;) +
-  facet_grid(time_slice ~ .)
+  facet_grid( .~ time_slice)
 spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
-<p>(Alternative plot - we should choose one)</p>
-<pre class="r"><code>spore_dot_density_by_distance +  facet_grid( .~ time_slice)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-dot-density-by-distancem%20alternative%20B-1.png" width="672" /></p>
 <p>Create a violin plot showing spore distribution at the four distances.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
   geom_violin() +
@@ -574,7 +571,7 @@ wind_rose +
   ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
   geom_smooth(col=&quot;grey50&quot;, se = FALSE) +
   geom_point(size = 2.5) +
-  facet_grid(field~.) +
+  facet_grid(.~field)+  
   scale_x_continuous(
     sec.axis = sec_axis(
       ~ . ,
@@ -600,9 +597,6 @@ wind_rose +
                                title.hjust = 0.5))
 smoothed_dispersal</code></pre>
 <p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="672" /></p>
-<p>(Alternative plot - we should choose one)</p>
-<pre class="r"><code>smoothed_dispersal + facet_grid(.~field)</code></pre>
-<p><img src="data_viz_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots/spore_gradient.png&quot;,
@@ -655,6 +649,17 @@ smoothed_dispersal</code></pre>
   dpi = 300,
   scale = 1.5
 )</code></pre>
+<pre class="r"><code>dat_spore_type %&gt;% 
+  group_by(meter, spore_nuclei) %&gt;%
+  summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;% 
+  spread(spore_nuclei, n) %&gt;% 
+  column_to_rownames(&#39;meter&#39;) %&gt;% 
+  chisq.test() </code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  .
+## X-squared = 20.656, df = 16, p-value = 0.1921</code></pre>
 </div>
 <div id="spore-size" class="section level2">
 <h2>Spore size</h2>
@@ -669,26 +674,21 @@ smoothed_dispersal</code></pre>
 ## 4 45                1  18.3  21.2
 ## 5 44                1  17.5  20.0
 ## 6 46                1  18.1  18.1</code></pre>
-<pre class="r"><code>library(ggridges)
-dat_spore_size %&gt;%
+<pre class="r"><code>med_spore_size &lt;- dat_spore_size %&gt;%
   filter(image_id != 34) %&gt;%
   mutate(d_mean = (d1 + d2) / 2) %&gt;%
-  ggplot(aes(x = d_mean, y = factor(spore_type))) +
-  geom_density_ridges(
-    aes(stat = &quot;density&quot;),
-    alpha = 0.5,
-    jittered_points = TRUE,
-    scale = 0.5,
-    rel_min_height = 0.01,
-    point_shape = &quot;|&quot;,
-    point_size = 1,
-    size = 0.25,
-    position = position_points_jitter(height = 0)
-  ) +
+  group_by(spore_type) %&gt;%
+  summarize(median=median(d_mean))
+
+dat_spore_size %&gt;%
+  filter(image_id != 34) %&gt;%
+  mutate(d_mean = (d1 + d2) / 2) %&gt;% 
+  ggplot(aes(x=d_mean)) + 
+  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.4) +
+  geom_vline(data = med_spore_size, aes(xintercept = median), size=.2)+
   labs(x = expression(paste(&quot;Mean diameter (&quot;, mu, m, &quot;)&quot;)),
-       y = &quot;Spore type&quot;,
-       fill = &quot;&quot;) +
-  guides(fill = &quot;none&quot;)</code></pre>
+       y = &quot;Density&quot;,
+       fill = &quot;Spore type&quot;) </code></pre>
 <p><img src="data_viz_files/figure-html/spore-size-ridges-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),

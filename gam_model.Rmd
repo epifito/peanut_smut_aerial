@@ -118,7 +118,7 @@ newd <- expand_grid(
   time_slice = c(90, 180, 270),
   degree_dif = 1:360,
   distance_m = dist,
-  wind_speed = 0:30,
+  wind_speed = seq(0,30,5),
   x = dist,
   y = dist,
   xy = paste(dist, -dist),
