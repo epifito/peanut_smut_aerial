@@ -1,5 +1,5 @@
 ---
-title: "Fit GAM models of spore counts"
+title: "Fit GAM model of spore counts"
 output:
   html_document:
     theme: simplex
@@ -118,7 +118,7 @@ newd <- expand_grid(
   time_slice = c(90, 180, 270),
   degree_dif = 1:360,
   distance_m = dist,
-  wind_speed = seq(0,30,5),
+  wind_speed = 0:30,
   x = dist,
   y = dist,
   xy = paste(dist, -dist),

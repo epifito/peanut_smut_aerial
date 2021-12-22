@@ -566,35 +566,30 @@ wind_rose +
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
-<p>Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.</p>
-<pre class="r"><code>smoothed_dispersal &lt;- mod_dat %&gt;%
-  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
-  geom_smooth(col=&quot;grey50&quot;, se = FALSE) +
-  geom_point(size = 2.5) +
-  facet_grid(.~field)+  
-  scale_x_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Minutes since harvest beginning&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
+<p>Plot spore dispersal as points with median values represented as red points with a line connecting the median values for each respective field.</p>
+<pre class="r"><code>field_names &lt;- as_labeller(c(`1` = &quot;Field 1&quot;,
+                             `2` = &quot;Field 2&quot;,
+                             `3` = &quot;Field 3&quot;,
+                             `4` = &quot;Field 4&quot;,
+                             `5` = &quot;Field 5&quot;,
+                             `6` = &quot;Field 6&quot;))
+smoothed_dispersal &lt;- mod_dat %&gt;%
+  ggplot(aes(x = distance_m, y = spore_cm2)) +
+  geom_point(size = 1.5) +
+  stat_summary(fun = &quot;median&quot;,
+               geom = &quot;line&quot;,
+               na.rm = TRUE) +
+  stat_summary(
+    fun = &quot;median&quot;,
+    colour = &quot;red&quot;,
+    size = 2.5,
+    geom = &quot;point&quot;
   ) +
-  scale_y_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = &quot;Field&quot;,
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  scale_colour_viridis_c() +
+  scale_x_continuous(guide = guide_axis(n.dodge = 2)) +
+  facet_grid(. ~ field, labeller = field_names) +
   labs(col = &quot;Prevailing wind&quot;,
        x = &quot;Distance from harvesting field (m)&quot;,
-       y = &quot;Smut spores / m² at trap&quot;) +
-  central_top_legend+
-  guides(colour = guide_legend(title.position = &quot;top&quot;,
-                               title.hjust = 0.5))
+       y = &quot;Smut spores / m² at trap&quot;)
 smoothed_dispersal</code></pre>
 <p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(

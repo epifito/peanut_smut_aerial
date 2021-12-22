@@ -228,38 +228,32 @@ ggsave(
 
 ## Plot smoothed spore dispersal
 
-Plot spore dispersal with smoothed lines for spore traps that are classified for the wind direction where 0 = wind was blowing directly at the trap and 180 the wind was blowing away from the trap.
-
+Plot spore dispersal as points with median values represented as red points with a line connecting the median values for each respective field.
 
 ```{r smoothed-dispersal}
+field_names <- as_labeller(c(`1` = "Field 1",
+                             `2` = "Field 2",
+                             `3` = "Field 3",
+                             `4` = "Field 4",
+                             `5` = "Field 5",
+                             `6` = "Field 6"))
 smoothed_dispersal <- mod_dat %>%
-  ggplot(aes(distance_m, spore_cm2, col = wind_degrees)) +
-  geom_smooth(col="grey50", se = FALSE) +
-  geom_point(size = 2.5) +
-  facet_grid(.~field)+  
-  scale_x_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = "Minutes since harvest beginning",
-      breaks = NULL,
-      labels = NULL
-    )
+  ggplot(aes(x = distance_m, y = spore_cm2)) +
+  geom_point(size = 1.5) +
+  stat_summary(fun = "median",
+               geom = "line",
+               na.rm = TRUE) +
+  stat_summary(
+    fun = "median",
+    colour = "red",
+    size = 2.5,
+    geom = "point"
   ) +
-  scale_y_continuous(
-    sec.axis = sec_axis(
-      ~ . ,
-      name = "Field",
-      breaks = NULL,
-      labels = NULL
-    )
-  ) +
-  scale_colour_viridis_c() +
+  scale_x_continuous(guide = guide_axis(n.dodge = 2)) +
+  facet_grid(. ~ field, labeller = field_names) +
   labs(col = "Prevailing wind",
        x = "Distance from harvesting field (m)",
-       y = "Smut spores / m² at trap") +
-  central_top_legend+
-  guides(colour = guide_legend(title.position = "top",
-                               title.hjust = 0.5))
+       y = "Smut spores / m² at trap")
 smoothed_dispersal
 ```
 
@@ -272,7 +266,6 @@ ggsave(
   scale = 1.2
 )
 ```
-
 
 ## Spore type frequency
 
