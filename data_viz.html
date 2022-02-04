@@ -616,34 +616,34 @@ smoothed_dispersal</code></pre>
 <pre class="r"><code>dat_spore_type %&gt;%
   group_by(meter, spore_nuclei, .drop = FALSE) %&gt;%
   summarise(count = mean(count)) %&gt;%
-  mutate(percent = count / sum(count)) %&gt;%
+  mutate(percent = count / sum(count)
+         # spore_nuclei= fct_rev(factor(spore_nuclei))
+         ) -&gt; dat_spore_type_sum
+
+spore_type_plot &lt;- dat_spore_type_sum %&gt;% 
   ggplot(aes(
     x = meter,
     y = percent,
     fill = factor(spore_nuclei)
   )) +
-  geom_bar(position = &quot;fill&quot;, stat = &quot;identity&quot;) +
-  labs(y = &quot;Spore type frequency&quot;,
+  geom_bar(position = position_fill(reverse = T), stat = &quot;identity&quot;, alpha=.9)+
+  labs(y = &quot;Proportion&quot;,
        x = &quot;Distance from harvesting field (m)&quot;,
-       fill = &quot;Nuclei per\npropagle unit&quot;) +
-  scale_fill_viridis_d(direction = -1) +
-  geom_text(
+       fill = &quot;Spore type&quot;) +
+  # scale_fill_viridis_d(direction = -1) +
+  geom_text(data = dat_spore_type_sum %&gt;% 
+              mutate(spore_nuclei= fct_rev(factor(spore_nuclei))), 
     aes(label = round(percent, 2)),
     position = position_stack(vjust = 0.5),
     col = &quot;white&quot;,
     fontface = &quot;bold&quot;,
     size = 3
-  )</code></pre>
-<p><img src="data_viz_files/figure-html/plot-spore-type-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots/spore_type.png&quot;,
-  width = 8,
-  height = 8,
-  units = &quot;cm&quot;,
-  dpi = 300,
-  scale = 1.5
-)</code></pre>
+  ) + 
+  theme(#axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  guides(fill=&quot;none&quot;)
+# spore_type_plot</code></pre>
 <pre class="r"><code>dat_spore_type %&gt;% 
   group_by(meter, spore_nuclei) %&gt;%
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;% 
@@ -673,26 +673,33 @@ smoothed_dispersal</code></pre>
   filter(image_id != 34) %&gt;%
   mutate(d_mean = (d1 + d2) / 2) %&gt;%
   group_by(spore_type) %&gt;%
-  summarize(median=median(d_mean))
-
-dat_spore_size %&gt;%
+  summarize(median=median(d_mean))</code></pre>
+<pre class="r"><code>spore_size_plot &lt;- dat_spore_size %&gt;%
   filter(image_id != 34) %&gt;%
   mutate(d_mean = (d1 + d2) / 2) %&gt;% 
   ggplot(aes(x=d_mean)) + 
-  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.4) +
+  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.6) +
+  expand_limits(x = c(10, 50))+
+  # scale_fill_viridis_d(direction = -1) +
   geom_vline(data = med_spore_size, aes(xintercept = median), size=.2)+
   labs(x = expression(paste(&quot;Mean diameter (&quot;, mu, m, &quot;)&quot;)),
        y = &quot;Density&quot;,
-       fill = &quot;Spore type&quot;) </code></pre>
-<p><img src="data_viz_files/figure-html/spore-size-ridges-1.png" width="672" /></p>
+       fill = &quot;Spore type&quot;)</code></pre>
+<pre class="r"><code>library(patchwork)
+spore_size_plot + spore_type_plot + 
+  plot_layout(guides = &quot;collect&quot;) &amp; 
+  theme(legend.position=&#39;bottom&#39;) &amp;
+  scale_fill_viridis_d(direction = -1) &amp;
+  plot_annotation(tag_levels = &#39;A&#39;)</code></pre>
+<p><img src="data_viz_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
-  file = &quot;plots/spore_size.png&quot;,
+  file = &quot;plots/spore_size_type.jpg&quot;,
   width = 8,
-  height = 8,
+  height = 5,
   units = &quot;cm&quot;,
   dpi = 300,
-  scale = 1.5
+  scale = 2
 )</code></pre>
 </div>
 

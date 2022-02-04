@@ -26,6 +26,7 @@ knitr::opts_chunk$set(
 ## Load libraries
 
 ```{r session settings}
+library("knitr")
 library("tidyverse")
 library("ggpubr")
 library("here")
@@ -294,7 +295,7 @@ spore_type_plot <- dat_spore_type_sum %>%
     fill = factor(spore_nuclei)
   )) +
   geom_bar(position = position_fill(reverse = T), stat = "identity", alpha=.9)+
-  labs(y = "Frequency",
+  labs(y = "Proportion",
        x = "Distance from harvesting field (m)",
        fill = "Spore type") +
   # scale_fill_viridis_d(direction = -1) +
@@ -337,7 +338,10 @@ med_spore_size <- dat_spore_size %>%
   filter(image_id != 34) %>%
   mutate(d_mean = (d1 + d2) / 2) %>%
   group_by(spore_type) %>%
-  summarize(median=median(d_mean))
+  summarize(median=median(d_mean), 
+            sd=sd(d_mean))
+
+med_spore_size %>% kable
 ```
 
 
