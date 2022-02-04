@@ -10,6 +10,8 @@ output:
     code_folding: hide
     toc_depth: 2
     css: style.css
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r markdown-settings, echo=FALSE}
@@ -281,36 +283,34 @@ head(dat_spore_type)
 dat_spore_type %>%
   group_by(meter, spore_nuclei, .drop = FALSE) %>%
   summarise(count = mean(count)) %>%
-  mutate(percent = count / sum(count)) %>%
+  mutate(percent = count / sum(count)
+         # spore_nuclei= fct_rev(factor(spore_nuclei))
+         ) -> dat_spore_type_sum
+
+spore_type_plot <- dat_spore_type_sum %>% 
   ggplot(aes(
     x = meter,
     y = percent,
     fill = factor(spore_nuclei)
   )) +
-  geom_bar(position = "fill", stat = "identity") +
-  labs(y = "Spore type frequency",
+  geom_bar(position = position_fill(reverse = T), stat = "identity", alpha=.9)+
+  labs(y = "Frequency",
        x = "Distance from harvesting field (m)",
-       fill = "Nuclei per\npropagle unit") +
-  scale_fill_viridis_d(direction = -1) +
-  geom_text(
+       fill = "Spore type") +
+  # scale_fill_viridis_d(direction = -1) +
+  geom_text(data = dat_spore_type_sum %>% 
+              mutate(spore_nuclei= fct_rev(factor(spore_nuclei))), 
     aes(label = round(percent, 2)),
     position = position_stack(vjust = 0.5),
     col = "white",
     fontface = "bold",
     size = 3
-  )
-```
-
-```{r, eval=FALSE}
-ggsave(
-  last_plot(),
-  file = "plots/spore_type.png",
-  width = 8,
-  height = 8,
-  units = "cm",
-  dpi = 300,
-  scale = 1.5
-)
+  ) + 
+  theme(#axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  guides(fill="none")
+# spore_type_plot
 ```
 
 ```{r}
@@ -338,26 +338,42 @@ med_spore_size <- dat_spore_size %>%
   mutate(d_mean = (d1 + d2) / 2) %>%
   group_by(spore_type) %>%
   summarize(median=median(d_mean))
+```
 
-dat_spore_size %>%
+
+```{r spore-size-ridges plot}
+spore_size_plot <- dat_spore_size %>%
   filter(image_id != 34) %>%
   mutate(d_mean = (d1 + d2) / 2) %>% 
   ggplot(aes(x=d_mean)) + 
-  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.4) +
+  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.6) +
+  expand_limits(x = c(10, 50))+
+  # scale_fill_viridis_d(direction = -1) +
   geom_vline(data = med_spore_size, aes(xintercept = median), size=.2)+
   labs(x = expression(paste("Mean diameter (", mu, m, ")")),
        y = "Density",
-       fill = "Spore type") 
+       fill = "Spore type")
+  
+```
+
+
+```{r}
+library(patchwork)
+spore_size_plot + spore_type_plot + 
+  plot_layout(guides = "collect") & 
+  theme(legend.position='bottom') &
+  scale_fill_viridis_d(direction = -1) &
+  plot_annotation(tag_levels = 'A')
 ```
 
 ```{r, eval=FALSE}
 ggsave(
   last_plot(),
-  file = "plots/spore_size.png",
+  file = "plots/spore_size_type.jpg",
   width = 8,
-  height = 8,
+  height = 5,
   units = "cm",
   dpi = 300,
-  scale = 1.5
+  scale = 2
 )
 ```
