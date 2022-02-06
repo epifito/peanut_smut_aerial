@@ -390,7 +390,8 @@ div.tocify {
 
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
-<pre class="r"><code>library(&quot;tidyverse&quot;)
+<pre class="r"><code>library(&quot;knitr&quot;)
+library(&quot;tidyverse&quot;)
 library(&quot;ggpubr&quot;)
 library(&quot;here&quot;)
 library(&quot;clifro&quot;)</code></pre>
@@ -673,7 +674,46 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
   filter(image_id != 34) %&gt;%
   mutate(d_mean = (d1 + d2) / 2) %&gt;%
   group_by(spore_type) %&gt;%
-  summarize(median=median(d_mean))</code></pre>
+  summarize(median=median(d_mean), 
+            sd=sd(d_mean))
+
+med_spore_size %&gt;% kable</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">spore_type</th>
+<th align="right">median</th>
+<th align="right">sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">18.83025</td>
+<td align="right">1.035879</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">27.59850</td>
+<td align="right">1.729635</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">31.97775</td>
+<td align="right">2.071255</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">37.66025</td>
+<td align="right">1.431812</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">45.57950</td>
+<td align="right">2.251160</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code>spore_size_plot &lt;- dat_spore_size %&gt;%
   filter(image_id != 34) %&gt;%
   mutate(d_mean = (d1 + d2) / 2) %&gt;% 
