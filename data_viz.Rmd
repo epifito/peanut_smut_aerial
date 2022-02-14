@@ -336,28 +336,37 @@ head(dat_spore_size)
 ```{r spore-size-ridges}
 med_spore_size <- dat_spore_size %>%
   filter(image_id != 34) %>%
-  mutate(d_mean = (d1 + d2) / 2) %>%
+  mutate(d_mean = (d1 + d2) / 2, 
+         spore_type = as.factor(spore_type)) %>%
   group_by(spore_type) %>%
-  summarize(median=median(d_mean), 
-            sd=sd(d_mean))
+  summarize(mean=mean(d_mean), 
+            sd=sd(d_mean, na.rm = T)) %>% 
+  mutate(across(where(is.numeric), round, 1))
 
-med_spore_size %>% kable
+med_spore_size
 ```
 
 
 ```{r spore-size-ridges plot}
 spore_size_plot <- dat_spore_size %>%
   filter(image_id != 34) %>%
-  mutate(d_mean = (d1 + d2) / 2) %>% 
-  ggplot(aes(x=d_mean)) + 
+  mutate(mean = (d1 + d2) / 2) %>% 
+  ggplot(aes(x=mean)) + 
   geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.6) +
-  expand_limits(x = c(10, 50))+
+  expand_limits(x = c(10, 50), y = c(0, .5))+
   # scale_fill_viridis_d(direction = -1) +
-  geom_vline(data = med_spore_size, aes(xintercept = median), size=.2)+
+  geom_vline(data = med_spore_size, aes(xintercept = mean), size=.2)+
+  geom_label(data = med_spore_size, 
+             label.size = NA,             
+             aes(x = mean, 
+                label=paste0(mean, "\n(", sd, ")"),
+                y = .48),
+            size=2.54)+
   labs(x = expression(paste("Mean diameter (", mu, m, ")")),
        y = "Density",
        fill = "Spore type")
-  
+
+# spore_size_plot  
 ```
 
 
