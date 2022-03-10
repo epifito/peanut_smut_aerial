@@ -10,6 +10,8 @@ output:
     code_folding: hide
     toc_depth: 2
     css: style.css
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r markdown-settings, echo=FALSE, include=FALSE}
@@ -58,8 +60,7 @@ spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
-
-glimpse(spore_data)
+spore_data
 ```
 
 ### Weather data
@@ -74,8 +75,7 @@ meteo_data <- read_csv(here("data/wind.csv"),
 meteo_data <- 
   meteo_data %>% 
   filter(minute_lap <= 270)
-
-glimpse(meteo_data)
+meteo_data
 ```
 
 ### Data prep for analysis
@@ -142,7 +142,11 @@ m <-
                TRUE ~ 270
              )
            )
+m
+```
 
+
+```{r bin-time-slices}
 rh_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -166,8 +170,10 @@ rh <-
     "180" = rh_180,
     "270" = rh_270
   ), .id = "time_slice")
+```
 
 
+```{r bin-time-slices}
 temp_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -191,7 +197,10 @@ temp <-
     "180" = temp_180,
     "270" = temp_270
   ), .id = "time_slice")
+```
 
+
+```{r bin-time-slices}
 wind_speed_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -215,7 +224,10 @@ wind_speed <-
     "180" = wind_speed_180,
     "270" = wind_speed_270
   ), .id = "time_slice")
+```
 
+
+```{r bin-time-slices}
 wind_degrees_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -249,6 +261,18 @@ meteo_data <-
   arrange(field, time_slice)
 ```
 
+```{r meteo_data_JUAN}
+meteo_data <- m %>%
+  mutate(time_slice = 270) %>%  
+  rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>% 
+  rbind(mutate(filter(., minute_lap <= 90), time_slice = 90)) %>% 
+  group_by(field, time_slice) %>%
+  summarize(rh = mean(rel_hum), 
+            temp = mean(temp),
+            wind_speed = mean(wind_speed), 
+            wind_degrees = circular.averaging(wind_degrees))  
+```
+
 ## Merge the spore data with the weather data
 
 Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min`.
@@ -262,12 +286,20 @@ mod_dat <- left_join(meteo_data,
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
   mutate(time_slice = as.integer(time_slice))
 
+```
+
 # create Cartesian coords
+
+```{r merge-spore-weather}
 xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
 
 mod_dat <- bind_cols(mod_dat, xy)
 
 mod_dat
+```
+
+
+```{r merge-spore-weather}
 ```
 
 Save data object for fitting models.
