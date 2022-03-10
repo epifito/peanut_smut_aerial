@@ -299,9 +299,6 @@ mod_dat
 ```
 
 
-```{r merge-spore-weather}
-```
-
 Save data object for fitting models.
 
 ```{r save-mod-dat, eval=TRUE}
