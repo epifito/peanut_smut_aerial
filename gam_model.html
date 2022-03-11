@@ -391,22 +391,22 @@ div.tocify {
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
-library(&quot;broom&quot;)
-library(&quot;ggplot2&quot;)
+# library(&quot;broom&quot;)
+# library(&quot;ggplot2&quot;)
 library(&quot;ggpubr&quot;)
 library(&quot;gratia&quot;)
 library(&quot;here&quot;)
 library(&quot;mgcv&quot;)
-
 theme_set(theme_pubclean())</code></pre>
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
-<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
+<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))
+load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 </div>
 <div id="inspect-the-mod_dat-object" class="section level2">
 <h2>Inspect the mod_dat object</h2>
-<pre class="r"><code>mod_dat %&gt;%
+<pre class="r"><code>mod_dat %&gt;% # str
   distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
   select(trap_coord,
          trap_degrees,
@@ -415,33 +415,34 @@ theme_set(theme_pubclean())</code></pre>
          wind_speed,
          distance_m) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 × 6
-##    trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
-##    &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
-##  1 N                     0     76.2          76.2        5.36        100
-##  2 E                    90     13.8          76.2        5.36        100
-##  3 W                   270    194.           76.2        5.36        100
-##  4 S                   180    104.           76.2        5.36        100
-##  5 N                     0    201.          201.        26.2         100
-##  6 E                    90    111.          201.        26.2         100
-##  7 W                   270     68.7         201.        26.2         100
-##  8 S                   180     21.3         201.        26.2         100
-##  9 NE                   45     90.3         135.        10.6         100
-## 10 SE                  135      0.313       135.        10.6         100
-## 11 NW                  315    180.          135.        10.6         100
-## 12 SW                  225     89.7         135.        10.6         100
-## 13 N                     0     35.9          35.9       14.0         100
-## 14 E                    90     54.1          35.9       14.0         100
-## 15 W                   270    234.           35.9       14.0         100
-## 16 S                   180    144.           35.9       14.0         100
-## 17 NE                   45     15.1          29.9       14.1         100
-## 18 SE                  135    105.           29.9       14.1         100
-## 19 NW                  315    285.           29.9       14.1         100
-## 20 SW                  225    195.           29.9       14.1         100
-## 21 N                     0      2.16          2.16      27.3         100
-## 22 E                    90     87.8           2.16      27.3         100
-## 23 W                   270    268.            2.16      27.3         100
-## 24 S                   180    178.            2.16      27.3         100</code></pre>
+<pre><code>## # A tibble: 24 × 7
+## # Groups:   field [6]
+##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
+##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+##  1 1     N                     0     76.2          76.2        5.36        100
+##  2 1     E                    90     13.8          76.2        5.36        100
+##  3 1     W                   270    194.           76.2        5.36        100
+##  4 1     S                   180    104.           76.2        5.36        100
+##  5 2     N                     0    201.          201.        26.2         100
+##  6 2     E                    90    111.          201.        26.2         100
+##  7 2     W                   270     68.7         201.        26.2         100
+##  8 2     S                   180     21.3         201.        26.2         100
+##  9 3     NE                   45     90.3         135.        10.6         100
+## 10 3     SE                  135      0.313       135.        10.6         100
+## 11 3     NW                  315    180.          135.        10.6         100
+## 12 3     SW                  225     89.7         135.        10.6         100
+## 13 4     N                     0     35.9          35.9       14.0         100
+## 14 4     E                    90     54.1          35.9       14.0         100
+## 15 4     W                   270    234.           35.9       14.0         100
+## 16 4     S                   180    144.           35.9       14.0         100
+## 17 5     NE                   45     15.1          29.9       14.1         100
+## 18 5     SE                  135    105.           29.9       14.1         100
+## 19 5     NW                  315    285.           29.9       14.1         100
+## 20 5     SW                  225    195.           29.9       14.1         100
+## 21 6     N                     0      2.16          2.16      27.3         100
+## 22 6     E                    90     87.8           2.16      27.3         100
+## 23 6     W                   270    268.            2.16      27.3         100
+## 24 6     S                   180    178.            2.16      27.3         100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, <code>x</code> and <code>y</code>; the smoothed time slice variables, <code>time_slice</code>; the wind direction in relation to the traps’ placement, <code>degree_dif</code>; the traps’ distance from the harvest field, <code>distance_m</code>; and the field and traps themselves as a random effects, <code>field</code> and <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
@@ -457,7 +458,12 @@ m1 &lt;- gam(
   family = &quot;tw&quot;
 )
 
-m1</code></pre>
+saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.rds&quot;))</code></pre>
+<pre class="r"><code>m1 &lt;- readRDS(Sys.glob(&quot;*.rds&quot;), refhook = NULL)</code></pre>
+</div>
+<div id="inspect-model-m1" class="section level2">
+<h2>Inspect Model m1</h2>
+<pre class="r"><code>m1</code></pre>
 <pre><code>## 
 ## Family: Tweedie(p=1.505) 
 ## Link function: log 
@@ -470,9 +476,6 @@ m1</code></pre>
 ##  7.457  0.978  5.622  0.276 65.088  total = 80.42 
 ## 
 ## REML score: 664.522</code></pre>
-</div>
-<div id="inspect-model-m1" class="section level2">
-<h2>Inspect Model m1</h2>
 <div id="check-model" class="section level3">
 <h3>Check model</h3>
 <pre class="r"><code>gam.check(m1)</code></pre>
@@ -490,9 +493,9 @@ m1</code></pre>
 ## 
 ##                    k&#39;     edf k-index p-value  
 ## s(y,x)         19.000   7.457    1.07    1.00  
-## s(time_slice)   2.000   0.978    0.90    0.17  
+## s(time_slice)   2.000   0.978    0.90    0.27  
 ## s(degree_dif)  71.000   5.622    0.85    0.08 .
-## s(distance_m)   3.000   0.276    1.01    0.90  
+## s(distance_m)   3.000   0.276    1.01    0.91  
 ## s(field,xy)   192.000  65.088      NA      NA  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
@@ -538,6 +541,15 @@ m1</code></pre>
 <h3>Summarise and visualise model m1</h3>
 <pre class="r"><code>draw(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(
+  last_plot(),
+  file = &quot;plots_manuscript/model_summary.jpg&quot;,
+  width = 8,
+  height = 5,
+  units = &quot;cm&quot;,
+  dpi = 300,
+  scale = 3
+)</code></pre>
 </div>
 </div>
 <div id="predict-spore-dispersal" class="section level2">
@@ -555,6 +567,7 @@ newd &lt;- expand_grid(
   field = 1)
   
 newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
+<pre class="r"><code>save(newd, file = paste0(&quot;data/newd&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.Rdata&quot;))</code></pre>
 </div>
 <div id="visualise-spore-dispersal-predictions" class="section level2">
 <h2>Visualise spore dispersal predictions</h2>
@@ -569,7 +582,7 @@ newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
 <p><img src="gam_model_files/figure-html/graph-predictions-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
-  file = &quot;plots/spore_prediction.png&quot;,
+  file = &quot;plots_manuscript/spore_prediction.png&quot;,
   w = 5,
   h = 2,
   scale = 1.2

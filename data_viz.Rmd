@@ -171,7 +171,7 @@ ggplot(data = mod_dat) +
 ```{r eval=FALSE}
 ggsave(
   last_plot(),
-  file = "plots/spores_cardinal.png",
+  file = "plots_manuscript/spores_cardinal.png",
   width = 20,
   height = 10,
   units = "cm",
@@ -220,7 +220,7 @@ wind_rose +
 ```{r}
 ggsave(
   last_plot(),
-  file = "plots/wind_rose_6_tr.png",
+  file = "plots_manuscript/wind_rose_6_tr.png",
   width = 20,
   height = 10,
   units = "cm",
@@ -263,7 +263,7 @@ smoothed_dispersal
 ```{r, eval=FALSE}
 ggsave(
   last_plot(),
-  file = "plots/spore_gradient.png",
+  file = "plots_manuscript/spore_gradient.png",
   w = 6,
   h = 4,
   scale = 1.2
@@ -382,7 +382,7 @@ spore_size_plot + spore_type_plot +
 ```{r, eval=FALSE}
 ggsave(
   last_plot(),
-  file = "plots/spore_size_type.jpg",
+  file = "plots_manuscript/spore_size_type.jpg",
   width = 8,
   height = 5,
   units = "cm",

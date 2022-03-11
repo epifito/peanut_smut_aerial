@@ -27,20 +27,19 @@ knitr::opts_chunk$set(
 
 ```{r session settings}
 library("tidyverse")
-library("broom")
-library("ggplot2")
+# library("broom")
+# library("ggplot2")
 library("ggpubr")
 library("gratia")
 library("here")
 library("mgcv")
-
 theme_set(theme_pubclean())
 ```
-
 ## Load data
 
 ```{r load-data}
 load(here("data/mod_dat.Rdata"))
+load(here("data/newd.Rdata"))
 ```
 
 ## Inspect the mod_dat object
@@ -59,7 +58,7 @@ mod_dat %>% # str
 
 Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
 
-```{r m1}
+```{r fit-m1, eval=FALSE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
@@ -74,10 +73,18 @@ m1 <- gam(
   family = "tw"
 )
 
-m1
+saveRDS(m1, file = paste0("m1_", format(Sys.time(), "%Y%m%d"), ".rds"))
+```
+
+```{r save-m1}
+m1 <- readRDS(Sys.glob("*.rds"), refhook = NULL)
 ```
 
 ## Inspect Model m1
+
+```{r}
+m1
+```
 
 ### Check model
 
@@ -125,7 +132,7 @@ ggsave(
 
 ## Predict spore dispersal
 
-```{r predict}
+```{r predict, eval=FALSE}
 dist <- seq(0, 400, by = 100)
 
 newd <- expand_grid(
@@ -139,6 +146,10 @@ newd <- expand_grid(
   field = 1)
   
 newd$pred_spore_cm2 <- predict(m1, newd)
+```
+
+```{r, eval=FALSE}
+save(newd, file = "data/newd.Rdata"))
 ```
 
 ## Visualise spore dispersal predictions
@@ -155,7 +166,7 @@ newd %>%
   )
 ```
 
-```{r save-prediction-graph, eval=TRUE}
+```{r save-prediction-graph, eval=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_prediction.png",

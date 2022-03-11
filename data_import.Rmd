@@ -146,7 +146,7 @@ m
 ```
 
 
-```{r bin-time-slices}
+```{r bin-time-slices-rh, eval=FALSE}
 rh_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -173,7 +173,7 @@ rh <-
 ```
 
 
-```{r bin-time-slices}
+```{r bin-time-slices-temp, eval=FALSE}
 temp_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -200,7 +200,7 @@ temp <-
 ```
 
 
-```{r bin-time-slices}
+```{r bin-time-slices-wind, eval=FALSE}
 wind_speed_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -227,7 +227,7 @@ wind_speed <-
 ```
 
 
-```{r bin-time-slices}
+```{r bin-time-slices-wind_degrees, eval=FALSE}
 wind_degrees_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -288,16 +288,14 @@ mod_dat <- left_join(meteo_data,
 
 ```
 
-# create Cartesian coords
+# Create Cartesian coords
 
-```{r merge-spore-weather}
+```{r Cartesian-coords}
 xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
 
 mod_dat <- bind_cols(mod_dat, xy)
-
 mod_dat
 ```
-
 
 Save data object for fitting models.
 
