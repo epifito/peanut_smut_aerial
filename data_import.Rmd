@@ -65,7 +65,7 @@ spore_data
 
 ### Weather data
 
-Import weather data and inspect.
+Import weather data, filter unused data, convert to SI units and inspect the resulting data.
 
 ```{r meteo-data}
 meteo_data <- read_csv(here("data/wind.csv"),
@@ -74,7 +74,9 @@ meteo_data <- read_csv(here("data/wind.csv"),
 # some sites go past 270 minutes, remove those data.
 meteo_data <- 
   meteo_data %>% 
-  filter(minute_lap <= 270)
+  filter(minute_lap <= 270) %>% 
+  mutate(wind_speed = wind_speed * 0.2777778)
+
 meteo_data
 ```
 
@@ -288,7 +290,7 @@ mod_dat <- left_join(meteo_data,
 
 ```
 
-# Create Cartesian coords
+## Create Cartesian coords
 
 ```{r Cartesian-coords}
 xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
@@ -299,6 +301,6 @@ mod_dat
 
 Save data object for fitting models.
 
-```{r save-mod-dat, eval=TRUE}
+```{r save-mod-dat, eval=FALSE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```

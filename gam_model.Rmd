@@ -11,7 +11,7 @@ output:
     toc_depth: 2
     css: style.css
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r markdown-settings, echo=FALSE, include=FALSE}
@@ -27,22 +27,37 @@ knitr::opts_chunk$set(
 
 ```{r session settings}
 library("tidyverse")
-# library("broom")
-# library("ggplot2")
 library("ggpubr")
 library("gratia")
 library("here")
 library("mgcv")
 theme_set(theme_pubclean())
 ```
-## Load data
+
+## Spore proportion chi-squared analysis
+
+Check if the spore type, number of nuclei, affects the dispersal.
+
+```{r}
+set.seed(3)
+read_csv(here("data/spore_type.csv")) %>%
+  group_by(meter, spore_nuclei) %>%
+  summarise(n = sum(count), .groups = 'drop') %>%
+  spread(spore_nuclei, n) %>%
+  column_to_rownames('meter') %>%
+  chisq.test(simulate.p.value = TRUE) 
+```
+
+## Spore dispersal GAM Model
+
+### Load data
 
 ```{r load-data}
 load(here("data/mod_dat.Rdata"))
 load(here("data/newd.Rdata"))
 ```
 
-## Inspect the mod_dat object
+### Inspect the mod_dat object
 
 ```{r inspect-mod-dat}
 mod_dat %>% # str
@@ -80,20 +95,20 @@ saveRDS(m1, file = paste0("m1_", format(Sys.time(), "%Y%m%d"), ".rds"))
 m1 <- readRDS(Sys.glob("*.rds"), refhook = NULL)
 ```
 
-## Inspect Model m1
+### Inspect Model m1
 
 ```{r}
 m1
 ```
 
-### Check model
+#### Check model
 
 ```{r gam-check-m1}
 gam.check(m1)
 summary(m1)
 ```
 
-The model fully converged after 10 iterations.
+The model fully converged after 15 iterations.
 All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -130,7 +145,7 @@ ggsave(
 )
 ```
 
-## Predict spore dispersal
+### Predict spore dispersal
 
 ```{r predict, eval=FALSE}
 dist <- seq(0, 400, by = 100)
@@ -152,7 +167,7 @@ newd$pred_spore_cm2 <- predict(m1, newd)
 save(newd, file = "data/newd.Rdata"))
 ```
 
-## Visualise spore dispersal predictions
+### Visualise spore dispersal predictions
 
 Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
