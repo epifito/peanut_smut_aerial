@@ -15,3 +15,8 @@ https://docs.google.com/spreadsheets/d/15yGsFy4Bkh5WvQ1xdiPJWIH3R7S9cjf5TS2Yyjlj
 Type of spores data
 https://docs.google.com/spreadsheets/d/1mfEP3daMbVKBIHfRqTIsBXnmQrLHMTEU/edit#gid=740893926
 
+Data and R codes hosted in [OSF](https://osf.io/tk978/_) `DOI 10.17605/OSF.IO/TK978`
+
+
+
+
