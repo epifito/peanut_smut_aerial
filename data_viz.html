@@ -13,7 +13,7 @@
 
 <title>Visualise data</title>
 
-<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,6 +63,7 @@ if (window.hljs) {
 
 
 
+
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -87,6 +88,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -321,7 +325,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -374,7 +378,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -442,12 +446,12 @@ spore_dot_density_by_distance</code></pre>
 <pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
   scale_fill_viridis_c() +
   geom_hex() +
-  geom_smooth(col=&quot;grey50&quot;) +
+  geom_smooth(col = &quot;grey50&quot;) +
   labs(y = expression(Spores / cm ^ {
     2
   }),
   x = &quot;Wind Speed (m/s)&quot;) +
-  central_top_legend+
+  central_top_legend +
   guides(fill = guide_legend(title.position = &quot;top&quot;,
                              title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
@@ -504,7 +508,7 @@ spore_dot_density_by_distance</code></pre>
   ) +
   ylab(&quot;Distance (m)&quot;) +
   xlab(&quot;&quot;) +
-  central_top_legend+
+  central_top_legend +
   guides(color = guide_legend(title.position = &quot;top&quot;,
                               title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/plot-spores-1.png" width="672" /></p>
@@ -643,19 +647,7 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
   theme(#axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) +
-  guides(fill=&quot;none&quot;)
-# spore_type_plot</code></pre>
-<pre class="r"><code>dat_spore_type %&gt;% 
-  group_by(meter, spore_nuclei) %&gt;%
-  summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;% 
-  spread(spore_nuclei, n) %&gt;% 
-  column_to_rownames(&#39;meter&#39;) %&gt;% 
-  chisq.test() </code></pre>
-<pre><code>## 
-##  Pearson&#39;s Chi-squared test
-## 
-## data:  .
-## X-squared = 20.656, df = 16, p-value = 0.1921</code></pre>
+  guides(fill=&quot;none&quot;)</code></pre>
 </div>
 <div id="spore-size" class="section level2">
 <h2>Spore size</h2>
@@ -690,30 +682,35 @@ med_spore_size</code></pre>
 ## 5 5           44.6   2.3</code></pre>
 <pre class="r"><code>spore_size_plot &lt;- dat_spore_size %&gt;%
   filter(image_id != 34) %&gt;%
-  mutate(mean = (d1 + d2) / 2) %&gt;% 
-  ggplot(aes(x=mean)) + 
-  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.6) +
-  expand_limits(x = c(10, 50), y = c(0, .5))+
+  mutate(mean = (d1 + d2) / 2) %&gt;%
+  ggplot(aes(x = mean)) +
+  geom_density(aes(fill = factor(spore_type)), size = .2, alpha = .6) +
+  expand_limits(x = c(10, 50), y = c(0, .5)) +
   # scale_fill_viridis_d(direction = -1) +
-  geom_vline(data = med_spore_size, aes(xintercept = mean), size=.2)+
-  geom_label(data = med_spore_size, 
-             label.size = NA,             
-             aes(x = mean, 
-                label=paste0(mean, &quot;\n(&quot;, sd, &quot;)&quot;),
-                y = .48),
-            size=2.54)+
+  geom_vline(data = med_spore_size, aes(xintercept = mean), size = .2) +
+  geom_label(
+    data = med_spore_size,
+    label.size = NA,
+    aes(
+      x = mean,
+      label = paste0(mean, &quot;\n(&quot;, sd, &quot;)&quot;),
+      y = .48
+    ),
+    size = 2.54
+  ) +
   labs(x = expression(paste(&quot;Mean diameter (&quot;, mu, m, &quot;)&quot;)),
        y = &quot;Density&quot;,
-       fill = &quot;Spore type&quot;)
-
-# spore_size_plot  </code></pre>
+       fill = &quot;Spore type&quot;)</code></pre>
+</div>
+<div id="create-a-multipanel-figure-of-spore-size-details" class="section level2">
+<h2>Create a multipanel figure of spore size details</h2>
 <pre class="r"><code>library(patchwork)
 spore_size_plot + spore_type_plot + 
   plot_layout(guides = &quot;collect&quot;) &amp; 
   theme(legend.position=&#39;bottom&#39;) &amp;
   scale_fill_viridis_d(direction = -1) &amp;
   plot_annotation(tag_levels = &#39;A&#39;)</code></pre>
-<p><img src="data_viz_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/create-single-figure-1.png" width="672" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots_manuscript/spore_size_type.jpg&quot;,

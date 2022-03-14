@@ -11,7 +11,7 @@ output:
     toc_depth: 2
     css: style.css
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r markdown-settings, echo=FALSE}
@@ -96,12 +96,12 @@ Create a hexbin plot to display the number of spores by wind speed and fit a smo
 ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
   scale_fill_viridis_c() +
   geom_hex() +
-  geom_smooth(col="grey50") +
+  geom_smooth(col = "grey50") +
   labs(y = expression(Spores / cm ^ {
     2
   }),
   x = "Wind Speed (m/s)") +
-  central_top_legend+
+  central_top_legend +
   guides(fill = guide_legend(title.position = "top",
                              title.hjust = 0.5))
 ```
@@ -163,7 +163,7 @@ ggplot(data = mod_dat) +
   ) +
   ylab("Distance (m)") +
   xlab("") +
-  central_top_legend+
+  central_top_legend +
   guides(color = guide_legend(title.position = "top",
                               title.hjust = 0.5))
 ```
@@ -311,16 +311,6 @@ spore_type_plot <- dat_spore_type_sum %>%
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) +
   guides(fill="none")
-# spore_type_plot
-```
-
-```{r}
-dat_spore_type %>% 
-  group_by(meter, spore_nuclei) %>%
-  summarise(n = sum(count), .groups = 'drop') %>% 
-  spread(spore_nuclei, n) %>% 
-  column_to_rownames('meter') %>% 
-  chisq.test() 
 ```
 
 ## Spore size
@@ -350,27 +340,30 @@ med_spore_size
 ```{r spore-size-ridges plot}
 spore_size_plot <- dat_spore_size %>%
   filter(image_id != 34) %>%
-  mutate(mean = (d1 + d2) / 2) %>% 
-  ggplot(aes(x=mean)) + 
-  geom_density(aes(fill=factor(spore_type)), size=.2, alpha=.6) +
-  expand_limits(x = c(10, 50), y = c(0, .5))+
+  mutate(mean = (d1 + d2) / 2) %>%
+  ggplot(aes(x = mean)) +
+  geom_density(aes(fill = factor(spore_type)), size = .2, alpha = .6) +
+  expand_limits(x = c(10, 50), y = c(0, .5)) +
   # scale_fill_viridis_d(direction = -1) +
-  geom_vline(data = med_spore_size, aes(xintercept = mean), size=.2)+
-  geom_label(data = med_spore_size, 
-             label.size = NA,             
-             aes(x = mean, 
-                label=paste0(mean, "\n(", sd, ")"),
-                y = .48),
-            size=2.54)+
+  geom_vline(data = med_spore_size, aes(xintercept = mean), size = .2) +
+  geom_label(
+    data = med_spore_size,
+    label.size = NA,
+    aes(
+      x = mean,
+      label = paste0(mean, "\n(", sd, ")"),
+      y = .48
+    ),
+    size = 2.54
+  ) +
   labs(x = expression(paste("Mean diameter (", mu, m, ")")),
        y = "Density",
        fill = "Spore type")
-
-# spore_size_plot  
 ```
 
+## Create a multipanel figure of spore size details
 
-```{r}
+```{r create-single-figure}
 library(patchwork)
 spore_size_plot + spore_type_plot + 
   plot_layout(guides = "collect") & 

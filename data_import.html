@@ -13,7 +13,7 @@
 
 <title>Import data</title>
 
-<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,6 +63,7 @@ if (window.hljs) {
 
 
 
+
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -87,6 +88,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -321,7 +325,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -374,7 +378,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -432,28 +436,30 @@ spore_data</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
-<p>Import weather data and inspect.</p>
+<p>Import weather data, filter unused data, convert to SI units and inspect the resulting data.</p>
 <pre class="r"><code>meteo_data &lt;- read_csv(here(&quot;data/wind.csv&quot;),
                        col_types = list(field = col_factor()))
 
 # some sites go past 270 minutes, remove those data.
 meteo_data &lt;- 
   meteo_data %&gt;% 
-  filter(minute_lap &lt;= 270)
+  filter(minute_lap &lt;= 270) %&gt;% 
+  mutate(wind_speed = wind_speed * 0.2777778)
+
 meteo_data</code></pre>
 <pre><code>## # A tibble: 330 × 6
 ##    field minute_lap rel_hum  temp wind_speed wind_dir
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;   
-##  1 1              0      65  16          6.2 E       
-##  2 1              5      65  16          9   E       
-##  3 1             10      65  16          5.7 E       
-##  4 1             15      65  16.2        6.2 E       
-##  5 1             20      65  16.2        5.9 E       
-##  6 1             25      65  16.2        5.7 E       
-##  7 1             30      65  19.5        5.9 E       
-##  8 1             35      65  19.5        2.2 E       
-##  9 1             40      65  19.5        4.2 E       
-## 10 1             45      65  19.7        1.2 NE      
+##  1 1              0      65  16        1.72  E       
+##  2 1              5      65  16        2.50  E       
+##  3 1             10      65  16        1.58  E       
+##  4 1             15      65  16.2      1.72  E       
+##  5 1             20      65  16.2      1.64  E       
+##  6 1             25      65  16.2      1.58  E       
+##  7 1             30      65  19.5      1.64  E       
+##  8 1             35      65  19.5      0.611 E       
+##  9 1             40      65  19.5      1.17  E       
+## 10 1             45      65  19.7      0.333 NE      
 ## # … with 320 more rows</code></pre>
 </div>
 <div id="data-prep-for-analysis" class="section level3">
@@ -510,16 +516,16 @@ m</code></pre>
 <pre><code>## # A tibble: 330 × 8
 ##    field minute_lap rel_hum  temp wind_speed wind_dir wind_degrees time_slice
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt;
-##  1 1              0      65  16          6.2 E                  90         90
-##  2 1              5      65  16          9   E                  90         90
-##  3 1             10      65  16          5.7 E                  90         90
-##  4 1             15      65  16.2        6.2 E                  90         90
-##  5 1             20      65  16.2        5.9 E                  90         90
-##  6 1             25      65  16.2        5.7 E                  90         90
-##  7 1             30      65  19.5        5.9 E                  90         90
-##  8 1             35      65  19.5        2.2 E                  90         90
-##  9 1             40      65  19.5        4.2 E                  90         90
-## 10 1             45      65  19.7        1.2 NE                 45         90
+##  1 1              0      65  16        1.72  E                  90         90
+##  2 1              5      65  16        2.50  E                  90         90
+##  3 1             10      65  16        1.58  E                  90         90
+##  4 1             15      65  16.2      1.72  E                  90         90
+##  5 1             20      65  16.2      1.64  E                  90         90
+##  6 1             25      65  16.2      1.58  E                  90         90
+##  7 1             30      65  19.5      1.64  E                  90         90
+##  8 1             35      65  19.5      0.611 E                  90         90
+##  9 1             40      65  19.5      1.17  E                  90         90
+## 10 1             45      65  19.7      0.333 NE                 45         90
 ## # … with 320 more rows</code></pre>
 <pre class="r"><code>rh_90 &lt;-
   m %&gt;%
@@ -643,8 +649,8 @@ meteo_data &lt;-
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %&gt;%
   mutate(time_slice = as.integer(time_slice))</code></pre>
 </div>
-<div id="create-cartesian-coords" class="section level1">
-<h1>create Cartesian coords</h1>
+<div id="create-cartesian-coords" class="section level2">
+<h2>Create Cartesian coords</h2>
 <pre class="r"><code>xy &lt;- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
 
 mod_dat &lt;- bind_cols(mod_dat, xy)
@@ -653,16 +659,16 @@ mod_dat</code></pre>
 ## # Groups:   field [6]
 ##    field time_slice    rh  temp wind_speed wind_degrees trap_coord distance_m
 ##    &lt;fct&gt;      &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
-##  1 1             90    65  18.9       5.36         76.2 N                 100
-##  2 1             90    65  18.9       5.36         76.2 N                 200
-##  3 1             90    65  18.9       5.36         76.2 N                 300
-##  4 1             90    65  18.9       5.36         76.2 N                 400
-##  5 1             90    65  18.9       5.36         76.2 E                 100
-##  6 1             90    65  18.9       5.36         76.2 E                 200
-##  7 1             90    65  18.9       5.36         76.2 E                 300
-##  8 1             90    65  18.9       5.36         76.2 E                 400
-##  9 1             90    65  18.9       5.36         76.2 W                 100
-## 10 1             90    65  18.9       5.36         76.2 W                 200
+##  1 1             90    65  18.9       1.49         76.2 N                 100
+##  2 1             90    65  18.9       1.49         76.2 N                 200
+##  3 1             90    65  18.9       1.49         76.2 N                 300
+##  4 1             90    65  18.9       1.49         76.2 N                 400
+##  5 1             90    65  18.9       1.49         76.2 E                 100
+##  6 1             90    65  18.9       1.49         76.2 E                 200
+##  7 1             90    65  18.9       1.49         76.2 E                 300
+##  8 1             90    65  18.9       1.49         76.2 E                 400
+##  9 1             90    65  18.9       1.49         76.2 W                 100
+## 10 1             90    65  18.9       1.49         76.2 W                 200
 ## # … with 278 more rows, and 5 more variables: spore_cm2 &lt;dbl&gt;,
 ## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, x &lt;dbl&gt;, y &lt;dbl&gt;</code></pre>
 <p>Save data object for fitting models.</p>

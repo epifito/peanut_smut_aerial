@@ -13,7 +13,7 @@
 
 <title>Fit GAM model of spore counts</title>
 
-<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,6 +63,7 @@ if (window.hljs) {
 
 
 
+
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -87,6 +88,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -321,7 +325,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -374,7 +378,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -391,21 +395,38 @@ div.tocify {
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
 <pre class="r"><code>library(&quot;tidyverse&quot;)
-# library(&quot;broom&quot;)
-# library(&quot;ggplot2&quot;)
 library(&quot;ggpubr&quot;)
 library(&quot;gratia&quot;)
 library(&quot;here&quot;)
 library(&quot;mgcv&quot;)
 theme_set(theme_pubclean())</code></pre>
 </div>
-<div id="load-data" class="section level2">
-<h2>Load data</h2>
+<div id="spore-proportion-chi-squared-analysis" class="section level2">
+<h2>Spore proportion chi-squared analysis</h2>
+<p>Check if the spore type, number of nuclei, affects the dispersal.</p>
+<pre class="r"><code>set.seed(3)
+read_csv(here(&quot;data/spore_type.csv&quot;)) %&gt;%
+  group_by(meter, spore_nuclei) %&gt;%
+  summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
+  spread(spore_nuclei, n) %&gt;%
+  column_to_rownames(&#39;meter&#39;) %&gt;%
+  chisq.test(simulate.p.value = TRUE) </code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test with simulated p-value (based on 2000
+##  replicates)
+## 
+## data:  .
+## X-squared = 20.656, df = NA, p-value = 0.1959</code></pre>
+</div>
+<div id="spore-dispersal-gam-model" class="section level2">
+<h2>Spore dispersal GAM Model</h2>
+<div id="load-data" class="section level3">
+<h3>Load data</h3>
 <pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))
 load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 </div>
-<div id="inspect-the-mod_dat-object" class="section level2">
-<h2>Inspect the mod_dat object</h2>
+<div id="inspect-the-mod_dat-object" class="section level3">
+<h3>Inspect the mod_dat object</h3>
 <pre class="r"><code>mod_dat %&gt;% # str
   distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
   select(trap_coord,
@@ -419,30 +440,30 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ## # Groups:   field [6]
 ##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
-##  1 1     N                     0     76.2          76.2        5.36        100
-##  2 1     E                    90     13.8          76.2        5.36        100
-##  3 1     W                   270    194.           76.2        5.36        100
-##  4 1     S                   180    104.           76.2        5.36        100
-##  5 2     N                     0    201.          201.        26.2         100
-##  6 2     E                    90    111.          201.        26.2         100
-##  7 2     W                   270     68.7         201.        26.2         100
-##  8 2     S                   180     21.3         201.        26.2         100
-##  9 3     NE                   45     90.3         135.        10.6         100
-## 10 3     SE                  135      0.313       135.        10.6         100
-## 11 3     NW                  315    180.          135.        10.6         100
-## 12 3     SW                  225     89.7         135.        10.6         100
-## 13 4     N                     0     35.9          35.9       14.0         100
-## 14 4     E                    90     54.1          35.9       14.0         100
-## 15 4     W                   270    234.           35.9       14.0         100
-## 16 4     S                   180    144.           35.9       14.0         100
-## 17 5     NE                   45     15.1          29.9       14.1         100
-## 18 5     SE                  135    105.           29.9       14.1         100
-## 19 5     NW                  315    285.           29.9       14.1         100
-## 20 5     SW                  225    195.           29.9       14.1         100
-## 21 6     N                     0      2.16          2.16      27.3         100
-## 22 6     E                    90     87.8           2.16      27.3         100
-## 23 6     W                   270    268.            2.16      27.3         100
-## 24 6     S                   180    178.            2.16      27.3         100</code></pre>
+##  1 1     N                     0     76.2          76.2        1.49        100
+##  2 1     E                    90     13.8          76.2        1.49        100
+##  3 1     W                   270    194.           76.2        1.49        100
+##  4 1     S                   180    104.           76.2        1.49        100
+##  5 2     N                     0    201.          201.         7.27        100
+##  6 2     E                    90    111.          201.         7.27        100
+##  7 2     W                   270     68.7         201.         7.27        100
+##  8 2     S                   180     21.3         201.         7.27        100
+##  9 3     NE                   45     90.3         135.         2.93        100
+## 10 3     SE                  135      0.313       135.         2.93        100
+## 11 3     NW                  315    180.          135.         2.93        100
+## 12 3     SW                  225     89.7         135.         2.93        100
+## 13 4     N                     0     35.9          35.9        3.90        100
+## 14 4     E                    90     54.1          35.9        3.90        100
+## 15 4     W                   270    234.           35.9        3.90        100
+## 16 4     S                   180    144.           35.9        3.90        100
+## 17 5     NE                   45     15.1          29.9        3.92        100
+## 18 5     SE                  135    105.           29.9        3.92        100
+## 19 5     NW                  315    285.           29.9        3.92        100
+## 20 5     SW                  225    195.           29.9        3.92        100
+## 21 6     N                     0      2.16          2.16       7.57        100
+## 22 6     E                    90     87.8           2.16       7.57        100
+## 23 6     W                   270    268.            2.16       7.57        100
+## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, <code>x</code> and <code>y</code>; the smoothed time slice variables, <code>time_slice</code>; the wind direction in relation to the traps’ placement, <code>degree_dif</code>; the traps’ distance from the harvest field, <code>distance_m</code>; and the field and traps themselves as a random effects, <code>field</code> and <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
@@ -461,8 +482,8 @@ m1 &lt;- gam(
 saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.rds&quot;))</code></pre>
 <pre class="r"><code>m1 &lt;- readRDS(Sys.glob(&quot;*.rds&quot;), refhook = NULL)</code></pre>
 </div>
-<div id="inspect-model-m1" class="section level2">
-<h2>Inspect Model m1</h2>
+<div id="inspect-model-m1" class="section level3">
+<h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
 ## Family: Tweedie(p=1.505) 
@@ -476,8 +497,8 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
 ##  7.457  0.978  5.622  0.276 65.088  total = 80.42 
 ## 
 ## REML score: 664.522</code></pre>
-<div id="check-model" class="section level3">
-<h3>Check model</h3>
+<div id="check-model" class="section level4">
+<h4>Check model</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="672" /></p>
 <pre><code>## 
@@ -492,10 +513,10 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
 ##                    k&#39;     edf k-index p-value  
-## s(y,x)         19.000   7.457    1.07    1.00  
-## s(time_slice)   2.000   0.978    0.90    0.27  
-## s(degree_dif)  71.000   5.622    0.85    0.08 .
-## s(distance_m)   3.000   0.276    1.01    0.91  
+## s(y,x)         19.000   7.457    1.07    0.99  
+## s(time_slice)   2.000   0.978    0.90    0.17  
+## s(degree_dif)  71.000   5.622    0.85    0.06 .
+## s(distance_m)   3.000   0.276    1.01    0.89  
 ## s(field,xy)   192.000  65.088      NA      NA  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
@@ -526,7 +547,8 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
 ## 
 ## R-sq.(adj) =  0.791   Deviance explained = 89.4%
 ## -REML = 664.52  Scale est. = 0.94002   n = 288</code></pre>
-<p>The model fully converged after 10 iterations. All of the predictive factors included were significant at <em>P</em> &gt; 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit. The Q-Q plot generally falls along the line indicating a sufficient fit. There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape. The response versus fitted values clusters nicely around the 1:1 line. In all, this model looks to explain the spore dispersal data very well.</p>
+<p>The model fully converged after 15 iterations. All of the predictive factors included were significant at <em>P</em> &gt; 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit. The Q-Q plot generally falls along the line indicating a sufficient fit. There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape. The response versus fitted values clusters nicely around the 1:1 line. In all, this model looks to explain the spore dispersal data very well.</p>
+</div>
 <div id="check-for-autocorrelation" class="section level4">
 <h4>Check for autocorrelation</h4>
 <p>Because the data represent spatially and temporally correlated data, it’s best to check for any autocorrelation in the residuals.</p>
@@ -551,9 +573,8 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
   scale = 3
 )</code></pre>
 </div>
-</div>
-<div id="predict-spore-dispersal" class="section level2">
-<h2>Predict spore dispersal</h2>
+<div id="predict-spore-dispersal" class="section level3">
+<h3>Predict spore dispersal</h3>
 <pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
 
 newd &lt;- expand_grid(
@@ -567,10 +588,10 @@ newd &lt;- expand_grid(
   field = 1)
   
 newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
-<pre class="r"><code>save(newd, file = paste0(&quot;data/newd&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.Rdata&quot;))</code></pre>
+<pre class="r"><code>save(newd, file = &quot;data/newd.Rdata&quot;))</code></pre>
 </div>
-<div id="visualise-spore-dispersal-predictions" class="section level2">
-<h2>Visualise spore dispersal predictions</h2>
+<div id="visualise-spore-dispersal-predictions" class="section level3">
+<h3>Visualise spore dispersal predictions</h3>
 <p>Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.</p>
 <pre class="r"><code>newd %&gt;%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
@@ -587,6 +608,7 @@ newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
   h = 2,
   scale = 1.2
 )</code></pre>
+</div>
 </div>
 
 
