@@ -40,7 +40,8 @@ Check if the spore type, number of nuclei, affects the dispersal.
 
 ```{r x-sq}
 set.seed(3)
-read_csv(here("data/spore_type.csv")) %>%
+read_csv(here("data/spore_type.csv"),
+         show_col_types = FALSE) %>%
   group_by(meter, spore_nuclei) %>%
   summarise(n = sum(count), .groups = 'drop') %>%
   spread(spore_nuclei, n) %>%

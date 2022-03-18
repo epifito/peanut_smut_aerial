@@ -401,7 +401,8 @@ theme_set(theme_pubclean())</code></pre>
 <h2>Spore proportion chi-squared analysis</h2>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
 <pre class="r"><code>set.seed(3)
-read_csv(here(&quot;data/spore_type.csv&quot;)) %&gt;%
+read_csv(here(&quot;data/spore_type.csv&quot;),
+         show_col_types = FALSE) %&gt;%
   group_by(meter, spore_nuclei) %&gt;%
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
   spread(spore_nuclei, n) %&gt;%
