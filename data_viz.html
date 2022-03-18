@@ -408,11 +408,15 @@ central_top_legend &lt;- theme(
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
 <pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))
-load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
+load(here(&quot;data/mod_dat.Rdata&quot;))
+sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
+                    show_col_types = FALSE) %&gt;% 
+                    arrange(field) %&gt;% 
+                    mutate(field = as_factor(field))</code></pre>
 </div>
 <div id="plot-severely-damaged-pod-indices" class="section level2">
 <h2>Plot severely damaged pod indices</h2>
-<pre class="r"><code>ggplot(data = mod_dat) +
+<pre class="r"><code>ggplot(data = sdp_dat) +
   aes(y = field, x = SDP) +
   geom_violin()</code></pre>
 <p><img src="data_viz_files/figure-html/sdp-incidence-1.png" width="672" /></p>

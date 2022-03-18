@@ -51,12 +51,16 @@ central_top_legend <- theme(
 ```{r load-data}
 load(here("data/dat.Rdata"))
 load(here("data/mod_dat.Rdata"))
+sdp_dat <- read_csv(here("data/sdp_data.csv"),
+                    show_col_types = FALSE) %>% 
+                    arrange(field) %>% 
+                    mutate(field = as_factor(field))
 ```
 
 ## Plot severely damaged pod indices
 
 ```{r sdp-incidence}
-ggplot(data = mod_dat) +
+ggplot(data = sdp_dat) +
   aes(y = field, x = SDP) +
   geom_violin()
 ```
