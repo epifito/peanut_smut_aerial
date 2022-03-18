@@ -13,7 +13,7 @@
 
 <title>Fit GAM model of spore counts</title>
 
-<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,7 +63,6 @@ if (window.hljs) {
 
 
 
-
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -88,9 +87,6 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
-}
-details > summary > p:only-child {
-  display: inline;
 }
 pre code {
   padding: 0;
@@ -325,7 +321,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -378,7 +374,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -405,7 +401,8 @@ theme_set(theme_pubclean())</code></pre>
 <h2>Spore proportion chi-squared analysis</h2>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
 <pre class="r"><code>set.seed(3)
-read_csv(here(&quot;data/spore_type.csv&quot;)) %&gt;%
+read_csv(here(&quot;data/spore_type.csv&quot;),
+         show_col_types = FALSE) %&gt;%
   group_by(meter, spore_nuclei) %&gt;%
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
   spread(spore_nuclei, n) %&gt;%
@@ -477,10 +474,7 @@ m1 &lt;- gam(
   select = TRUE,
   method = &quot;REML&quot;,
   family = &quot;tw&quot;
-)
-
-saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.rds&quot;))</code></pre>
-<pre class="r"><code>m1 &lt;- readRDS(Sys.glob(&quot;*.rds&quot;), refhook = NULL)</code></pre>
+)</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
@@ -504,7 +498,7 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 15 iterations.
-## Gradient range [-9.230901e-05,8.243612e-05]
+## Gradient range [-9.231048e-05,8.243621e-05]
 ## (score 664.522 &amp; scale 0.9400171).
 ## Hessian positive definite, eigenvalue range [2.536942e-05,215.3403].
 ## Model rank =  288 / 288 
@@ -563,18 +557,9 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
 <h3>Summarise and visualise model m1</h3>
 <pre class="r"><code>draw(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="672" /></p>
-<pre class="r"><code>ggsave(
-  last_plot(),
-  file = &quot;plots_manuscript/model_summary.jpg&quot;,
-  width = 8,
-  height = 5,
-  units = &quot;cm&quot;,
-  dpi = 300,
-  scale = 3
-)</code></pre>
 </div>
-<div id="predict-spore-dispersal" class="section level3">
-<h3>Predict spore dispersal</h3>
+<div id="predict-spore-dispersal-and-visualise-spore-dispersal-predictions" class="section level3">
+<h3>Predict spore dispersal and visualise spore dispersal predictions</h3>
 <pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
 
 newd &lt;- expand_grid(
@@ -588,19 +573,14 @@ newd &lt;- expand_grid(
   field = 1)
   
 newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
-<pre class="r"><code>save(newd, file = &quot;data/newd.Rdata&quot;))</code></pre>
-</div>
-<div id="visualise-spore-dispersal-predictions" class="section level3">
-<h3>Visualise spore dispersal predictions</h3>
 <p>Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.</p>
-<pre class="r"><code>newd %&gt;%
+<pre class="r"><code>predictions &lt;-
+  newd %&gt;%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
   ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
   geom_violin() +
   labs(x = &quot;Distance from harvesting field (m)&quot;,
-       y = &quot;Predicted Spores / cm²&quot;
-  )</code></pre>
-<p><img src="gam_model_files/figure-html/graph-predictions-1.png" width="672" /></p>
+       y = &quot;Predicted Spores / cm²&quot;)</code></pre>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots_manuscript/spore_prediction.png&quot;,

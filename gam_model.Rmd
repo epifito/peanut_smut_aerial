@@ -38,9 +38,10 @@ theme_set(theme_pubclean())
 
 Check if the spore type, number of nuclei, affects the dispersal.
 
-```{r}
+```{r x-sq}
 set.seed(3)
-read_csv(here("data/spore_type.csv")) %>%
+read_csv(here("data/spore_type.csv"),
+         show_col_types = FALSE) %>%
   group_by(meter, spore_nuclei) %>%
   summarise(n = sum(count), .groups = 'drop') %>%
   spread(spore_nuclei, n) %>%
@@ -87,17 +88,19 @@ m1 <- gam(
   method = "REML",
   family = "tw"
 )
-
-saveRDS(m1, file = paste0("m1_", format(Sys.time(), "%Y%m%d"), ".rds"))
 ```
 
-```{r save-m1}
-m1 <- readRDS(Sys.glob("*.rds"), refhook = NULL)
+```{r save-m1, echo=FALSE, eval=FALSE}
+save(m1, file = here("data/m1.Rdata"))
+```
+
+```{r read-m1, echo=FALSE}
+load(here("data/m1.Rdata"))
 ```
 
 ### Inspect Model m1
 
-```{r}
+```{r inspect-m1}
 m1
 ```
 
@@ -133,19 +136,27 @@ There is no major pattern discernible in the ACF or PACF plots that show cause f
 draw(m1)
 ```
 
-```{r, eval=FALSE}
+```{r save-m1-summary, eval=FALSE, echo=FALSE}
 ggsave(
   last_plot(),
-  file = "plots_manuscript/model_summary.jpg",
+  file = "plots_manuscript/model_summary.png",
   width = 8,
   height = 5,
   units = "cm",
   dpi = 300,
   scale = 3
 )
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/model_summary.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)
 ```
 
-### Predict spore dispersal
+### Predict spore dispersal and visualise spore dispersal predictions
 
 ```{r predict, eval=FALSE}
 dist <- seq(0, 400, by = 100)
@@ -163,22 +174,25 @@ newd <- expand_grid(
 newd$pred_spore_cm2 <- predict(m1, newd)
 ```
 
-```{r, eval=FALSE}
-save(newd, file = "data/newd.Rdata"))
-```
-
-### Visualise spore dispersal predictions
-
 Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
 ```{r graph-predictions}
-newd %>%
+predictions <-
+  newd %>%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
   ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
   geom_violin() +
   labs(x = "Distance from harvesting field (m)",
-       y = "Predicted Spores / cm²"
-  )
+       y = "Predicted Spores / cm²")
+```
+
+
+```{r save-predictions, eval=FALSE, echo=FALSE}
+save(newd, file = "data/newd.Rdata"))
+```
+
+```{r load-newd, echo=FALSE}
+load(here("data/newd.Rdata"))
 ```
 
 ```{r save-prediction-graph, eval=FALSE}

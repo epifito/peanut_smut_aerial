@@ -51,11 +51,23 @@ central_top_legend <- theme(
 ```{r load-data}
 load(here("data/dat.Rdata"))
 load(here("data/mod_dat.Rdata"))
+sdp_dat <- read_csv(here("data/sdp_data.csv"),
+                    show_col_types = FALSE) %>% 
+                    arrange(field) %>% 
+                    mutate(field = as_factor(field))
+```
+
+## Plot severely damaged pod indices
+
+```{r sdp-incidence}
+ggplot(data = sdp_dat) +
+  aes(y = field, x = SDP) +
+  geom_violin()
 ```
 
 ## Plot spore dispersal density
 
-### Plot spore densities
+### Plot spore count densities
 
 Create a density plot of the observed spore dispersal values.
 
@@ -67,15 +79,18 @@ ggplot(mod_dat, aes(y = spore_cm2)) +
 Create a scatter plot and use `stat_smooth()` to fit a line.
 
 ```{r spore-dot-density-by-distance}
-spore_dot_density_by_distance <- mod_dat %>% 
+spore_dot_density_by_distance <- mod_dat %>%
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-    geom_smooth(col="grey50", method = "gam", 
-                formula = y ~ s(x, bs = "cs", k = 3)) +
-  labs(y = expression(Spores/cm^{2}),
-       x = "Distance (m)") +
-  facet_grid( .~ time_slice)
+  geom_smooth(col = "grey50",
+              method = "gam",
+              formula = y ~ s(x, bs = "cs", k = 3)) +
+  labs(y = expression(Spores / cm ^ {
+    2
+  }),
+  x = "Distance (m)") +
+  facet_grid(. ~ time_slice)
 spore_dot_density_by_distance
 ```
 
@@ -168,15 +183,23 @@ ggplot(data = mod_dat) +
                               title.hjust = 0.5))
 ```
 
-```{r eval=FALSE}
+```{r save-spores-cardinal, eval=FALSE, echo=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spores_cardinal.png",
-  width = 20,
-  height = 10,
+  width = 8,
+  height = 5,
   units = "cm",
-  dpi = 600,
-  scale = 1.5
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_cardinal.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
 )
 ```
 
@@ -208,7 +231,7 @@ wind_rose +
   ) +
   labs(x = "", y = "") +
   central_top_legend +
-  theme_pubclean()+
+  theme_pubclean() +
   guides(fill = guide_legend(
     title.position = "top",
     title.hjust = 0.5,
@@ -217,15 +240,23 @@ wind_rose +
   ))
 ```
 
-```{r}
+```{r save-wr, echo=FALSE, eval=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/wind_rose_6_tr.png",
-  width = 20,
-  height = 10,
+  width = 8,
+  height = 5,
   units = "cm",
-  dpi = 600,
-  scale = 1.5
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/wind_rose_6_tr.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
 )
 ```
 
@@ -260,13 +291,23 @@ smoothed_dispersal <- mod_dat %>%
 smoothed_dispersal
 ```
 
-```{r, eval=FALSE}
+```{r save-spore-gradient, eval=FALSE, echo=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_gradient.png",
-  w = 6,
-  h = 4,
-  scale = 1.2
+  width = 8,
+  height = 5,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spore_gradient.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
 )
 ```
 
@@ -285,32 +326,34 @@ dat_spore_type %>%
   group_by(meter, spore_nuclei, .drop = FALSE) %>%
   summarise(count = mean(count)) %>%
   mutate(percent = count / sum(count)
-         # spore_nuclei= fct_rev(factor(spore_nuclei))
          ) -> dat_spore_type_sum
 
-spore_type_plot <- dat_spore_type_sum %>% 
+spore_type_plot <- dat_spore_type_sum %>%
   ggplot(aes(
     x = meter,
     y = percent,
     fill = factor(spore_nuclei)
   )) +
-  geom_bar(position = position_fill(reverse = T), stat = "identity", alpha=.9)+
+  geom_bar(position = position_fill(reverse = T),
+           stat = "identity",
+           alpha = .9) +
   labs(y = "Proportion",
        x = "Distance from harvesting field (m)",
        fill = "Spore type") +
   # scale_fill_viridis_d(direction = -1) +
-  geom_text(data = dat_spore_type_sum %>% 
-              mutate(spore_nuclei= fct_rev(factor(spore_nuclei))), 
+  geom_text(
+    data = dat_spore_type_sum %>%
+      mutate(spore_nuclei = fct_rev(factor(spore_nuclei))),
     aes(label = round(percent, 2)),
     position = position_stack(vjust = 0.5),
     col = "white",
     fontface = "bold",
     size = 3
-  ) + 
+  ) +
   theme(#axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  guides(fill="none")
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()) +
+  guides(fill = "none")
 ```
 
 ## Spore size
@@ -365,21 +408,29 @@ spore_size_plot <- dat_spore_size %>%
 
 ```{r create-single-figure}
 library(patchwork)
-spore_size_plot + spore_type_plot + 
-  plot_layout(guides = "collect") & 
-  theme(legend.position='bottom') &
+spore_size_plot + spore_type_plot +
+  plot_layout(guides = "collect") &
+  theme(legend.position = 'bottom') &
   scale_fill_viridis_d(direction = -1) &
   plot_annotation(tag_levels = 'A')
 ```
 
-```{r, eval=FALSE}
+```{r save-spore-type-size, eval=FALSE, echo=FALSE}
 ggsave(
   last_plot(),
-  file = "plots_manuscript/spore_size_type.jpg",
+  file = "plots_manuscript/spore_size_type.png",
   width = 8,
   height = 5,
   units = "cm",
   dpi = 300,
-  scale = 2
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spore_size_type.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
 )
 ```

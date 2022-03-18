@@ -13,7 +13,7 @@
 
 <title>Import data</title>
 
-<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,7 +63,6 @@ if (window.hljs) {
 
 
 
-
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -88,9 +87,6 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
-}
-details > summary > p:only-child {
-  display: inline;
 }
 pre code {
   padding: 0;
@@ -325,7 +321,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -378,7 +374,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -404,8 +400,8 @@ source(here(&quot;./R/circular_averaging.R&quot;))</code></pre>
 </div>
 <div id="import-compiled-dataset-from-local-files." class="section level2">
 <h2>Import compiled dataset from local files.</h2>
-<div id="spore-data" class="section level3">
-<h3>Spore data</h3>
+<div id="spore-count-data" class="section level3">
+<h3>Spore count data</h3>
 <p>Import spore trap data and inspect.</p>
 <pre class="r"><code>spore_data &lt;- read_csv(
   here(&quot;data/spore_data.csv&quot;),
@@ -635,7 +631,7 @@ meteo_data &lt;-
   summarize(rh = mean(rel_hum), 
             temp = mean(temp),
             wind_speed = mean(wind_speed), 
-            wind_degrees = circular.averaging(wind_degrees))  </code></pre>
+            wind_degrees = circular.averaging(wind_degrees))</code></pre>
 </div>
 </div>
 </div>
