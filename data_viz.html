@@ -13,7 +13,7 @@
 
 <title>Visualise data</title>
 
-<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -414,24 +414,34 @@ central_top_legend &lt;- theme(
 <pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))
 load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>
+<div id="plot-severely-damaged-pod-indices" class="section level2">
+<h2>Plot severely damaged pod indices</h2>
+<pre class="r"><code>ggplot(data = mod_dat) +
+  aes(y = field, x = SDP) +
+  geom_violin()</code></pre>
+<p><img src="data_viz_files/figure-html/sdp-incidence-1.png" width="672" /></p>
+</div>
 <div id="plot-spore-dispersal-density" class="section level2">
 <h2>Plot spore dispersal density</h2>
-<div id="plot-spore-densities" class="section level3">
-<h3>Plot spore densities</h3>
+<div id="plot-spore-count-densities" class="section level3">
+<h3>Plot spore count densities</h3>
 <p>Create a density plot of the observed spore dispersal values.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(y = spore_cm2)) +
   geom_density()</code></pre>
 <p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="672" /></p>
 <p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
-<pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;% 
+<pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;%
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-    geom_smooth(col=&quot;grey50&quot;, method = &quot;gam&quot;, 
-                formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
-  labs(y = expression(Spores/cm^{2}),
-       x = &quot;Distance (m)&quot;) +
-  facet_grid( .~ time_slice)
+  geom_smooth(col = &quot;grey50&quot;,
+              method = &quot;gam&quot;,
+              formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
+  labs(y = expression(Spores / cm ^ {
+    2
+  }),
+  x = &quot;Distance (m)&quot;) +
+  facet_grid(. ~ time_slice)
 spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
 <p>Create a violin plot showing spore distribution at the four distances.</p>

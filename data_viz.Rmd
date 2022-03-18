@@ -53,9 +53,17 @@ load(here("data/dat.Rdata"))
 load(here("data/mod_dat.Rdata"))
 ```
 
+## Plot severely damaged pod indices
+
+```{r sdp-incidence}
+ggplot(data = mod_dat) +
+  aes(y = field, x = SDP) +
+  geom_violin()
+```
+
 ## Plot spore dispersal density
 
-### Plot spore densities
+### Plot spore count densities
 
 Create a density plot of the observed spore dispersal values.
 
@@ -67,15 +75,18 @@ ggplot(mod_dat, aes(y = spore_cm2)) +
 Create a scatter plot and use `stat_smooth()` to fit a line.
 
 ```{r spore-dot-density-by-distance}
-spore_dot_density_by_distance <- mod_dat %>% 
+spore_dot_density_by_distance <- mod_dat %>%
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-    geom_smooth(col="grey50", method = "gam", 
-                formula = y ~ s(x, bs = "cs", k = 3)) +
-  labs(y = expression(Spores/cm^{2}),
-       x = "Distance (m)") +
-  facet_grid( .~ time_slice)
+  geom_smooth(col = "grey50",
+              method = "gam",
+              formula = y ~ s(x, bs = "cs", k = 3)) +
+  labs(y = expression(Spores / cm ^ {
+    2
+  }),
+  x = "Distance (m)") +
+  facet_grid(. ~ time_slice)
 spore_dot_density_by_distance
 ```
 

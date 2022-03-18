@@ -13,7 +13,7 @@
 
 <title>Import data</title>
 
-<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -404,8 +404,8 @@ source(here(&quot;./R/circular_averaging.R&quot;))</code></pre>
 </div>
 <div id="import-compiled-dataset-from-local-files." class="section level2">
 <h2>Import compiled dataset from local files.</h2>
-<div id="spore-data" class="section level3">
-<h3>Spore data</h3>
+<div id="spore-count-data" class="section level3">
+<h3>Spore count data</h3>
 <p>Import spore trap data and inspect.</p>
 <pre class="r"><code>spore_data &lt;- read_csv(
   here(&quot;data/spore_data.csv&quot;),
@@ -433,6 +433,12 @@ spore_data</code></pre>
 ##  9 1     N                 300      270     0    
 ## 10 1     N                 400       90     0.208
 ## # … with 278 more rows</code></pre>
+</div>
+<div id="pod-damage-data" class="section level3">
+<h3>Pod damage data</h3>
+<p>Import smut ball incidence data used to calculate severely damaged pods (SDP).</p>
+<pre class="r"><code>sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
+                     col_types = list(field = col_factor()))</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
@@ -635,7 +641,7 @@ meteo_data &lt;-
   summarize(rh = mean(rel_hum), 
             temp = mean(temp),
             wind_speed = mean(wind_speed), 
-            wind_degrees = circular.averaging(wind_degrees))  </code></pre>
+            wind_degrees = circular.averaging(wind_degrees))</code></pre>
 </div>
 </div>
 </div>
@@ -671,6 +677,9 @@ mod_dat</code></pre>
 ## 10 1             90    65  18.9       1.49         76.2 W                 200
 ## # … with 278 more rows, and 5 more variables: spore_cm2 &lt;dbl&gt;,
 ## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, x &lt;dbl&gt;, y &lt;dbl&gt;</code></pre>
+<p>`</p>
+<p>Add smut density to the data object for model fitting.</p>
+<pre class="r"><code>mod_dat &lt;- left_join(mod_dat, sdp_dat)</code></pre>
 <p>Save data object for fitting models.</p>
 <pre class="r"><code>save(mod_dat, file = here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>

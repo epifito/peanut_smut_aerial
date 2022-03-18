@@ -39,7 +39,7 @@ source(here("./R/circular_averaging.R"))
 
 ## Import compiled dataset from local files.
 
-### Spore data
+### Spore count data
 
 Import spore trap data and inspect.
 
@@ -49,7 +49,6 @@ spore_data <- read_csv(
   col_types = list(field = col_factor(),
                    trap_coord = col_factor()
   ))
-
 ```
 
 Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
@@ -61,6 +60,15 @@ spore_data <-
   group_by(field, trap_coord, distance_m, time_min) %>%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
 spore_data
+```
+
+### Pod damage data
+
+Import smut ball incidence data used to calculate severely damaged pods (SDP).
+
+```{r import-sdp}
+sdp_dat <- read_csv(here("data/sdp_data.csv"),
+                     col_types = list(field = col_factor()))
 ```
 
 ### Weather data
@@ -272,7 +280,7 @@ meteo_data <- m %>%
   summarize(rh = mean(rel_hum), 
             temp = mean(temp),
             wind_speed = mean(wind_speed), 
-            wind_degrees = circular.averaging(wind_degrees))  
+            wind_degrees = circular.averaging(wind_degrees))
 ```
 
 ## Merge the spore data with the weather data
@@ -287,7 +295,6 @@ mod_dat <- left_join(meteo_data,
                             "time_slice" = "time_min")) %>%
   mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
   mutate(time_slice = as.integer(time_slice))
-
 ```
 
 ## Create Cartesian coords
@@ -298,9 +305,16 @@ xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
 mod_dat <- bind_cols(mod_dat, xy)
 mod_dat
 ```
+`
+
+Add smut density to the data object for model fitting.
+
+```{r add-sdp}
+mod_dat <- left_join(mod_dat, sdp_dat)
+```
 
 Save data object for fitting models.
 
-```{r save-mod-dat, eval=FALSE}
+```{r save-mod-dat, eval=TRUE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```
