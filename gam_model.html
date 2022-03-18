@@ -13,7 +13,7 @@
 
 <title>Fit GAM model of spore counts</title>
 
-<script src="site_libs/header-attrs-2.12/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -480,7 +480,6 @@ m1 &lt;- gam(
 )
 
 saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;), &quot;.rds&quot;))</code></pre>
-<pre class="r"><code>m1 &lt;- readRDS(Sys.glob(&quot;*.rds&quot;), refhook = NULL)</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
@@ -573,8 +572,8 @@ saveRDS(m1, file = paste0(&quot;m1_&quot;, format(Sys.time(), &quot;%Y%m%d&quot;
   scale = 3
 )</code></pre>
 </div>
-<div id="predict-spore-dispersal" class="section level3">
-<h3>Predict spore dispersal</h3>
+<div id="predict-spore-dispersal-and-visualise-spore-dispersal-predictions" class="section level3">
+<h3>Predict spore dispersal and visualise spore dispersal predictions</h3>
 <pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
 
 newd &lt;- expand_grid(
@@ -588,10 +587,6 @@ newd &lt;- expand_grid(
   field = 1)
   
 newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
-<pre class="r"><code>save(newd, file = &quot;data/newd.Rdata&quot;))</code></pre>
-</div>
-<div id="visualise-spore-dispersal-predictions" class="section level3">
-<h3>Visualise spore dispersal predictions</h3>
 <p>Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.</p>
 <pre class="r"><code>newd %&gt;%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
