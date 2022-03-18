@@ -430,12 +430,6 @@ spore_data</code></pre>
 ## 10 1     N                 400       90     0.208
 ## # … with 278 more rows</code></pre>
 </div>
-<div id="pod-damage-data" class="section level3">
-<h3>Pod damage data</h3>
-<p>Import smut ball incidence data used to calculate severely damaged pods (SDP).</p>
-<pre class="r"><code>sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
-                     col_types = list(field = col_factor()))</code></pre>
-</div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
 <p>Import weather data, filter unused data, convert to SI units and inspect the resulting data.</p>
@@ -673,9 +667,6 @@ mod_dat</code></pre>
 ## 10 1             90    65  18.9       1.49         76.2 W                 200
 ## # … with 278 more rows, and 5 more variables: spore_cm2 &lt;dbl&gt;,
 ## #   trap_degrees &lt;dbl&gt;, degree_dif &lt;dbl&gt;, x &lt;dbl&gt;, y &lt;dbl&gt;</code></pre>
-<p>`</p>
-<p>Add smut density to the data object for model fitting.</p>
-<pre class="r"><code>mod_dat &lt;- left_join(mod_dat, sdp_dat)</code></pre>
 <p>Save data object for fitting models.</p>
 <pre class="r"><code>save(mod_dat, file = here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
 </div>

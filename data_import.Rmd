@@ -62,15 +62,6 @@ spore_data <-
 spore_data
 ```
 
-### Pod damage data
-
-Import smut ball incidence data used to calculate severely damaged pods (SDP).
-
-```{r import-sdp}
-sdp_dat <- read_csv(here("data/sdp_data.csv"),
-                     col_types = list(field = col_factor()))
-```
-
 ### Weather data
 
 Import weather data, filter unused data, convert to SI units and inspect the resulting data.
@@ -305,16 +296,9 @@ xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
 mod_dat <- bind_cols(mod_dat, xy)
 mod_dat
 ```
-`
-
-Add smut density to the data object for model fitting.
-
-```{r add-sdp}
-mod_dat <- left_join(mod_dat, sdp_dat)
-```
 
 Save data object for fitting models.
 
-```{r save-mod-dat, eval=TRUE}
+```{r save-mod-dat, eval=FALSE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```
