@@ -184,8 +184,9 @@ predictions <-
   geom_violin() +
   labs(x = "Distance from harvesting field (m)",
        y = "Predicted Spores / cm²")
-```
 
+predictions
+```
 
 ```{r save-predictions, eval=FALSE, echo=FALSE}
 save(newd, file = "data/newd.Rdata"))
