@@ -291,7 +291,9 @@ mod_dat <- left_join(meteo_data,
 ## Create Cartesian coords
 
 ```{r Cartesian-coords}
-xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees, r = mod_dat$distance_m))
+# degrees need to be converted to radians for theta
+xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees * 0.01745329,
+                          r = mod_dat$distance_m))
 
 mod_dat <- bind_cols(mod_dat, xy)
 mod_dat
