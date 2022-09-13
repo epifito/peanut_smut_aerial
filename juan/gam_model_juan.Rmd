@@ -55,14 +55,14 @@ read_csv(here("data/spore_type.csv"),
 ### Load data
 
 ```{r load-data}
-load(here("data/mod_dat.Rdata"))
+load(here("data/mod_dat_juan.Rdata"))
 load(here("data/newd.Rdata"))
 ```
 
 ### Inspect the mod_dat object
 
 ```{r inspect-mod-dat}
-mod_dat %>% # str
+mod_dat %>% #str
   distinct(field, trap_coord, .keep_all = TRUE) %>%
   select(trap_coord,
          trap_degrees,
@@ -73,15 +73,27 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
+```{r}
+mod_dat %>% 
+  ggplot()+
+  aes(x=spore_cm2)+
+  geom_histogram(fill="steelblue")+
+  theme_bw()
+
+```
+
 Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
 
 ```{r fit-m1, eval=FALSE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
+# mod_dat %>% distinct(x,y) %>% data.frame()
+# mod_dat %>% rio::export("data/data_mod.xlsx")
 
 m1 <- gam(
   spore_cm2 ~ s(y, x, k = 20) +
+    # s(wind_speed, k = 3) +
     s(time_slice, k = 3) +
-    s(degree_dif, k = 72) +
+    s(degree_dif, k = 30) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
@@ -92,11 +104,11 @@ m1 <- gam(
 ```
 
 ```{r save-m1, echo=FALSE, eval=FALSE}
-save(m1, file = here("data/m1.Rdata"))
+save(m1, file = here("data/m1_juan.Rdata"))
 ```
 
 ```{r read-m1, echo=FALSE}
-load(here("data/m1.Rdata"))
+load(here("data/m1_juan.Rdata"))
 ```
 
 ### Inspect Model m1
@@ -160,16 +172,15 @@ ggsave(
 ### Predict spore dispersal and visualise spore dispersal predictions
 
 ```{r predict, eval=FALSE}
-dist <- seq(0, 400, by = 100)
+dist <- seq(100, 400, by = 100)
 
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif = 1:360,
-  distance_m = dist,
-  wind_speed = 0:30,
-  x = dist,
-  y = dist,
-  xy = paste(dist, -dist),
+  degree_dif = seq(0, 360, by = 45),
+  distance_m = coords_df$distance_m,
+  wind_speed = seq(0, 20, by = 10),
+  x = coords_df$x,
+  y = coords_df$y,
   field = 1)
   
 newd$pred_spore_cm2 <- predict(m1, newd)

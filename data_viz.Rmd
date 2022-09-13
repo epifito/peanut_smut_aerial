@@ -16,6 +16,7 @@ editor_options:
 
 ```{r markdown-settings, echo=FALSE}
 knitr::opts_chunk$set(
+  out.width = '60%',
   fig.width = 7,
   fig.height = 7,
   message = FALSE,
@@ -128,7 +129,7 @@ Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 fro
 So, here the figure shows an additive effect of the number of spores that were captured over time.
 These are not discrete time_slices shown here, they do overlap.
 
-```{r plot-spores}
+```{r plot-spores,  out.width = '100%'}
 ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,
@@ -209,7 +210,7 @@ ggsave(
 
 Using the `wind_rose()` from _clifro_, create windrose plots to visualise windspeeds and directions during the harvest and spread events.
 
-```{r wind-rose}
+```{r wind-rose, out.width = '100%'}
 wind_rose <-
   with(
     mod_dat,
@@ -406,7 +407,7 @@ spore_size_plot <- dat_spore_size %>%
 
 ## Create a multipanel figure of spore size details
 
-```{r create-single-figure}
+```{r create-single-figure, fig.width = 7, fig.height = 5,   out.width = '100%'}
 library(patchwork)
 spore_size_plot + spore_type_plot +
   plot_layout(guides = "collect") &

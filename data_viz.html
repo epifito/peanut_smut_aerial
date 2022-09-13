@@ -427,7 +427,7 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
 <pre class="r"><code>ggplot(data = sdp_dat) +
   aes(y = field, x = SDP) +
   geom_violin()</code></pre>
-<p><img src="data_viz_files/figure-html/sdp-incidence-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/sdp-incidence-1.png" width="60%" /></p>
 </div>
 <div id="plot-spore-dispersal-density" class="section level2">
 <h2>Plot spore dispersal density</h2>
@@ -436,9 +436,14 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
 <p>Create a density plot of the observed spore dispersal values.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(y = spore_cm2)) +
   geom_density()</code></pre>
+<<<<<<< HEAD
 <p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="672" /></p>
 <p>Create a scatter plot and use <code>stat_smooth()</code> to fit a
 line.</p>
+=======
+<p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="60%" /></p>
+<p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
+>>>>>>> main
 <pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;%
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
@@ -452,14 +457,19 @@ line.</p>
   x = &quot;Distance (m)&quot;) +
   facet_grid(. ~ time_slice)
 spore_dot_density_by_distance</code></pre>
+<<<<<<< HEAD
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="672" /></p>
 <p>Create a violin plot showing spore distribution at the four
 distances.</p>
+=======
+<p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="60%" /></p>
+<p>Create a violin plot showing spore distribution at the four distances.</p>
+>>>>>>> main
 <pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
   geom_violin() +
   labs(y = expression(Spores/cm^{2}),
        x = &quot;Distance (m)&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
 <p>Create a hexbin plot to display the number of spores by wind speed
@@ -475,7 +485,7 @@ and fit a smoothed line to these variables.</p>
   central_top_legend +
   guides(fill = guide_legend(title.position = &quot;top&quot;,
                              title.hjust = 0.5))</code></pre>
-<p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="60%" /></p>
 </div>
 <div id="polar-coordinates" class="section level4">
 <h4>Polar coordinates</h4>
@@ -537,7 +547,7 @@ do overlap.</p>
   central_top_legend +
   guides(color = guide_legend(title.position = &quot;top&quot;,
                               title.hjust = 0.5))</code></pre>
-<p><img src="data_viz_files/figure-html/plot-spores-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/plot-spores-1.png" width="100%" /></p>
 </div>
 </div>
 </div>
@@ -576,7 +586,7 @@ wind_rose +
     keywidth = unit(1, &quot;lines&quot;),
     keyheight = unit(1, &quot;lines&quot;)
   ))</code></pre>
-<p><img src="data_viz_files/figure-html/wind-rose-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/wind-rose-1.png" width="100%" /></p>
 </div>
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
@@ -608,7 +618,7 @@ smoothed_dispersal &lt;- mod_dat %&gt;%
        x = &quot;Distance from harvesting field (m)&quot;,
        y = &quot;Smut spores / m² at trap&quot;)
 smoothed_dispersal</code></pre>
-<p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="60%" /></p>
 </div>
 <div id="spore-type-frequency" class="section level2">
 <h2>Spore type frequency</h2>
@@ -718,7 +728,7 @@ spore_size_plot + spore_type_plot +
   theme(legend.position = &#39;bottom&#39;) &amp;
   scale_fill_viridis_d(direction = -1) &amp;
   plot_annotation(tag_levels = &#39;A&#39;)</code></pre>
-<p><img src="data_viz_files/figure-html/create-single-figure-1.png" width="672" /></p>
+<p><img src="data_viz_files/figure-html/create-single-figure-1.png" width="100%" /></p>
 </div>
 
 

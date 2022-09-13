@@ -510,7 +510,7 @@ m1 &lt;- gam(
 <div id="check-model" class="section level4">
 <h4>Check model</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 15 iterations.
@@ -572,17 +572,22 @@ explain the spore dispersal data very well.</p>
 <p>Because the data represent spatially and temporally correlated data,
 it’s best to check for any autocorrelation in the residuals.</p>
 <pre class="r"><code>acf(residuals(m1))</code></pre>
-<p><img src="gam_model_files/figure-html/gam-autocorrelation-1.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/gam-autocorrelation-1.png" width="60%" /></p>
 <pre class="r"><code>pacf(residuals(m1))</code></pre>
+<<<<<<< HEAD
 <p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="672" /></p>
 <p>This looks OK. There is no major pattern discernible in the ACF or
 PACF plots that show cause for concern.</p>
+=======
+<p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="60%" /></p>
+<p>This looks OK. There is no major pattern discernible in the ACF or PACF plots that show cause for concern.</p>
+>>>>>>> main
 </div>
 </div>
 <div id="summarise-and-visualise-model-m1" class="section level3">
 <h3>Summarise and visualise model m1</h3>
 <pre class="r"><code>draw(m1)</code></pre>
-<p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="100%" /></p>
 </div>
 <div
 id="predict-spore-dispersal-and-visualise-spore-dispersal-predictions"

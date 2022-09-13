@@ -168,8 +168,13 @@ mod_dat <- left_join(meteo_data,
                      spore_data,
                      by = c("field" = "field",
                             "time_slice" = "time_min")) %>%
-  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
-  mutate(time_slice = as.integer(time_slice))
+  mutate(degree_dif0 = (wind_degrees - trap_degrees)) %>% 
+  mutate(degree_dif=if_else(abs(degree_dif0)>180, abs(degree_dif0)-180, abs(degree_dif0))) %>% 
+  mutate(time_slice = as.integer(time_slice)) %>% 
+  ungroup()
+
+mod_dat %>% select(contains("degree")) %>% slice_sample(n = 10)
+
 ```
 
 ## Create Cartesian coords
@@ -179,7 +184,10 @@ mod_dat <- left_join(meteo_data,
 xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees * 0.01745329,
                           r = mod_dat$distance_m))
 
-mod_dat <- bind_cols(mod_dat, xy)
+mod_dat <- bind_cols(mod_dat, xy) %>% 
+    ungroup() %>% 
+    mutate_at(vars(x,y), list(~ round(., 1)))  
+# mod_dat %>% str
 ```
 
 
@@ -190,9 +198,9 @@ coords_df <- mod_dat %>%
   ungroup() %>% 
   distinct(trap_degrees, distance_m, x, y) %>% 
   mutate_at(vars(x,y), list(~ round(., 1))) %>% 
-  arrange(trap_degrees) # %>% print(n = Inf)
+  arrange(trap_degrees) 
 
-coords_df %>%   
+coords_df %>% #data.frame
   ggplot()+
   aes(x=y, y=x)+
   geom_point() +
@@ -205,5 +213,5 @@ coords_df %>%
 Save data object for fitting models.
 
 ```{r save-mod-dat, eval=FALSE}
-save(mod_dat, file = here("data/mod_dat.Rdata"))
+save(mod_dat, file = here("data/mod_dat_juan.Rdata"))
 ```
