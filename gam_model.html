@@ -496,7 +496,7 @@ m1 &lt;- gam(
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.505) 
+## Family: Tweedie(p=1.506) 
 ## Link function: log 
 ## 
 ## Formula:
@@ -504,35 +504,33 @@ m1 &lt;- gam(
 ##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-##  7.457  0.978  5.622  0.276 65.088  total = 80.42 
+## 10.9433  0.9794  5.5375  0.0022 58.4360  total = 76.9 
 ## 
-## REML score: 664.522</code></pre>
+## REML score: 658.9083</code></pre>
 <div id="check-model" class="section level4">
 <h4>Check model</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="672" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 15 iterations.
-## Gradient range [-0.00009231048,0.00008243621]
-## (score 664.522 &amp; scale 0.9400171).
-## Hessian positive definite, eigenvalue range [0.00002536942,215.3403].
+## full convergence after 11 iterations.
+## Gradient range [-0.0005997579,0.0008730696]
+## (score 658.9083 &amp; scale 0.9425858).
+## Hessian positive definite, eigenvalue range [0.0000006156285,214.239].
 ## Model rank =  288 / 288 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                    k&#39;     edf k-index p-value  
-## s(y,x)         19.000   7.457    1.07    0.99  
-## s(time_slice)   2.000   0.978    0.90    0.17  
-## s(degree_dif)  71.000   5.622    0.85    0.06 .
-## s(distance_m)   3.000   0.276    1.01    0.89  
-## s(field,xy)   192.000  65.088      NA      NA  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+##                      k&#39;       edf k-index p-value
+## s(y,x)         19.00000  10.94326    1.04    0.99
+## s(time_slice)   2.00000   0.97936    0.91    0.17
+## s(degree_dif)  71.00000   5.53754    0.86    0.10
+## s(distance_m)   3.00000   0.00223    1.01    0.89
+## s(field,xy)   192.00000  58.43603      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.505) 
+## Family: Tweedie(p=1.506) 
 ## Link function: log 
 ## 
 ## Formula:
@@ -540,23 +538,23 @@ m1 &lt;- gam(
 ##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error t value      Pr(&gt;|t|)    
-## (Intercept)   0.6816     0.1136   6.002 0.00000000859 ***
+##             Estimate Std. Error t value       Pr(&gt;|t|)    
+## (Intercept)   0.6816     0.1019    6.69 0.000000000197 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                   edf Ref.df      F              p-value    
-## s(y,x)         7.4571     19 27.602             0.021148 *  
-## s(time_slice)  0.9784      2 23.559 &lt; 0.0000000000000002 ***
-## s(degree_dif)  5.6220     71 52.463 &lt; 0.0000000000000002 ***
-## s(distance_m)  0.2758      3  0.143             0.000819 ***
-## s(field,xy)   65.0878     95  4.699 &lt; 0.0000000000000002 ***
+##                     edf Ref.df      F              p-value    
+## s(y,x)        10.943263     19 54.718             0.000128 ***
+## s(time_slice)  0.979357      2 24.318 &lt; 0.0000000000000002 ***
+## s(degree_dif)  5.537539     71 45.631 &lt; 0.0000000000000002 ***
+## s(distance_m)  0.002229      3  0.001             0.000790 ***
+## s(field,xy)   58.436029     95  3.213 &lt; 0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.791   Deviance explained = 89.4%
-## -REML = 664.52  Scale est. = 0.94002   n = 288</code></pre>
+## R-sq.(adj) =  0.795   Deviance explained = 89.2%
+## -REML = 658.91  Scale est. = 0.94259   n = 288</code></pre>
 <p>The model fully converged after 15 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.05 and the
 smoothed predictors indicate a good fit with residuals being randomly

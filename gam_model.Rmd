@@ -74,7 +74,7 @@ mod_dat %>% # str
 
 Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
 
-```{r fit-m1, eval=FALSE}
+```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
@@ -90,7 +90,7 @@ m1 <- gam(
 )
 ```
 
-```{r save-m1, echo=FALSE, eval=FALSE}
+```{r save-m1, echo=FALSE, eval=TRUE}
 save(m1, file = here("data/m1.Rdata"))
 ```
 
@@ -136,10 +136,10 @@ There is no major pattern discernible in the ACF or PACF plots that show cause f
 draw(m1)
 ```
 
-```{r save-m1-summary, eval=FALSE, echo=FALSE}
+```{r save-m1-summary, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
-  file = "plots_manuscript/model_summary.png",
+  file = here("plots_manuscript/model_summary.png"),
   width = 8,
   height = 5,
   units = "cm",
@@ -148,7 +148,7 @@ ggsave(
 )
 ggsave(
   last_plot(),
-  file = "plots_manuscript/model_summary.eps",
+  file = here("plots_manuscript/model_summary.eps"),
   device = cairo_ps,
   fallback_resolution = 600,
   width = 8,
@@ -158,7 +158,7 @@ ggsave(
 
 ### Predict spore dispersal and visualise spore dispersal predictions
 
-```{r predict, eval=FALSE}
+```{r predict, eval=TRUE}
 dist <- seq(0, 400, by = 100)
 
 newd <- expand_grid(
@@ -188,15 +188,15 @@ predictions <-
 predictions
 ```
 
-```{r save-predictions, eval=FALSE, echo=FALSE}
-save(newd, file = "data/newd.Rdata"))
+```{r save-predictions, eval=TRUE, echo=FALSE}
+save(newd, file = here("data/newd.Rdata"))
 ```
 
 ```{r load-newd, echo=FALSE}
 load(here("data/newd.Rdata"))
 ```
 
-```{r save-prediction-graph, eval=FALSE}
+```{r save-prediction-graph, eval=TRUE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_prediction.png",

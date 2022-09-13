@@ -183,7 +183,7 @@ ggplot(data = mod_dat) +
                               title.hjust = 0.5))
 ```
 
-```{r save-spores-cardinal, eval=FALSE, echo=FALSE}
+```{r save-spores-cardinal, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spores_cardinal.png",
@@ -240,7 +240,7 @@ wind_rose +
   ))
 ```
 
-```{r save-wr, echo=FALSE, eval=FALSE}
+```{r save-wr, echo=FALSE, eval=TRUE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/wind_rose_6_tr.png",
@@ -291,7 +291,7 @@ smoothed_dispersal <- mod_dat %>%
 smoothed_dispersal
 ```
 
-```{r save-spore-gradient, eval=FALSE, echo=FALSE}
+```{r save-spore-gradient, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_gradient.png",
@@ -415,7 +415,7 @@ spore_size_plot + spore_type_plot +
   plot_annotation(tag_levels = 'A')
 ```
 
-```{r save-spore-type-size, eval=FALSE, echo=FALSE}
+```{r save-spore-type-size, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_size_type.png",

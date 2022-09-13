@@ -147,7 +147,7 @@ m
 ```
 
 
-```{r bin-time-slices-rh, eval=FALSE}
+```{r bin-time-slices-rh, eval=TRUE}
 rh_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -174,7 +174,7 @@ rh <-
 ```
 
 
-```{r bin-time-slices-temp, eval=FALSE}
+```{r bin-time-slices-temp, eval=TRUE}
 temp_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -201,7 +201,7 @@ temp <-
 ```
 
 
-```{r bin-time-slices-wind, eval=FALSE}
+```{r bin-time-slices-wind, eval=TRUE}
 wind_speed_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -228,7 +228,7 @@ wind_speed <-
 ```
 
 
-```{r bin-time-slices-wind_degrees, eval=FALSE}
+```{r bin-time-slices-wind_degrees, eval=TRUE}
 wind_degrees_90 <-
   m %>%
   filter(time_slice == 90) %>%
@@ -301,6 +301,6 @@ mod_dat
 
 Save data object for fitting models.
 
-```{r save-mod-dat, eval=FALSE}
+```{r save-mod-dat, eval=TRUE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
 ```
