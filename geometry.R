@@ -10,3 +10,7 @@ data.frame(trap_degree = c(0,0,90,90),
   geom_vline(xintercept = 0)
 
 
+expand_grid(trap_degrees = c(0,90,180,270), 
+            wind_degrees = c(0,90,180,270)) %>% 
+  mutate(degree_dif0 = (wind_degrees - trap_degrees)) %>% 
+  mutate(degree_dif=if_else(abs(degree_dif0)>180, abs(degree_dif0)-180, abs(degree_dif0)))

@@ -75,13 +75,12 @@ mod_dat %>% # str
 
 Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
 
-```{r fit-m1, eval=FALSE}
+```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
-  spore_cm2 ~ s(y, x, k = 20) +
-    s(time_slice, k = 3) +
-    s(degree_dif, k = 72) +
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif, k = 62) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
@@ -91,7 +90,7 @@ m1 <- gam(
 )
 ```
 
-```{r save-m1, echo=FALSE, eval=FALSE}
+```{r save-m1, echo=FALSE, eval=TRUE}
 save(m1, file = here("data/m1.Rdata"))
 ```
 
@@ -112,7 +111,7 @@ gam.check(m1)
 summary(m1)
 ```
 
-The model fully converged after 15 iterations.
+The model fully converged after 16 iterations.
 All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -137,10 +136,10 @@ There is no major pattern discernible in the ACF or PACF plots that show cause f
 draw(m1)
 ```
 
-```{r save-m1-summary, eval=FALSE, echo=FALSE}
+```{r save-m1-summary, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
-  file = "plots_manuscript/model_summary.png",
+  file = here("plots_manuscript/model_summary.png"),
   width = 8,
   height = 5,
   units = "cm",
@@ -149,7 +148,7 @@ ggsave(
 )
 ggsave(
   last_plot(),
-  file = "plots_manuscript/model_summary.eps",
+  file = here("plots_manuscript/model_summary.eps"),
   device = cairo_ps,
   fallback_resolution = 600,
   width = 8,
@@ -159,18 +158,23 @@ ggsave(
 
 ### Predict spore dispersal and visualise spore dispersal predictions
 
-```{r predict, eval=FALSE}
+```{r predict, eval=TRUE}
 dist <- seq(0, 400, by = 100)
+
+# create x and y locations around centroid
+xy <- expand_grid(dist, dist)
+xy <- unite(data = xy, col = "xy")
 
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif = 1:360,
+  degree_dif = 1:180,
   distance_m = dist,
   wind_speed = 0:30,
   x = dist,
   y = dist,
-  xy = paste(dist, -dist),
-  field = 1)
+  xy = xy$xy,
+  field = 1
+)
   
 newd$pred_spore_cm2 <- predict(m1, newd)
 ```
@@ -185,18 +189,19 @@ predictions <-
   geom_violin() +
   labs(x = "Distance from harvesting field (m)",
        y = "Predicted Spores / cm²")
+
+predictions
 ```
 
-
-```{r save-predictions, eval=FALSE, echo=FALSE}
-save(newd, file = "data/newd.Rdata"))
+```{r save-predictions, eval=TRUE, echo=FALSE}
+save(newd, file = here("data/newd.Rdata"))
 ```
 
 ```{r load-newd, echo=FALSE}
 load(here("data/newd.Rdata"))
 ```
 
-```{r save-prediction-graph, eval=FALSE}
+```{r save-prediction-graph, eval=TRUE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_prediction.png",

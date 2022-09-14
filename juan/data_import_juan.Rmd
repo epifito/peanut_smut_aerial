@@ -1,0 +1,217 @@
+---
+title: "Import data"
+output:
+  html_document:
+    theme: simplex
+    toc: true
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+    code_folding: hide
+    toc_depth: 2
+    css: style.css
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r markdown-settings, echo=FALSE, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 7,
+  fig.height = 7,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+## Load libraries and function
+
+A specific function for circular averaging the wind direction is necessary to summarise these data.
+This function will be loaded from `./R/circular_averaging.R` after loading the necessary libraries.
+
+```{r libraries}
+library("tidyverse")
+library("here")
+library("geometry")
+
+# load circular.averaging()
+source(here("./R/circular_averaging.R"))
+```
+
+## Import compiled dataset from local files.
+
+### Spore count data
+
+Import spore trap data and inspect.
+
+```{r spore-data}
+spore_data <- read_csv(
+  here("data/spore_data.csv"),
+  col_types = list(field = col_factor(),
+                   trap_coord = col_factor()
+  ))
+```
+
+Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
+We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
+
+```{r summarise-spore-data}
+spore_data <- 
+  spore_data %>%
+  group_by(field, trap_coord, distance_m, time_min) %>%
+  summarise(spore_cm2 = mean(n_spore) / 1.2)
+spore_data
+```
+
+### Weather data
+
+Import weather data, filter unused data, convert to SI units and inspect the resulting data.
+
+```{r meteo-data}
+meteo_data <- read_csv(here("data/wind.csv"),
+                       col_types = list(field = col_factor()))
+
+# some sites go past 270 minutes, remove those data.
+meteo_data <- 
+  meteo_data %>% 
+  filter(minute_lap <= 270) %>% 
+  mutate(wind_speed = wind_speed * 0.2777778)
+
+meteo_data
+```
+
+### Data prep for analysis
+
+#### Add cardinal directions
+
+We need to convert cardinal directions to degrees for plotting and modeling purposes (adapted from Adam's code for chickpea ascochyta blight spore dispersal).
+
+```{r cardinal-directions}
+coord_deg <- tibble(
+  dir = c(
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW"
+  ),
+  degrees = seq(0, 337.5 , by = 22.5),
+)
+```
+
+Create a `spore_data` object that has spore and trap degrees (location as a cardinal direction).
+
+```{r add-spore-trap-location}
+spore_data <- 
+  spore_data %>%
+  left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
+  rename(trap_degrees = degrees)
+```
+
+Create a `meteo_data` object that has the wind direction in degrees.
+
+```{r add-wind-direction-degrees}
+meteo_data <- 
+  meteo_data %>%
+  left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
+  rename(wind_degrees = degrees)
+```
+
+#### Summarise the weather data into 90, 180 and 270 minute interval bins
+
+The weather data are summarised from 0 to 90, 0 to 180 and 0 to 270 minutes to align with the spore trapping data.
+
+This is where the `circular.averaging()` is needed since we cannot simply take the `mean` value of wind direction in degrees here.
+
+```{r bin-time-slices}
+m <-
+  meteo_data %>%
+  mutate(time_slice =
+             case_when(
+               minute_lap <= 90 ~ 90,
+               minute_lap > 90 & minute_lap <= 180 ~ 180,
+               TRUE ~ 270
+             )
+           )
+m
+```
+
+```{r meteo_data}
+meteo_data <- m %>%
+  mutate(time_slice = 270) %>%  
+  rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>% 
+  rbind(mutate(filter(., minute_lap <= 90), time_slice = 90)) %>% 
+  group_by(field, time_slice) %>%
+  summarize(rh = mean(rel_hum), 
+            temp = mean(temp),
+            wind_speed = mean(wind_speed), 
+            wind_degrees = circular.averaging(wind_degrees))
+```
+
+## Merge the spore data with the weather data
+
+Use `left_join` to merge the raw spore data, `spore_raw` and weather data, `meteo_data` on `field` and `time_slice`/`time_min`.
+Then add columns for the x and y locations on a Cartesian grid of the traps.
+
+```{r merge-spore-weather}
+mod_dat <- left_join(meteo_data,
+                     spore_data,
+                     by = c("field" = "field",
+                            "time_slice" = "time_min")) %>%
+  mutate(degree_dif0 = (wind_degrees - trap_degrees)) %>% 
+  mutate(degree_dif=if_else(abs(degree_dif0)>180, abs(degree_dif0)-180, abs(degree_dif0))) %>% 
+  mutate(time_slice = as.integer(time_slice)) %>% 
+  ungroup()
+
+mod_dat %>% select(contains("degree")) %>% slice_sample(n = 10)
+
+```
+
+## Create Cartesian coords
+
+```{r Cartesian-coords}
+# degrees need to be converted to radians for theta
+xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees * 0.01745329,
+                          r = mod_dat$distance_m))
+
+mod_dat <- bind_cols(mod_dat, xy) %>% 
+    ungroup() %>% 
+    mutate_at(vars(x,y), list(~ round(., 1)))  
+# mod_dat %>% str
+```
+
+
+```{r Cartesian-coords-check, eval=FALSE}
+# mod_dat %>% view
+
+coords_df <- mod_dat %>% 
+  ungroup() %>% 
+  distinct(trap_degrees, distance_m, x, y) %>% 
+  mutate_at(vars(x,y), list(~ round(., 1))) %>% 
+  arrange(trap_degrees) 
+
+coords_df %>% #data.frame
+  ggplot()+
+  aes(x=y, y=x)+
+  geom_point() +
+  geom_text(aes(label=paste0(trap_degrees,",", distance_m), vjust=1))+
+  geom_hline(yintercept = 0)+
+  geom_vline(xintercept = 0) +
+  coord_equal()
+```
+
+Save data object for fitting models.
+
+```{r save-mod-dat, eval=FALSE}
+save(mod_dat, file = here("data/mod_dat_juan.Rdata"))
+```

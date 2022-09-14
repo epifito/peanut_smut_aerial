@@ -13,7 +13,7 @@
 
 <title>Visualise data</title>
 
-<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -63,6 +63,7 @@ if (window.hljs) {
 
 
 
+
 <link rel="stylesheet" href="style.css" type="text/css" />
 
 
@@ -87,6 +88,9 @@ button.code-folding-btn:focus {
 }
 summary {
   display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
 }
 pre code {
   padding: 0;
@@ -144,11 +148,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -321,7 +329,7 @@ div.tocify {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -374,7 +382,7 @@ div.tocify {
 <div id="header">
 
 <div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
 <ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
 <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
 <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
@@ -429,7 +437,8 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
 <pre class="r"><code>ggplot(mod_dat, aes(y = spore_cm2)) +
   geom_density()</code></pre>
 <p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="60%" /></p>
-<p>Create a scatter plot and use <code>stat_smooth()</code> to fit a line.</p>
+<p>Create a scatter plot and use <code>stat_smooth()</code> to fit a
+line.</p>
 <pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;%
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
@@ -444,7 +453,8 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
   facet_grid(. ~ time_slice)
 spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="60%" /></p>
-<p>Create a violin plot showing spore distribution at the four distances.</p>
+<p>Create a violin plot showing spore distribution at the four
+distances.</p>
 <pre class="r"><code>ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
   geom_violin() +
   labs(y = expression(Spores/cm^{2}),
@@ -452,7 +462,8 @@ spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
-<p>Create a hexbin plot to display the number of spores by wind speed and fit a smoothed line to these variables.</p>
+<p>Create a hexbin plot to display the number of spores by wind speed
+and fit a smoothed line to these variables.</p>
 <pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
   scale_fill_viridis_c() +
   geom_hex() +
@@ -468,7 +479,12 @@ spore_dot_density_by_distance</code></pre>
 </div>
 <div id="polar-coordinates" class="section level4">
 <h4>Polar coordinates</h4>
-<p>Create polar coordinate plots that display spore density in each cardinal direction. Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90. So, here the figure shows an additive effect of the number of spores that were captured over time. These are not discrete time_slices shown here, they do overlap.</p>
+<p>Create polar coordinate plots that display spore density in each
+cardinal direction. Note that the 270 minute traps were deployed from
+time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90. So, here
+the figure shows an additive effect of the number of spores that were
+captured over time. These are not discrete time_slices shown here, they
+do overlap.</p>
 <pre class="r"><code>ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,
@@ -529,7 +545,9 @@ spore_dot_density_by_distance</code></pre>
 <h2>Plot wind data</h2>
 <div id="wind-roses" class="section level3">
 <h3>Wind roses</h3>
-<p>Using the <code>wind_rose()</code> from <em>clifro</em>, create windrose plots to visualise windspeeds and directions during the harvest and spread events.</p>
+<p>Using the <code>wind_rose()</code> from <em>clifro</em>, create
+windrose plots to visualise windspeeds and directions during the harvest
+and spread events.</p>
 <pre class="r"><code>wind_rose &lt;-
   with(
     mod_dat,
@@ -563,7 +581,9 @@ wind_rose +
 </div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
-<p>Plot spore dispersal as points with median values represented as red points with a line connecting the median values for each respective field.</p>
+<p>Plot spore dispersal as points with median values represented as red
+points with a line connecting the median values for each respective
+field.</p>
 <pre class="r"><code>field_names &lt;- as_labeller(c(`1` = &quot;Field 1&quot;,
                              `2` = &quot;Field 2&quot;,
                              `3` = &quot;Field 3&quot;,
@@ -689,7 +709,8 @@ med_spore_size</code></pre>
        y = &quot;Density&quot;,
        fill = &quot;Spore type&quot;)</code></pre>
 </div>
-<div id="create-a-multipanel-figure-of-spore-size-details" class="section level2">
+<div id="create-a-multipanel-figure-of-spore-size-details"
+class="section level2">
 <h2>Create a multipanel figure of spore size details</h2>
 <pre class="r"><code>library(patchwork)
 spore_size_plot + spore_type_plot +

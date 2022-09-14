@@ -13,7 +13,7 @@
 
 <title>index.knit</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -147,11 +147,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -381,16 +385,29 @@ div.tocify {
 
 <div id="about" class="section level1">
 <h1>About</h1>
-<p>Peanut smut, caused by <em>Thecaphora frezii</em>, has caused significant losses in Argentinian peanut production in recent years.</p>
-<p><em>T. frezii</em> is a soil-borne pathogen with the ability to survive long-term as teliospores in soil. The pathogen aggressively invades the pods and transforms kernels into a mass of spores.</p>
+<p>Peanut smut, caused by <em>Thecaphora frezii</em>, has caused
+significant losses in Argentinian peanut production in recent years.</p>
+<p><em>T. frezii</em> is a soil-borne pathogen with the ability to
+survive long-term as teliospores in soil. The pathogen aggressively
+invades the pods and transforms kernels into a mass of spores.</p>
 <p><img src="figs_compendium/sdp.png" /></p>
-<p>The main mechanism of inoculum spread is the spore liberation from broken infected pods during the harvest process.</p>
+<p>The main mechanism of inoculum spread is the spore liberation from
+broken infected pods during the harvest process.</p>
 <p><img src="figs_compendium/harvest.png" /></p>
-<p>There is very limited information available on the amount of spores of <em>T. frezii</em> spread in peanut harvest. The purposes of this research were to (i) estimate the aerial spore spread of <em>Thecaphora frezii</em> in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut.</p>
+<p>There is very limited information available on the amount of spores
+of <em>T. frezii</em> spread in peanut harvest. The purposes of this
+research were to (i) estimate the aerial spore spread of <em>T.
+frezii</em> in peanut harvest, (ii) model the dispersion of spores over
+time and distance based on wind velocity and intensity of peanut
+smut.</p>
 <p><img src="figs_compendium/mm.png" /></p>
 <div id="data-sources" class="section level2">
 <h2>Data sources</h2>
-<p>The data collected as a part of this research are available in our GitHub repository, <a href="https://github.com/juanchiem/peanut_smut_aerial/tree/main/data">Datasets</a> and from OSF.io, <a href="https://doi.org/10.17605/OSF.IO/TK978">DOI:10.17605/OSF.IO/TK978</a>.</p>
+<p>The data collected as a part of this research are available in our
+GitHub repository, <a
+href="https://github.com/epifito/peanut_smut_aerial/tree/main/data">Datasets</a>
+and from OSF.io, <a
+href="https://doi.org/10.17605/OSF.IO/TK978">DOI:10.17605/OSF.IO/TK978</a>.</p>
 </div>
 </div>
 
