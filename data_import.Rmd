@@ -266,7 +266,6 @@ meteo_data <-
 ```
 
 ```{r meteo_data_JUAN}
->>>>>>> ce84285317605d7534788d7b41df2fe9ccc6b76c
 meteo_data <- m %>%
   mutate(time_slice = 270) %>%  
   rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>% 
@@ -288,7 +287,9 @@ mod_dat <- left_join(meteo_data,
                      spore_data,
                      by = c("field" = "field",
                             "time_slice" = "time_min")) %>%
-  mutate(degree_dif = abs(trap_degrees - wind_degrees)) %>%
+  mutate(degree_dif0 = abs(trap_degrees - wind_degrees)) %>%
+  mutate(degree_dif = if_else(degree_dif0 > 180, degree_dif0 - 180,
+                              degree_dif0)) %>%
   mutate(time_slice = as.integer(time_slice))
 ```
 
