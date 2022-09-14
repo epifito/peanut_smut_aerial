@@ -24,7 +24,7 @@ The main mechanism of inoculum spread is the spore liberation from broken infect
 ![](figs_compendium/harvest.png) 
 
 There is very limited information available on the amount of spores of *T. frezii* spread in peanut harvest.
-The purposes of this research were to (i) estimate the aerial spore spread of *Thecaphora frezii* in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut. 
+The purposes of this research were to (i) estimate the aerial spore spread of *T. frezii* in peanut harvest, (ii) model the dispersion of spores over time and distance based on wind velocity and intensity of peanut smut. 
 
 ![](figs_compendium/mm.png) 
 
