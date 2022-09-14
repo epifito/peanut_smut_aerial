@@ -79,9 +79,8 @@ Based on the use of AIC to evaluate model fit to the data, the following model b
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
-  spore_cm2 ~ s(y, x, k = 20) +
-    s(time_slice, k = 3) +
-    s(degree_dif, k = 72) +
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif, k = 62) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
@@ -112,7 +111,7 @@ gam.check(m1)
 summary(m1)
 ```
 
-The model fully converged after 15 iterations.
+The model fully converged after 16 iterations.
 All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -162,15 +161,20 @@ ggsave(
 ```{r predict, eval=TRUE}
 dist <- seq(0, 400, by = 100)
 
+# create x and y locations around centroid
+xy <- expand_grid(dist, dist)
+xy <- unite(data = xy, col = "xy")
+
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif = 1:360,
+  degree_dif = 1:180,
   distance_m = dist,
   wind_speed = 0:30,
   x = dist,
   y = dist,
-  xy = paste(dist, -dist),
-  field = 1)
+  xy = xy$xy,
+  field = 1
+)
   
 newd$pred_spore_cm2 <- predict(m1, newd)
 ```

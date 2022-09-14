@@ -447,9 +447,9 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
 ##  1 1     N                     0     76.2          76.2        1.49        100
 ##  2 1     E                    90     13.8          76.2        1.49        100
-##  3 1     W                   270    194.           76.2        1.49        100
+##  3 1     W                   270     13.8          76.2        1.49        100
 ##  4 1     S                   180    104.           76.2        1.49        100
-##  5 2     N                     0    201.          201.         7.27        100
+##  5 2     N                     0     21.3         201.         7.27        100
 ##  6 2     E                    90    111.          201.         7.27        100
 ##  7 2     W                   270     68.7         201.         7.27        100
 ##  8 2     S                   180     21.3         201.         7.27        100
@@ -459,15 +459,15 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ## 12 3     SW                  225     89.7         135.         2.93        100
 ## 13 4     N                     0     35.9          35.9        3.90        100
 ## 14 4     E                    90     54.1          35.9        3.90        100
-## 15 4     W                   270    234.           35.9        3.90        100
+## 15 4     W                   270     54.1          35.9        3.90        100
 ## 16 4     S                   180    144.           35.9        3.90        100
 ## 17 5     NE                   45     15.1          29.9        3.92        100
 ## 18 5     SE                  135    105.           29.9        3.92        100
-## 19 5     NW                  315    285.           29.9        3.92        100
-## 20 5     SW                  225    195.           29.9        3.92        100
+## 19 5     NW                  315    105.           29.9        3.92        100
+## 20 5     SW                  225     15.1          29.9        3.92        100
 ## 21 6     N                     0      2.16          2.16       7.57        100
 ## 22 6     E                    90     87.8           2.16       7.57        100
-## 23 6     W                   270    268.            2.16       7.57        100
+## 23 6     W                   270     87.8           2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following model best fit the data with smoothed terms for x and y, the
@@ -481,9 +481,8 @@ themselves as a random effects, <code>field</code> and
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 &lt;- gam(
-  spore_cm2 ~ s(y, x, k = 20) +
-    s(time_slice, k = 3) +
-    s(degree_dif, k = 72) +
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif, k = 62) +
     s(distance_m, k = 4) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
@@ -496,66 +495,64 @@ m1 &lt;- gam(
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.506) 
+## Family: Tweedie(p=1.49) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(y, x, k = 20) + s(time_slice, k = 3) + s(degree_dif, 
-##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 62) + s(distance_m, 
+##     k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-## 10.9433  0.9794  5.5375  0.0022 58.4360  total = 76.9 
+##  0.980  6.842  0.854 81.052  total = 90.73 
 ## 
-## REML score: 658.9083</code></pre>
+## REML score: 685.9766</code></pre>
 <div id="check-model" class="section level4">
 <h4>Check model</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 11 iterations.
-## Gradient range [-0.0005997579,0.0008730696]
-## (score 658.9083 &amp; scale 0.9425858).
-## Hessian positive definite, eigenvalue range [0.0000006156285,214.239].
-## Model rank =  288 / 288 
+## full convergence after 16 iterations.
+## Gradient range [-0.00003757298,0.000002017693]
+## (score 685.9766 &amp; scale 0.9063585).
+## Hessian positive definite, eigenvalue range [0.00002526251,218.9923].
+## Model rank =  259 / 259 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                      k&#39;       edf k-index p-value
-## s(y,x)         19.00000  10.94326    1.04    0.99
-## s(time_slice)   2.00000   0.97936    0.91    0.17
-## s(degree_dif)  71.00000   5.53754    0.86    0.10
-## s(distance_m)   3.00000   0.00223    1.01    0.89
-## s(field,xy)   192.00000  58.43603      NA      NA</code></pre>
+##                    k&#39;     edf k-index p-value
+## s(time_slice)   2.000   0.980    0.94    0.49
+## s(degree_dif)  61.000   6.842    0.90    0.20
+## s(distance_m)   3.000   0.854    1.04    0.95
+## s(field,xy)   192.000  81.052      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.506) 
+## Family: Tweedie(p=1.49) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(y, x, k = 20) + s(time_slice, k = 3) + s(degree_dif, 
-##     k = 72) + s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 62) + s(distance_m, 
+##     k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error t value       Pr(&gt;|t|)    
-## (Intercept)   0.6816     0.1019    6.69 0.000000000197 ***
+##             Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)   0.6696     0.1569   4.269 0.0000305 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                     edf Ref.df      F              p-value    
-## s(y,x)        10.943263     19 54.718             0.000128 ***
-## s(time_slice)  0.979357      2 24.318 &lt; 0.0000000000000002 ***
-## s(degree_dif)  5.537539     71 45.631 &lt; 0.0000000000000002 ***
-## s(distance_m)  0.002229      3  0.001             0.000790 ***
-## s(field,xy)   58.436029     95  3.213 &lt; 0.0000000000000002 ***
+##                   edf Ref.df      F              p-value    
+## s(time_slice)  0.9804      2  29.38 &lt; 0.0000000000000002 ***
+## s(degree_dif)  6.8417     51 176.71           0.00000338 ***
+## s(distance_m)  0.8536      3 658.96              0.00989 ** 
+## s(field,xy)   81.0519     95  11.01 &lt; 0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.795   Deviance explained = 89.2%
-## -REML = 658.91  Scale est. = 0.94259   n = 288</code></pre>
-<p>The model fully converged after 15 iterations. All of the predictive
+## R-sq.(adj) =  0.819   Deviance explained = 90.5%
+## -REML = 685.98  Scale est. = 0.90636   n = 288</code></pre>
+<p>The model fully converged after 16 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.05 and the
 smoothed predictors indicate a good fit with residuals being randomly
 distributed and enough basis functions for them to be properly fit. The
@@ -572,14 +569,9 @@ it’s best to check for any autocorrelation in the residuals.</p>
 <pre class="r"><code>acf(residuals(m1))</code></pre>
 <p><img src="gam_model_files/figure-html/gam-autocorrelation-1.png" width="60%" /></p>
 <pre class="r"><code>pacf(residuals(m1))</code></pre>
-<<<<<<< HEAD
-<p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="60%" /></p>
 <p>This looks OK. There is no major pattern discernible in the ACF or
 PACF plots that show cause for concern.</p>
-=======
-<p><img src="gam_model_files/figure-html/gam-autocorrelation-2.png" width="60%" /></p>
-<p>This looks OK. There is no major pattern discernible in the ACF or PACF plots that show cause for concern.</p>
->>>>>>> main
 </div>
 </div>
 <div id="summarise-and-visualise-model-m1" class="section level3">
@@ -594,15 +586,20 @@ class="section level3">
 predictions</h3>
 <pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
 
+# create x and y locations around centroid
+xy &lt;- expand_grid(dist, dist)
+xy &lt;- unite(data = xy, col = &quot;xy&quot;)
+
 newd &lt;- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif = 1:360,
+  degree_dif = 1:180,
   distance_m = dist,
   wind_speed = 0:30,
   x = dist,
   y = dist,
-  xy = paste(dist, -dist),
-  field = 1)
+  xy = xy$xy,
+  field = 1
+)
   
 newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
 <p>Visualise the spore dispersal predictions for traps at 0m, 100m,
@@ -617,7 +614,7 @@ and 270 minutes after harvest started.</p>
        y = &quot;Predicted Spores / cm²&quot;)
 
 predictions</code></pre>
-<p><img src="gam_model_files/figure-html/graph-predictions-1.png" width="672" /></p>
+<p><img src="gam_model_files/figure-html/graph-predictions-1.png" width="60%" /></p>
 <pre class="r"><code>ggsave(
   last_plot(),
   file = &quot;plots_manuscript/spore_prediction.png&quot;,
