@@ -30,5 +30,4 @@ The purposes of this research were to (i) estimate the aerial spore spread of *T
 
 ## Data sources
 
-The data collected as a part of this research are available in our GitHub repository,
-[Datasets](https://github.com/juanchiem/peanut_smut_aerial/tree/main/data) and from OSF.io, [DOI:10.17605/OSF.IO/TK978](https://doi.org/10.17605/OSF.IO/TK978).
+The data collected as a part of this research are available in our GitHub repository, [Datasets](https://github.com/epifito/peanut_smut_aerial/tree/main/data) and from OSF.io, [DOI:10.17605/OSF.IO/TK978](https://doi.org/10.17605/OSF.IO/TK978).
