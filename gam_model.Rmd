@@ -73,7 +73,7 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with smoothed terms for x and y, the Cartesian coordinates of the spore traps placed around the harvest fields, `x` and `y`; the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a random effects, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
 
 ```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))

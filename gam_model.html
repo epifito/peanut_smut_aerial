@@ -470,13 +470,11 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ## 23 6     W                   270     87.8           2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
-following model best fit the data with smoothed terms for x and y, the
-Cartesian coordinates of the spore traps placed around the harvest
-fields, <code>x</code> and <code>y</code>; the smoothed time slice
+following model best fit the data with the smoothed time slice
 variables, <code>time_slice</code>; the wind direction in relation to
 the traps’ placement, <code>degree_dif</code>; the traps’ distance from
 the harvest field, <code>distance_m</code>; and the field and traps
-themselves as a random effects, <code>field</code> and
+themselves as a smoothed term random effect, <code>field</code> and
 <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
