@@ -283,9 +283,7 @@ mod_dat <- left_join(meteo_data,
                      spore_data,
                      by = c("field" = "field",
                             "time_slice" = "time_min")) %>%
-  mutate(degree_dif0 = abs(trap_degrees - wind_degrees)) %>%
-  mutate(degree_dif = if_else(degree_dif0 > 180, degree_dif0 - 180,
-                              degree_dif0)) %>%
+  mutate(degree_dif = trap_degrees - wind_degrees) %>%
   mutate(time_slice = as.integer(time_slice))
 ```
 
@@ -301,19 +299,21 @@ mod_dat <- bind_cols(mod_dat, xy)
 
 
 ```{r Cartesian-coords-check, eval=TRUE}
-
-coords_df <- mod_dat %>% 
-  ungroup() %>% 
-  distinct(trap_degrees, distance_m, x, y) %>% 
-  mutate_at(vars(x,y), list(~ round(., 1))) %>% 
+coords_df <- mod_dat %>%
+  ungroup() %>%
+  distinct(trap_degrees, distance_m, x, y) %>%
+  mutate_at(vars(x, y), list( ~ round(., 1))) %>%
   arrange(trap_degrees) # %>% print(n = Inf)
 
-coords_df %>%   
-  ggplot()+
-  aes(x=y, y=x)+
+coords_df %>%
+  ggplot() +
+  aes(x = y, y = x) +
   geom_point() +
-  geom_text(aes(label=paste0(trap_degrees,",", distance_m), vjust=1))+
-  geom_hline(yintercept = 0)+
+  geom_text(aes(
+    label = paste0(trap_degrees, ",", distance_m),
+    vjust = 1
+  )) +
+  geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
   coord_equal()
 ```

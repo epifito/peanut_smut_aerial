@@ -13,7 +13,7 @@
 
 <title>Import data</title>
 
-<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -29,15 +29,15 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -185,8 +185,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -194,16 +194,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -444,7 +437,7 @@ spore_data</code></pre>
 ##  8 1     N                 300      180     0    
 ##  9 1     N                 300      270     0    
 ## 10 1     N                 400       90     0.208
-## # … with 278 more rows</code></pre>
+## # ℹ 278 more rows</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
@@ -473,7 +466,7 @@ meteo_data</code></pre>
 ##  8 1             35      65  19.5      0.611 E       
 ##  9 1             40      65  19.5      1.17  E       
 ## 10 1             45      65  19.7      0.333 NE      
-## # … with 320 more rows</code></pre>
+## # ℹ 320 more rows</code></pre>
 </div>
 <div id="data-prep-for-analysis" class="section level3">
 <h3>Data prep for analysis</h3>
@@ -549,7 +542,7 @@ m</code></pre>
 ##  8 1             35      65  19.5      0.611 E                  90         90
 ##  9 1             40      65  19.5      1.17  E                  90         90
 ## 10 1             45      65  19.7      0.333 NE                 45         90
-## # … with 320 more rows</code></pre>
+## # ℹ 320 more rows</code></pre>
 <pre class="r"><code>rh_90 &lt;-
   m %&gt;%
   filter(time_slice == 90) %&gt;%
@@ -674,9 +667,7 @@ traps.</p>
                      spore_data,
                      by = c(&quot;field&quot; = &quot;field&quot;,
                             &quot;time_slice&quot; = &quot;time_min&quot;)) %&gt;%
-  mutate(degree_dif0 = abs(trap_degrees - wind_degrees)) %&gt;%
-  mutate(degree_dif = if_else(degree_dif0 &gt; 180, degree_dif0 - 180,
-                              degree_dif0)) %&gt;%
+  mutate(degree_dif = trap_degrees - wind_degrees) %&gt;%
   mutate(time_slice = as.integer(time_slice))</code></pre>
 </div>
 <div id="create-cartesian-coords" class="section level2">
@@ -686,18 +677,21 @@ xy &lt;- data.frame(pol2cart(theta = mod_dat$trap_degrees * 0.01745329,
                           r = mod_dat$distance_m))
 
 mod_dat &lt;- bind_cols(mod_dat, xy)</code></pre>
-<pre class="r"><code>coords_df &lt;- mod_dat %&gt;% 
-  ungroup() %&gt;% 
-  distinct(trap_degrees, distance_m, x, y) %&gt;% 
-  mutate_at(vars(x,y), list(~ round(., 1))) %&gt;% 
+<pre class="r"><code>coords_df &lt;- mod_dat %&gt;%
+  ungroup() %&gt;%
+  distinct(trap_degrees, distance_m, x, y) %&gt;%
+  mutate_at(vars(x, y), list( ~ round(., 1))) %&gt;%
   arrange(trap_degrees) # %&gt;% print(n = Inf)
 
-coords_df %&gt;%   
-  ggplot()+
-  aes(x=y, y=x)+
+coords_df %&gt;%
+  ggplot() +
+  aes(x = y, y = x) +
   geom_point() +
-  geom_text(aes(label=paste0(trap_degrees,&quot;,&quot;, distance_m), vjust=1))+
-  geom_hline(yintercept = 0)+
+  geom_text(aes(
+    label = paste0(trap_degrees, &quot;,&quot;, distance_m),
+    vjust = 1
+  )) +
+  geom_hline(yintercept = 0) +
   geom_vline(xintercept = 0) +
   coord_equal()</code></pre>
 <p><img src="data_import_files/figure-html/Cartesian-coords-check-1.png" width="672" /></p>
