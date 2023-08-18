@@ -13,7 +13,7 @@
 
 <title>Fit GAM model of spore counts</title>
 
-<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -29,15 +29,15 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -185,8 +185,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -194,16 +194,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -447,9 +440,9 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
 ##  1 1     N                     0     76.2          76.2        1.49        100
 ##  2 1     E                    90     13.8          76.2        1.49        100
-##  3 1     W                   270     13.8          76.2        1.49        100
+##  3 1     W                   270    194.           76.2        1.49        100
 ##  4 1     S                   180    104.           76.2        1.49        100
-##  5 2     N                     0     21.3         201.         7.27        100
+##  5 2     N                     0    201.          201.         7.27        100
 ##  6 2     E                    90    111.          201.         7.27        100
 ##  7 2     W                   270     68.7         201.         7.27        100
 ##  8 2     S                   180     21.3         201.         7.27        100
@@ -459,28 +452,29 @@ load(here(&quot;data/newd.Rdata&quot;))</code></pre>
 ## 12 3     SW                  225     89.7         135.         2.93        100
 ## 13 4     N                     0     35.9          35.9        3.90        100
 ## 14 4     E                    90     54.1          35.9        3.90        100
-## 15 4     W                   270     54.1          35.9        3.90        100
+## 15 4     W                   270    234.           35.9        3.90        100
 ## 16 4     S                   180    144.           35.9        3.90        100
 ## 17 5     NE                   45     15.1          29.9        3.92        100
 ## 18 5     SE                  135    105.           29.9        3.92        100
-## 19 5     NW                  315    105.           29.9        3.92        100
-## 20 5     SW                  225     15.1          29.9        3.92        100
+## 19 5     NW                  315    285.           29.9        3.92        100
+## 20 5     SW                  225    195.           29.9        3.92        100
 ## 21 6     N                     0      2.16          2.16       7.57        100
 ## 22 6     E                    90     87.8           2.16       7.57        100
-## 23 6     W                   270     87.8           2.16       7.57        100
+## 23 6     W                   270    268.            2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following model best fit the data with the smoothed time slice
 variables, <code>time_slice</code>; the wind direction in relation to
-the traps’ placement, <code>degree_dif</code>; the traps’ distance from
-the harvest field, <code>distance_m</code>; and the field and traps
-themselves as a smoothed term random effect, <code>field</code> and
-<code>xy</code>.</p>
+the traps’ placement around the field in terms of absolute degrees,
+<em>i.e.</em> 0–180˚, <code>degree_dif</code>; the traps’ distance from
+the harvest field in meters, <code>distance_m</code>; and the field and
+traps themselves as a smoothed term random effect, <code>field</code>
+and <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 &lt;- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif, k = 62) +
+    s(degree_dif, k = 72) +
     s(distance_m, k = 4) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
@@ -493,63 +487,65 @@ m1 &lt;- gam(
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.49) 
+## Family: Tweedie(p=1.507) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 62) + s(distance_m, 
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 72) + s(distance_m, 
 ##     k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-##  0.980  6.842  0.854 81.052  total = 90.73 
+##  0.979  5.979  0.913 73.510  total = 82.38 
 ## 
-## REML score: 685.9766</code></pre>
+## REML score: 668.1962</code></pre>
 <div id="check-model" class="section level4">
 <h4>Check model</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 16 iterations.
-## Gradient range [-0.00003757298,0.000002017693]
-## (score 685.9766 &amp; scale 0.9063585).
-## Hessian positive definite, eigenvalue range [0.00002526251,218.9923].
-## Model rank =  259 / 259 
+## full convergence after 13 iterations.
+## Gradient range [-0.0001024571,0.00009857698]
+## (score 668.1962 &amp; scale 0.9445117).
+## Hessian positive definite, eigenvalue range [0.000005440034,216.4587].
+## Model rank =  269 / 269 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                    k&#39;     edf k-index p-value
-## s(time_slice)   2.000   0.980    0.94    0.49
-## s(degree_dif)  61.000   6.842    0.90    0.20
-## s(distance_m)   3.000   0.854    1.04    0.95
-## s(field,xy)   192.000  81.052      NA      NA</code></pre>
+##                    k&#39;     edf k-index p-value  
+## s(time_slice)   2.000   0.978    0.89   0.165  
+## s(degree_dif)  71.000   5.979    0.84   0.035 *
+## s(distance_m)   3.000   0.913    1.01   0.875  
+## s(field,xy)   192.000  73.510      NA      NA  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.49) 
+## Family: Tweedie(p=1.507) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 62) + s(distance_m, 
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif, k = 72) + s(distance_m, 
 ##     k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error t value  Pr(&gt;|t|)    
-## (Intercept)   0.6696     0.1569   4.269 0.0000305 ***
+##             Estimate Std. Error t value   Pr(&gt;|t|)    
+## (Intercept)   0.6843     0.1247   5.486 0.00000012 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
 ##                   edf Ref.df      F              p-value    
-## s(time_slice)  0.9804      2  29.38 &lt; 0.0000000000000002 ***
-## s(degree_dif)  6.8417     51 176.71           0.00000338 ***
-## s(distance_m)  0.8536      3 658.96              0.00989 ** 
-## s(field,xy)   81.0519     95  11.01 &lt; 0.0000000000000002 ***
+## s(time_slice)  0.9785      2  24.17 &lt; 0.0000000000000002 ***
+## s(degree_dif)  5.9786     71 133.10 &lt; 0.0000000000000002 ***
+## s(distance_m)  0.9132      3 411.31             0.000834 ***
+## s(field,xy)   73.5096     95   6.86 &lt; 0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.819   Deviance explained = 90.5%
-## -REML = 685.98  Scale est. = 0.90636   n = 288</code></pre>
+## R-sq.(adj) =  0.791   Deviance explained = 89.4%
+## -REML =  668.2  Scale est. = 0.94451   n = 288</code></pre>
 <p>The model fully converged after 16 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.05 and the
 smoothed predictors indicate a good fit with residuals being randomly
