@@ -39,6 +39,8 @@ theme_set(theme_pubclean())
 
 Check if the spore type, number of nuclei, affects the dispersal.
 
+(Manuscript´s section `Results/3.2`)
+
 ```{r x-sq}
 set.seed(3)
 read_csv(here("data/spore_type.csv"),
@@ -50,7 +52,11 @@ read_csv(here("data/spore_type.csv"),
   chisq.test(simulate.p.value = TRUE) 
 ```
 
+The major spore type spread expected was the individual spore having a smaller spore size (18.8 µm); however, no statistical differences were recorded in spore type proportion at 0 m to 400 m downwind (P=0.1921). 
+
 ## Spore dispersal GAM Model
+
+(Manuscript´s section `Results/3.3`)
 
 ### Load data
 
@@ -131,7 +137,7 @@ There is no major pattern discernible in the ACF or PACF plots that show cause f
 draw(m1)
 ```
 
-```{r save-m1-summary, eval=TRUE, echo=FALSE}
+```{r save-m1-summary, eval=FALSE, echo=FALSE}
 ggsave(
   last_plot(),
   file = here("plots_manuscript/model_summary.png"),
@@ -174,7 +180,7 @@ newd <- expand_grid(
 newd$pred_spore_cm2 <- predict(m1, newd)
 ```
 
-Visualise the spore dispersal predictions for traps at 0&nbsp;m, 100&nbsp;m, 200&nbsp;m, 300&nbsp;m, 400&nbsp;m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
+Visualise the spore dispersal predictions for traps at 0 m, 100 m, 200 m, 300 m, 400 m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
 ```{r graph-predictions}
 predictions <-
@@ -188,7 +194,7 @@ predictions <-
 predictions
 ```
 
-```{r save-prediction-graph, eval=TRUE}
+```{r save-prediction-graph, eval=FALSE}
 ggsave(
   last_plot(),
   file = "plots_manuscript/spore_prediction.png",
