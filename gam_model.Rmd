@@ -56,7 +56,6 @@ read_csv(here("data/spore_type.csv"),
 
 ```{r load-data}
 load(here("data/mod_dat.Rdata"))
-load(here("data/newd.Rdata"))
 ```
 
 ### Inspect the mod_dat object
@@ -73,14 +72,18 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement, `degree_dif`; the traps' distance from the harvest field, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, _i.e._ 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
 
 ```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
+# create predictor degree diff as per Ben Bolker for circular predictors,
+# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
+mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
+
 m1 <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif, k = 62) +
+    s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
@@ -90,28 +93,20 @@ m1 <- gam(
 )
 ```
 
-```{r save-m1, echo=FALSE, eval=TRUE}
-save(m1, file = here("data/m1.Rdata"))
-```
-
-```{r read-m1, echo=FALSE}
-load(here("data/m1.Rdata"))
-```
-
 ### Inspect Model m1
 
 ```{r inspect-m1}
 m1
 ```
 
-#### Check model
+#### Check model m1
 
 ```{r gam-check-m1}
 gam.check(m1)
 summary(m1)
 ```
 
-The model fully converged after 16 iterations.
+The model fully converged after 11 iterations.
 All of the predictive factors included were significant at _P_ > 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -132,7 +127,7 @@ There is no major pattern discernible in the ACF or PACF plots that show cause f
 
 ### Summarise and visualise model m1
 
-```{r appraise-m1,  out.width = '100%', fig.height = 6}
+```{r appraise-m1, out.width = '100%', fig.height = 6}
 draw(m1)
 ```
 
@@ -167,7 +162,7 @@ xy <- unite(data = xy, col = "xy")
 
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif = 1:180,
+  degree_dif_sin = 1:360,
   distance_m = dist,
   wind_speed = 0:30,
   x = dist,
@@ -179,7 +174,7 @@ newd <- expand_grid(
 newd$pred_spore_cm2 <- predict(m1, newd)
 ```
 
-Visualise the spore dispersal predictions for traps at 0m, 100m, 200m, 300m, 400m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
+Visualise the spore dispersal predictions for traps at 0&nbsp;m, 100&nbsp;m, 200&nbsp;m, 300&nbsp;m, 400&nbsp;m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
 ```{r graph-predictions}
 predictions <-
@@ -193,14 +188,6 @@ predictions <-
 predictions
 ```
 
-```{r save-predictions, eval=TRUE, echo=FALSE}
-save(newd, file = here("data/newd.Rdata"))
-```
-
-```{r load-newd, echo=FALSE}
-load(here("data/newd.Rdata"))
-```
-
 ```{r save-prediction-graph, eval=TRUE}
 ggsave(
   last_plot(),
@@ -210,3 +197,10 @@ ggsave(
   scale = 1.2
 )
 ```
+
+## Appendix
+
+Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
+
+!["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](here("images/BBolker_Toot.png"))
+
