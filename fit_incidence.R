@@ -47,7 +47,7 @@ m2 <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
     s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
-    s(inc, k = 5) +
+    s(inc, k = 6) +
     s(field, xy, bs = "re"),
   data = mod_dat2,
   select = TRUE,
