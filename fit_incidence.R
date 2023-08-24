@@ -1,3 +1,6 @@
+library(tidyverse)
+library(mgcv)
+library(here)
 
 # import data ---
 sdp_dat <- read_csv(here("data/sdp_data.csv"),
@@ -15,6 +18,8 @@ ps_inc <-
   summarise(inc = mean(inc))
 
 # prep data for model ----
+
+mod_dat2 <- left_join(mod_dat, ps_inc, by = c("field"))
 
 mod_dat2$xy <- as.factor(paste(mod_dat2$x, mod_dat2$y))
 
@@ -60,4 +65,4 @@ summary(m1)
 
 summary(m2)
 
-AIC(m1, m2) # based on all of these, m1 is the better model w/o incidence as-is
+AIC(m1, m2) # m1, the more parsimonious model is the better model w/o incidence
