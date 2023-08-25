@@ -1,21 +1,22 @@
-library(tidyverse)
-library(mgcv)
-library(here)
+library("tidyverse")
+library("mgcv")
+library("here")
 
 # import data ---
 sdp_dat <- read_csv(here("data/sdp_data.csv"),
-                    show_col_types = FALSE) %>% 
-  arrange(field) %>% 
+                    show_col_types = FALSE) %>%
+  arrange(field) %>%
   mutate(field = as_factor(field))
 
 load(here("data/mod_dat.Rdata"))
 
-# summarise field incidence ----
+# summarise SDP index by field and create a binomial variable w/ cutoff @ 5 ----
 
-ps_inc <- 
-  sdp_dat |> 
-  group_by(field) |> 
-  summarise(inc = mean(inc))
+ps_inc <-
+  sdp_dat |>
+  group_by(field) |>
+  summarise(SDP = mean(SDP)) |> 
+  mutate(sdp_binom = as.factor(if_else(SDP <= 5, 0, 1)))
 
 # prep data for model ----
 
@@ -27,13 +28,14 @@ mod_dat2$xy <- as.factor(paste(mod_dat2$x, mod_dat2$y))
 # https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
 mod_dat2$degree_dif_sin <- sin(2 * pi * mod_dat2$degree_dif / 360)
 
-
-# model 1 -----
+# model 1 w/ field incidence -----
 
 m1 <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
     s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
+    s(inc, k = 5) +
+    s(field, bs = "re") +
     s(field, xy, bs = "re"),
   data = mod_dat2,
   select = TRUE,
@@ -41,13 +43,17 @@ m1 <- gam(
   family = "tw"
 )
 
-# model 2 -----
+gam.check(m1)
+summary(m1)
+
+# model 2 w/ SDP index binomial ----
 
 m2 <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
     s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
-    s(inc, k = 6) +
+    sdp_binom +
+    s(field, bs = "re") +
     s(field, xy, bs = "re"),
   data = mod_dat2,
   select = TRUE,
@@ -55,14 +61,11 @@ m2 <- gam(
   family = "tw"
 )
 
-# check models' fitness
-
-gam.check(m1)
-
 gam.check(m2)
-
-summary(m1)
-
 summary(m2)
 
-AIC(m1, m2) # m1, the more parsimonious model is the better model w/o incidence
+
+
+AIC(m1, m2)
+
+# m2 is the better model by AIC
