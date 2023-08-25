@@ -64,8 +64,18 @@ m2 <- gam(
 gam.check(m2)
 summary(m2)
 
+# org model ----
+m_org <- gam(
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif_sin, k = 72) +
+    s(distance_m, k = 4) +
+    s(field, xy, bs = "re"),
+  data = mod_dat2,
+  select = TRUE,
+  method = "REML",
+  family = "tw"
+)
 
-
-AIC(m1, m2)
+AIC(m1, m2, m_org)
 
 # m2 is the better model by AIC
