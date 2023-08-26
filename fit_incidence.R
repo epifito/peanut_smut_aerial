@@ -1,3 +1,7 @@
+
+# This script details model fitting to find the best-fitting model, specifically
+# which predictors should be included in the final best-fitting version
+
 library("tidyverse")
 library("mgcv")
 library("here")
@@ -15,7 +19,9 @@ load(here("data/mod_dat.Rdata"))
 ps_inc <-
   sdp_dat |>
   group_by(field) |>
-  summarise(SDP = mean(SDP)) |> 
+  summarise(inc = mean(inc),
+            SDP = mean(SDP),
+            DSI = mean(DSI)) |> 
   mutate(sdp_binom = as.factor(if_else(SDP <= 5, 0, 1)))
 
 # prep data for model ----
@@ -64,6 +70,40 @@ m2 <- gam(
 gam.check(m2)
 summary(m2)
 
+# model 3 w/ SDP ----
+
+m3 <- gam(
+    spore_cm2 ~ s(time_slice, k = 3) +
+      s(degree_dif_sin, k = 72) +
+      s(distance_m, k = 4) +
+      s(SDP, k = 6) +
+      s(field, xy, bs = "re"),
+    data = mod_dat2,
+    select = TRUE,
+    method = "REML",
+    family = "tw"
+)
+
+gam.check(m3)
+summary(m3)
+
+# model 4 w/ DSI ----
+
+m4 <- gam(
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif_sin, k = 72) +
+    s(distance_m, k = 4) +
+    s(DSI, k = 6) +
+    s(field, xy, bs = "re"),
+  data = mod_dat2,
+  select = TRUE,
+  method = "REML",
+  family = "tw"
+)
+
+gam.check(m4)
+summary(m4)
+
 # org model ----
 m_org <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
@@ -76,6 +116,6 @@ m_org <- gam(
   family = "tw"
 )
 
-AIC(m1, m2, m_org)
+AIC(m1, m2, m3, m4, m_org)
 
-# m2 is the better model by AIC
+# m_org is the better model by AIC
