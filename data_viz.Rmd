@@ -60,10 +60,21 @@ sdp_dat <- read_csv(here("data/sdp_data.csv"),
 
 ## Plot severely damaged pod indices
 
+Visualize peanut smut incidence in the fields.
+
 ```{r sdp-incidence}
 ggplot(data = sdp_dat) +
   aes(y = field, x = SDP) +
   geom_violin()
+```
+
+```{r sdp-incidence-mean_se}
+ggline(sdp_dat,
+       x = "field",
+       y = "inc",
+       add = c("mean_se", "jitter")) +
+  xlab("Field") +
+  ylab("SDP Incidence")
 ```
 
 ## Plot spore dispersal density
