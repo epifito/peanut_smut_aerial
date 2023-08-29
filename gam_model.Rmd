@@ -62,7 +62,7 @@ The major spore type spread expected was the individual spore having a smaller s
 
 (Manuscript's section 'Results/3.3')
 
-A script detailing the comparison of different models that were explored for the purposes of predicting the spores per cm2 is available for reference, [fit_incidence.R](fit_incidence.R "R script detailing several models that were evaluated for fitness with the data.").
+A script detailing the comparison of different models that were explored for the purposes of predicting the spores per cm^2^ is available for reference, [fit_incidence.R](fit_incidence.R "R script detailing several models that were evaluated for fitness with the data.").
 This page only details the final best-fitting model that was selected for use.
 
 ### Load data
@@ -85,7 +85,7 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.* 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.*, 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
 
 ```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))

@@ -36,8 +36,8 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -427,8 +427,8 @@ recorded in spore type proportion at 0 m to 400 m downwind
 <h2>Spore dispersal GAM Model</h2>
 <p>(Manuscript’s section ‘Results/3.3’)</p>
 <p>A script detailing the comparison of different models that were
-explored for the purposes of predicting the spores per cm2 is available
-for reference, <a href="fit_incidence.R"
+explored for the purposes of predicting the spores per cm<sup>2</sup> is
+available for reference, <a href="fit_incidence.R"
 title="R script detailing several models that were evaluated for fitness with the data.">fit_incidence.R</a>.
 This page only details the final best-fitting model that was selected
 for use.</p>
@@ -447,42 +447,23 @@ for use.</p>
          wind_speed,
          distance_m) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 × 7
-## # Groups:   field [6]
-##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
-##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
-##  1 1     N                     0    -76.2          76.2        1.49        100
-##  2 1     E                    90     13.8          76.2        1.49        100
-##  3 1     W                   270    194.           76.2        1.49        100
-##  4 1     S                   180    104.           76.2        1.49        100
-##  5 2     N                     0   -201.          201.         7.27        100
-##  6 2     E                    90   -111.          201.         7.27        100
-##  7 2     W                   270     68.7         201.         7.27        100
-##  8 2     S                   180    -21.3         201.         7.27        100
-##  9 3     NE                   45    -90.3         135.         2.93        100
-## 10 3     SE                  135     -0.313       135.         2.93        100
-## 11 3     NW                  315    180.          135.         2.93        100
-## 12 3     SW                  225     89.7         135.         2.93        100
-## 13 4     N                     0    -35.9          35.9        3.90        100
-## 14 4     E                    90     54.1          35.9        3.90        100
-## 15 4     W                   270    234.           35.9        3.90        100
-## 16 4     S                   180    144.           35.9        3.90        100
-## 17 5     NE                   45     15.1          29.9        3.92        100
-## 18 5     SE                  135    105.           29.9        3.92        100
-## 19 5     NW                  315    285.           29.9        3.92        100
-## 20 5     SW                  225    195.           29.9        3.92        100
-## 21 6     N                     0     -2.16          2.16       7.57        100
-## 22 6     E                    90     87.8           2.16       7.57        100
-## 23 6     W                   270    268.            2.16       7.57        100
-## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
+<pre><code>## Inf tibble [24, 7]
+## grouped by: field [6]
+## field        fct 1 1 1 1 2 2
+## trap_coord   chr N E W S N E
+## trap_degrees dbl 0 90 270 180 0 90
+## degree_dif   dbl -76.176681 13.823319 193.823319 103.823319~
+## wind_degrees dbl 76.176681 76.176681 76.176681 76.176681 20~
+## wind_speed   dbl 1.489766 1.489766 1.489766 1.489766 7.2675~
+## distance_m   dbl 100 100 100 100 100 100</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following model best fit the data with the smoothed time slice
 variables, <code>time_slice</code>; the wind direction in relation to
-the traps’ placement around the field in terms of degrees, <em>i.e.</em>
-0–360˚, <code>degree_dif</code>; the traps’ distance from the harvest
-field in meters, <code>distance_m</code>; and the field and traps
-themselves as a smoothed term random effect, <code>field</code> and
-<code>xy</code>.</p>
+the traps’ placement around the field in terms of degrees,
+<em>i.e.</em>, 0–360˚, <code>degree_dif</code>; the traps’ distance from
+the harvest field in meters, <code>distance_m</code>; and the field and
+traps themselves as a smoothed term random effect, <code>field</code>
+and <code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 # create predictor degree diff as per Ben Bolker for circular predictors,
