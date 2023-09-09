@@ -109,10 +109,80 @@ spore_dot_density_by_distance
 Create a violin plot showing spore distribution at the four distances.
 
 ```{r spore-violin-density-by-distance}
-ggplot(mod_dat, aes(x = as.factor(distance_m), y = spore_cm2)) +
+ggplot(mod_dat,
+       aes(
+         x = as.factor(distance_m),
+         y = spore_cm2,
+         colour = field,
+         fill = field
+       )) +
   geom_violin() +
+  scale_fill_viridis_d() +
+  scale_colour_viridis_d() +
   labs(y = expression(Spores/cm^{2}),
        x = "Distance (m)")
+```
+
+```{r save-spores-density-violin, eval=TRUE, echo=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_density_violin.png",
+  width = 8,
+  height = 5,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_density_violin.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)
+```
+
+Create a point plot showing spore density distribution over distance for each field.
+
+```{r spore-distance-dispersal}
+ggplot(data = mod_dat,
+       aes(x = distance_m,
+           y = spore_cm2,
+           size = spore_cm2,
+           colour = field)) +
+  geom_point(alpha = 0.75) +
+  scale_size(
+    range = c(0.25, 6),
+    name = "Smut Spores/m²",
+    breaks = seq(10, 300, by = 60)
+  ) +
+  scale_colour_viridis_d() +
+  labs(y = expression(Spores / cm^{2}),
+  x = "Distance (m)") +
+  #facet_grid(. ~ field) +
+  central_top_legend
+```
+
+
+```{r save-spores-density-points, eval=TRUE, echo=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_density_points.png",
+  width = 8,
+  height = 5,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_density_points.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)
 ```
 
 #### Check windspeed effect
@@ -155,16 +225,16 @@ ggplot(data = mod_dat) +
   geom_count(alpha = 0.55) +
   scale_colour_viridis_c(
     direction = -1,
-    name = "Smut spores/m²",
+    name = "Smut Spores/m²",
     guide = "legend",
-    breaks = c(10, 100, 200, 300),
+    breaks = seq(10, 300, by = 60),
     begin = 0,
     end = 0.8
   ) +
   scale_size(
-    range = c(1, 8),
-    name = "Smut spores/m²",
-    breaks = c(10, 100, 200, 300)
+    range = c(0.25, 6),
+    name = "Smut Spores/m²",
+    breaks = seq(10, 300, by = 60)
   ) +
   scale_x_continuous(
     breaks = c(0, 90, 180, 270),
