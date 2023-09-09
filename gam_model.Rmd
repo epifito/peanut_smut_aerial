@@ -41,7 +41,11 @@ theme_set(theme_pubclean())
 
 Check if the spore type, number of nuclei, affects the dispersal.
 
+<<<<<<< HEAD
 (Manuscript's section 'Results/3.2')
+=======
+(Manuscript's section `Results/3.2`)
+>>>>>>> 17ed365 (Reknit gam_model)
 
 ```{r x-sq}
 set.seed(3)
@@ -60,10 +64,14 @@ The major spore type spread expected was the individual spore having a smaller s
 
 ## Spore dispersal GAM Model
 
+<<<<<<< HEAD
 (Manuscript's section 'Results/3.3')
 
 A script detailing the comparison of different models that were explored for the purposes of predicting the spores per cm^2^ is available for reference, [fit_incidence.R](fit_incidence.R "R script detailing several models that were evaluated for fitness with the data.").
 This page only details the final best-fitting model that was selected for use.
+=======
+(Manuscript's section `Results/3.3`)
+>>>>>>> 17ed365 (Reknit gam_model)
 
 ### Load data
 
