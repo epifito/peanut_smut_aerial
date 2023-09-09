@@ -401,21 +401,15 @@ theme_set(theme_pubclean())</code></pre>
 <div id="spore-proportion-chi-squared-analysis" class="section level2">
 <h2>Spore proportion chi-squared analysis</h2>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
-<<<<<<< HEAD
-<p>(Manuscript’s section ‘Results/3.2’)</p>
-=======
 <p>(Manuscript’s section <code>Results/3.2</code>)</p>
->>>>>>> 17ed365 (Reknit gam_model)
 <pre class="r"><code>set.seed(3)
-spore_type &lt;- read_csv(here(&quot;data/spore_type.csv&quot;),
+read_csv(here(&quot;data/spore_type.csv&quot;),
          show_col_types = FALSE) %&gt;%
   group_by(meter, spore_nuclei) %&gt;%
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
   spread(spore_nuclei, n) %&gt;%
   column_to_rownames(&#39;meter&#39;) %&gt;%
-  chisq.test(simulate.p.value = TRUE)
-
-spore_type</code></pre>
+  chisq.test(simulate.p.value = TRUE) </code></pre>
 <pre><code>## 
 ##  Pearson&#39;s Chi-squared test with simulated p-value (based on 2000
 ##  replicates)
@@ -424,22 +418,12 @@ spore_type</code></pre>
 ## X-squared = 20.656, df = NA, p-value = 0.1959</code></pre>
 <p>The major spore type spread expected was the individual spore having
 a smaller spore size (18.8 µm); however, no statistical differences were
-recorded in spore type proportion at 0 m to 400 m downwind
-(p-value=0.195902).</p>
+recorded in spore type proportion at 0 m to 400 m downwind
+(P=0.1921).</p>
 </div>
 <div id="spore-dispersal-gam-model" class="section level2">
 <h2>Spore dispersal GAM Model</h2>
-<<<<<<< HEAD
-<p>(Manuscript’s section ‘Results/3.3’)</p>
-<p>A script detailing the comparison of different models that were
-explored for the purposes of predicting the spores per cm<sup>2</sup> is
-available for reference, <a href="fit_incidence.R"
-title="R script detailing several models that were evaluated for fitness with the data.">fit_incidence.R</a>.
-This page only details the final best-fitting model that was selected
-for use.</p>
-=======
 <p>(Manuscript’s section <code>Results/3.3</code>)</p>
->>>>>>> 17ed365 (Reknit gam_model)
 <div id="load-data" class="section level3">
 <h3>Load data</h3>
 <pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
@@ -486,11 +470,11 @@ for use.</p>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following model best fit the data with the smoothed time slice
 variables, <code>time_slice</code>; the wind direction in relation to
-the traps’ placement around the field in terms of degrees,
-<em>i.e.</em>, 0–360˚, <code>degree_dif</code>; the traps’ distance from
-the harvest field in meters, <code>distance_m</code>; and the field and
-traps themselves as a smoothed term random effect, <code>field</code>
-and <code>xy</code>.</p>
+the traps’ placement around the field in terms of degrees, <em>i.e.</em>
+0–360˚, <code>degree_dif</code>; the traps’ distance from the harvest
+field in meters, <code>distance_m</code>; and the field and traps
+themselves as a smoothed term random effect, <code>field</code> and
+<code>xy</code>.</p>
 <pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 # create predictor degree diff as per Ben Bolker for circular predictors,
@@ -648,18 +632,16 @@ predictions</code></pre>
 <p>Screenshot of Ben Bolker’s Toot on fedscience.org regarding
 constructing a linear model with compass directions as predictor
 variables and how to handle this in the model.</p>
-<blockquote>
 <div class="float">
 <img src="images/BBolker_Toot.png"
-alt="At a quick skim this looks like it’s mostly about circular response variables. In case this hasn’t occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors … (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees …)" />
-<div class="figcaption">At a quick skim this looks like it’s mostly
+alt="“At a quick skim this looks like it’s mostly about circular response variables. In case this hasn’t occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors … (or more precisely sin(2pidir/360) etc. if your directions are in degrees …)”" />
+<div class="figcaption">“At a quick skim this looks like it’s mostly
 about circular <em>response</em> variables. In case this hasn’t occurred
 to you already, I think the simplest thing will be to use
 sin(direction), cos(direction) as predictors … (or more precisely
-<code>sin(2*pi*dir/360)</code> etc. if your directions are in degrees
-…)</div>
+sin(2<em>pi</em>dir/360) etc. if your directions are in degrees
+…)”</div>
 </div>
-</blockquote>
 </div>
 
 

@@ -41,37 +41,24 @@ theme_set(theme_pubclean())
 
 Check if the spore type, number of nuclei, affects the dispersal.
 
-<<<<<<< HEAD
-(Manuscript's section 'Results/3.2')
-=======
 (Manuscript's section `Results/3.2`)
->>>>>>> 17ed365 (Reknit gam_model)
 
 ```{r x-sq}
 set.seed(3)
-spore_type <- read_csv(here("data/spore_type.csv"),
+read_csv(here("data/spore_type.csv"),
          show_col_types = FALSE) %>%
   group_by(meter, spore_nuclei) %>%
   summarise(n = sum(count), .groups = 'drop') %>%
   spread(spore_nuclei, n) %>%
   column_to_rownames('meter') %>%
-  chisq.test(simulate.p.value = TRUE)
-
-spore_type
+  chisq.test(simulate.p.value = TRUE) 
 ```
 
-The major spore type spread expected was the individual spore having a smaller spore size (18.8 µm); however, no statistical differences were recorded in spore type proportion at 0 m to 400 m downwind (p-value=`r spore_type$p.value`).
+The major spore type spread expected was the individual spore having a smaller spore size (18.8 µm); however, no statistical differences were recorded in spore type proportion at 0 m to 400 m downwind (P=0.1921).
 
 ## Spore dispersal GAM Model
 
-<<<<<<< HEAD
-(Manuscript's section 'Results/3.3')
-
-A script detailing the comparison of different models that were explored for the purposes of predicting the spores per cm^2^ is available for reference, [fit_incidence.R](fit_incidence.R "R script detailing several models that were evaluated for fitness with the data.").
-This page only details the final best-fitting model that was selected for use.
-=======
 (Manuscript's section `Results/3.3`)
->>>>>>> 17ed365 (Reknit gam_model)
 
 ### Load data
 
@@ -93,7 +80,7 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.*, 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.* 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
 
 ```{r fit-m1, eval=TRUE}
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
@@ -223,4 +210,4 @@ ggsave(
 
 Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
 
-> ![At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely `sin(2*pi*dir/360)` etc. if your directions are in degrees ...)](images/BBolker_Toot.png)
+!["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](images/BBolker_Toot.png)
