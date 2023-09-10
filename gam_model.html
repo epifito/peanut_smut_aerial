@@ -403,23 +403,17 @@ theme_set(theme_pubclean())</code></pre>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
 <p>(Manuscript’s section <code>Results/3.2</code>)</p>
 <pre class="r"><code>set.seed(3)
-read_csv(here(&quot;data/spore_type.csv&quot;),
-         show_col_types = FALSE) %&gt;%
+x &lt;- read_csv(here(&quot;data/spore_type.csv&quot;),
+              show_col_types = FALSE) %&gt;%
   group_by(meter, spore_nuclei) %&gt;%
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
   spread(spore_nuclei, n) %&gt;%
   column_to_rownames(&#39;meter&#39;) %&gt;%
   chisq.test(simulate.p.value = TRUE) </code></pre>
-<pre><code>## 
-##  Pearson&#39;s Chi-squared test with simulated p-value (based on 2000
-##  replicates)
-## 
-## data:  .
-## X-squared = 20.656, df = NA, p-value = 0.1959</code></pre>
 <p>The major spore type spread expected was the individual spore having
 a smaller spore size (18.8 µm); however, no statistical differences were
-recorded in spore type proportion at 0 m to 400 m downwind
-(P=0.1921).</p>
+recorded in spore type proportion at 100 m to 400 m downwind (P =
+0.195902, X-squared = 20.6561456).</p>
 </div>
 <div id="spore-dispersal-gam-model" class="section level2">
 <h2>Spore dispersal GAM Model</h2>
