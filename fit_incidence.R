@@ -41,7 +41,6 @@ m1 <- gam(
     s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
     s(inc, k = 5) +
-    s(field, bs = "re") +
     s(field, xy, bs = "re"),
   data = mod_dat2,
   select = TRUE,
@@ -59,7 +58,6 @@ m2 <- gam(
     s(degree_dif_sin, k = 72) +
     s(distance_m, k = 4) +
     sdp_binom +
-    s(field, bs = "re") +
     s(field, xy, bs = "re"),
   data = mod_dat2,
   select = TRUE,
