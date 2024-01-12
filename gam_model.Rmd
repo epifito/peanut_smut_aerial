@@ -41,6 +41,13 @@ theme_set(theme_pubclean())
 
 Check if the spore type, number of nuclei, affects the dispersal.
 
+Using the default `chisq.test()` will result in a warning due to small expected values meaning that approximations of p may not be correct.
+```r
+Warning message:
+In chisq.test(.) : Chi-squared approximation may be incorrect
+```
+Therefore, we will use Monte Carlo simulation to simulate p values.
+
 (Manuscript's section `Results/3.2`)
 
 ```{r x-sq}

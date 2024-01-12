@@ -13,7 +13,7 @@
 
 <title>Fit GAM model of spore counts</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -401,6 +401,13 @@ theme_set(theme_pubclean())</code></pre>
 <div id="spore-proportion-chi-squared-analysis" class="section level2">
 <h2>Spore proportion chi-squared analysis</h2>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
+<p>Using the default <code>chisq.test()</code> will result in a warning
+due to small expected values meaning that approximations of p may not be
+correct.</p>
+<pre class="r"><code>Warning message:
+In chisq.test(.) : Chi-squared approximation may be incorrect</code></pre>
+<p>Therefore, we will use Monte Carlo simulation to simulate p
+values.</p>
 <p>(Manuscript’s section <code>Results/3.2</code>)</p>
 <pre class="r"><code>set.seed(3)
 x &lt;- read_csv(here(&quot;data/spore_type.csv&quot;),
@@ -433,7 +440,7 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
          wind_speed,
          distance_m) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 × 7
+<pre><code>## # A tibble: 24 x 7
 ## # Groups:   field [6]
 ##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
@@ -510,7 +517,7 @@ m1 &lt;- gam(
 ## full convergence after 11 iterations.
 ## Gradient range [-0.0001281966,0.000115113]
 ## (score 695.9045 &amp; scale 0.9504511).
-## Hessian positive definite, eigenvalue range [0.00001544762,220.5864].
+## Hessian positive definite, eigenvalue range [1.544762e-05,220.5864].
 ## Model rank =  269 / 269 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
@@ -539,11 +546,11 @@ m1 &lt;- gam(
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                       edf Ref.df      F             p-value    
-## s(time_slice)      0.9780      2  22.39 &lt;0.0000000000000002 ***
-## s(degree_dif_sin)  1.6581     69  16.34              0.0591 .  
-## s(distance_m)      0.8082      3 677.92              0.0239 *  
-## s(field,xy)       84.4006     95  13.99 &lt;0.0000000000000002 ***
+##                       edf Ref.df      F p-value    
+## s(time_slice)      0.9780      2  22.39  &lt;2e-16 ***
+## s(degree_dif_sin)  1.6581     69  16.34  0.0591 .  
+## s(distance_m)      0.8082      3 677.92  0.0239 *  
+## s(field,xy)       84.4006     95  13.99  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 

@@ -13,7 +13,7 @@
 
 <title>Import data</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -36,8 +36,8 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -423,7 +423,7 @@ that has the cardinal directions in it for further analysis.</p>
   group_by(field, trap_coord, distance_m, time_min) %&gt;%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
 spore_data</code></pre>
-<pre><code>## # A tibble: 288 × 5
+<pre><code>## # A tibble: 288 x 5
 ## # Groups:   field, trap_coord, distance_m [96]
 ##    field trap_coord distance_m time_min spore_cm2
 ##    &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
@@ -437,7 +437,7 @@ spore_data</code></pre>
 ##  8 1     N                 300      180     0    
 ##  9 1     N                 300      270     0    
 ## 10 1     N                 400       90     0.208
-## # ℹ 278 more rows</code></pre>
+## # i 278 more rows</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
@@ -453,7 +453,7 @@ meteo_data &lt;-
   mutate(wind_speed = wind_speed * 0.2777778)
 
 meteo_data</code></pre>
-<pre><code>## # A tibble: 330 × 6
+<pre><code>## # A tibble: 330 x 6
 ##    field minute_lap rel_hum  temp wind_speed wind_dir
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;   
 ##  1 1              0      65  16        1.72  E       
@@ -466,7 +466,7 @@ meteo_data</code></pre>
 ##  8 1             35      65  19.5      0.611 E       
 ##  9 1             40      65  19.5      1.17  E       
 ## 10 1             45      65  19.7      0.333 NE      
-## # ℹ 320 more rows</code></pre>
+## # i 320 more rows</code></pre>
 </div>
 <div id="data-prep-for-analysis" class="section level3">
 <h3>Data prep for analysis</h3>
@@ -529,7 +529,7 @@ degrees here.</p>
              )
            )
 m</code></pre>
-<pre><code>## # A tibble: 330 × 8
+<pre><code>## # A tibble: 330 x 8
 ##    field minute_lap rel_hum  temp wind_speed wind_dir wind_degrees time_slice
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt;
 ##  1 1              0      65  16        1.72  E                  90         90
@@ -542,7 +542,7 @@ m</code></pre>
 ##  8 1             35      65  19.5      0.611 E                  90         90
 ##  9 1             40      65  19.5      1.17  E                  90         90
 ## 10 1             45      65  19.7      0.333 NE                 45         90
-## # ℹ 320 more rows</code></pre>
+## # i 320 more rows</code></pre>
 <pre class="r"><code>rh_90 &lt;-
   m %&gt;%
   filter(time_slice == 90) %&gt;%
