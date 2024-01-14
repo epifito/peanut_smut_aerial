@@ -484,8 +484,7 @@ mod_dat$degree_dif_sin &lt;- sin(2 * pi * mod_dat$degree_dif / 360)
 
 m1 &lt;- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif_sin, k = 72) +
-    s(distance_m, k = 4) +
+    s(wind_speed, distance_m, k = 72) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
   select = TRUE,
@@ -497,17 +496,17 @@ m1 &lt;- gam(
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.504) 
+## Family: Tweedie(p=1.499) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif_sin, k = 72) + 
-##     s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(wind_speed, distance_m, 
+##     k = 72) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-##  0.978  1.658  0.808 84.401  total = 88.84 
+##  0.972  1.544 85.331  total = 88.85 
 ## 
-## REML score: 695.9045</code></pre>
+## REML score: 695.8308</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
@@ -515,47 +514,43 @@ m1 &lt;- gam(
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 11 iterations.
-## Gradient range [-0.0001281966,0.000115113]
-## (score 695.9045 &amp; scale 0.9504511).
-## Hessian positive definite, eigenvalue range [0.00001544762,220.5864].
-## Model rank =  269 / 269 
+## Gradient range [-0.0002707626,0.000250362]
+## (score 695.8308 &amp; scale 0.9423005).
+## Hessian positive definite, eigenvalue range [0.00001926539,221.3536].
+## Model rank =  266 / 266 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                        k&#39;     edf k-index p-value  
-## s(time_slice)       2.000   0.978    0.91   0.325  
-## s(degree_dif_sin)  71.000   1.658    0.84   0.035 *
-## s(distance_m)       3.000   0.808    1.03   0.955  
-## s(field,xy)       192.000  84.401      NA      NA  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+##                               k&#39;     edf k-index p-value
+## s(time_slice)              2.000   0.972    0.92    0.35
+## s(wind_speed,distance_m)  71.000   1.544    1.01    0.95
+## s(field,xy)              192.000  85.331      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.504) 
+## Family: Tweedie(p=1.499) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif_sin, k = 72) + 
-##     s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(wind_speed, distance_m, 
+##     k = 72) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   0.6869     0.1799   3.819 0.000179 ***
+## (Intercept)   0.6847     0.1835   3.731 0.000249 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                       edf Ref.df      F             p-value    
-## s(time_slice)      0.9780      2  22.39 &lt;0.0000000000000002 ***
-## s(degree_dif_sin)  1.6581     69  16.34              0.0591 .  
-## s(distance_m)      0.8082      3 677.92              0.0239 *  
-## s(field,xy)       84.4006     95  13.99 &lt;0.0000000000000002 ***
+##                              edf Ref.df     F              p-value    
+## s(time_slice)             0.9723      2 18.98 &lt; 0.0000000000000002 ***
+## s(wind_speed,distance_m)  1.5443     47 92.95              0.00585 ** 
+## s(field,xy)              85.3309     95 17.04 &lt; 0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.785   Deviance explained = 89.6%
-## -REML =  695.9  Scale est. = 0.95045   n = 288</code></pre>
+## R-sq.(adj) =  0.796   Deviance explained = 89.8%
+## -REML = 695.83  Scale est. = 0.9423    n = 288</code></pre>
 <pre class="r"><code>vis.gam(m1, theta = 50, ticktype = &quot;detailed&quot;)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
 <p>The model fully converged after 11 iterations. All of the predictive
@@ -598,7 +593,6 @@ xy &lt;- unite(data = xy, col = &quot;xy&quot;)
 
 newd &lt;- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif_sin = seq(from = 1, to = 360, by = 2),
   distance_m = dist,
   wind_speed = seq(from = 0, to = 30, by = 2),
   x = dist,
@@ -615,7 +609,7 @@ newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
   newd %&gt;%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
   ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
-  geom_violin() +
+  geom_boxplot() +
   labs(x = &quot;Distance from harvesting field (m)&quot;,
        y = &quot;Predicted Spores / cm²&quot;)
 

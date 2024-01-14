@@ -98,8 +98,7 @@ mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
 
 m1 <- gam(
   spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif_sin, k = 72) +
-    s(distance_m, k = 4) +
+    s(wind_speed, distance_m, k = 72) +
     s(field, xy, bs = "re"),
   data = mod_dat,
   select = TRUE,
@@ -178,7 +177,6 @@ xy <- unite(data = xy, col = "xy")
 
 newd <- expand_grid(
   time_slice = c(90, 180, 270),
-  degree_dif_sin = seq(from = 1, to = 360, by = 2),
   distance_m = dist,
   wind_speed = seq(from = 0, to = 30, by = 2),
   x = dist,
@@ -197,7 +195,7 @@ predictions <-
   newd %>%
   mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
   ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
-  geom_violin() +
+  geom_boxplot() +
   labs(x = "Distance from harvesting field (m)",
        y = "Predicted Spores / cm²")
 

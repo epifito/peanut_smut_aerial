@@ -13,7 +13,7 @@
 
 <title>Visualise data</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -444,18 +444,29 @@ line.</p>
   ggplot(aes(x = distance_m, y = spore_cm2)) +
   geom_point() +
   scale_fill_viridis_c() +
-  geom_smooth(col = &quot;grey50&quot;,
-              method = &quot;gam&quot;,
-              formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
-  labs(y = expression(Spores / cm ^ {
-    2
-  }),
+  geom_smooth(
+    col = &quot;grey50&quot;,
+    method = &quot;gam&quot;,
+    formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)
+  ) +
+  labs(y = expression(Spores / cm ^ {2}),
   x = &quot;Distance (m)&quot;) +
   facet_grid(. ~ time_slice)
 spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="60%" /></p>
-<p>Create a violin plot showing spore distribution at the four
+<p>Create box plots showing spore distribution at the four
 distances.</p>
+<pre class="r"><code>ggplot(mod_dat,
+       aes(
+         x = as.factor(distance_m),
+         y = spore_cm2,
+       )) +
+  geom_boxplot() +
+  scale_fill_viridis_d() +
+  scale_colour_viridis_d() +
+  labs(y = expression(Spores/cm^{2}),
+       x = &quot;Distance (m)&quot;)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
 <pre class="r"><code>ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
@@ -463,12 +474,13 @@ distances.</p>
          colour = field,
          fill = field
        )) +
-  geom_violin() +
+  geom_boxplot() +
   scale_fill_viridis_d() +
   scale_colour_viridis_d() +
   labs(y = expression(Spores/cm^{2}),
-       x = &quot;Distance (m)&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
+       x = &quot;Distance (m)&quot;) +
+  facet_grid(. ~ field)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-by-field-1.png" width="60%" /></p>
 <p>Create a point plot showing spore density distribution over distance
 for each field.</p>
 <pre class="r"><code>ggplot(data = mod_dat,
