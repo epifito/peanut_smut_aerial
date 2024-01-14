@@ -47,18 +47,19 @@ Import spore trap data and inspect.
 spore_data <- read_csv(
   here("data/spore_data.csv"),
   col_types = list(field = col_factor(),
-                   trap_coord = col_factor()
-  ))
+                   trap_coord = col_factor())
+)
 ```
 
 Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
 ```{r summarise-spore-data}
-spore_data <- 
+spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%
   summarise(spore_cm2 = mean(n_spore) / 1.2)
+
 spore_data
 ```
 
@@ -71,9 +72,9 @@ meteo_data <- read_csv(here("data/wind.csv"),
                        col_types = list(field = col_factor()))
 
 # some sites go past 270 minutes, remove those data.
-meteo_data <- 
-  meteo_data %>% 
-  filter(minute_lap <= 270) %>% 
+meteo_data <-
+  meteo_data %>%
+  filter(minute_lap <= 270) %>%
   mutate(wind_speed = wind_speed * 0.2777778)
 
 meteo_data
@@ -112,7 +113,7 @@ coord_deg <- tibble(
 Create a `spore_data` object that has spore and trap degrees (location as a cardinal direction).
 
 ```{r add-spore-trap-location}
-spore_data <- 
+spore_data <-
   spore_data %>%
   left_join(coord_deg, by = c("trap_coord" = "dir")) %>%
   rename(trap_degrees = degrees)
@@ -121,7 +122,7 @@ spore_data <-
 Create a `meteo_data` object that has the wind direction in degrees.
 
 ```{r add-wind-direction-degrees}
-meteo_data <- 
+meteo_data <-
   meteo_data %>%
   left_join(coord_deg, by = c("wind_dir" = "dir")) %>%
   rename(wind_degrees = degrees)
@@ -137,12 +138,11 @@ This is where the `circular.averaging()` is needed since we cannot simply take t
 m <-
   meteo_data %>%
   mutate(time_slice =
-             case_when(
-               minute_lap <= 90 ~ 90,
-               minute_lap > 90 & minute_lap <= 180 ~ 180,
-               TRUE ~ 270
-             )
-           )
+           case_when(
+             minute_lap <= 90 ~ 90,
+             minute_lap > 90 & minute_lap <= 180 ~ 180,
+             TRUE ~ 270
+           ))
 m
 ```
 
@@ -223,7 +223,8 @@ wind_speed <-
     "90" = wind_speed_90,
     "180" = wind_speed_180,
     "270" = wind_speed_270
-  ), .id = "time_slice")
+  ),
+  .id = "time_slice")
 ```
 
 
@@ -250,27 +251,30 @@ wind_degrees <-
     "90" = wind_degrees_90,
     "180" = wind_degrees_180,
     "270" = wind_degrees_270
-  ), .id = "time_slice")
+  ),
+  .id = "time_slice")
 
 meteo_data <-
-  rh %>% 
-  left_join(temp, by = c("field", "time_slice")) %>% 
-  left_join(wind_speed, by = c("field", "time_slice")) %>% 
-  left_join(wind_degrees, by = c("field", "time_slice")) %>% 
-  mutate(time_slice = as.numeric(time_slice)) %>% 
+  rh %>%
+  left_join(temp, by = c("field", "time_slice")) %>%
+  left_join(wind_speed, by = c("field", "time_slice")) %>%
+  left_join(wind_degrees, by = c("field", "time_slice")) %>%
+  mutate(time_slice = as.numeric(time_slice)) %>%
   arrange(field, time_slice)
 ```
 
 ```{r meteo_data_JUAN}
 meteo_data <- m %>%
-  mutate(time_slice = 270) %>%  
-  rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>% 
-  rbind(mutate(filter(., minute_lap <= 90), time_slice = 90)) %>% 
+  mutate(time_slice = 270) %>%
+  rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>%
+  rbind(mutate(filter(., minute_lap <= 90), time_slice = 90)) %>%
   group_by(field, time_slice) %>%
-  summarize(rh = mean(rel_hum), 
-            temp = mean(temp),
-            wind_speed = mean(wind_speed), 
-            wind_degrees = circular.averaging(wind_degrees))
+  summarize(
+    rh = mean(rel_hum),
+    temp = mean(temp),
+    wind_speed = mean(wind_speed),
+    wind_degrees = circular.averaging(wind_degrees)
+  )
 ```
 
 ## Merge the spore data with the weather data
@@ -291,8 +295,10 @@ mod_dat <- left_join(meteo_data,
 
 ```{r Cartesian-coords}
 # note that degrees need to be converted to radians for theta
-xy <- data.frame(pol2cart(theta = mod_dat$trap_degrees * 0.01745329,
-                          r = mod_dat$distance_m))
+xy <- data.frame(pol2cart(
+  theta = mod_dat$trap_degrees * 0.01745329,
+  r = mod_dat$distance_m
+))
 
 mod_dat <- bind_cols(mod_dat, xy)
 ```
@@ -302,7 +308,7 @@ mod_dat <- bind_cols(mod_dat, xy)
 coords_df <- mod_dat %>%
   ungroup() %>%
   distinct(trap_degrees, distance_m, x, y) %>%
-  mutate_at(vars(x, y), list( ~ round(., 1))) %>%
+  mutate_at(vars(x, y), list(~ round(., 1))) %>%
   arrange(trap_degrees) # %>% print(n = Inf)
 
 coords_df %>%

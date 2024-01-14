@@ -119,6 +119,7 @@ m1
 ```{r gam-check-m1}
 gam.check(m1)
 summary(m1)
+vis.gam(m1, theta = 50, ticktype = "detailed")
 ```
 
 The model fully converged after 11 iterations.
