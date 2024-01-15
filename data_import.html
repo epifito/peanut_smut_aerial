@@ -421,23 +421,23 @@ that has the cardinal directions in it for further analysis.</p>
 <pre class="r"><code>spore_data &lt;-
   spore_data %&gt;%
   group_by(field, trap_coord, distance_m, time_min) %&gt;%
-  summarise(spore_cm2 = mean(n_spore) / 1.2)
+  summarise(n_spore = sum(n_spore))
 
 spore_data</code></pre>
 <pre><code>## # A tibble: 288 × 5
 ## # Groups:   field, trap_coord, distance_m [96]
-##    field trap_coord distance_m time_min spore_cm2
-##    &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-##  1 1     N                 100       90     0.417
-##  2 1     N                 100      180     0.833
-##  3 1     N                 100      270     0.625
-##  4 1     N                 200       90     0.417
-##  5 1     N                 200      180     0.625
-##  6 1     N                 200      270     2.92 
-##  7 1     N                 300       90     0.208
-##  8 1     N                 300      180     0    
-##  9 1     N                 300      270     0    
-## 10 1     N                 400       90     0.208
+##    field trap_coord distance_m time_min n_spore
+##    &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+##  1 1     N                 100       90       2
+##  2 1     N                 100      180       4
+##  3 1     N                 100      270       3
+##  4 1     N                 200       90       2
+##  5 1     N                 200      180       3
+##  6 1     N                 200      270      14
+##  7 1     N                 300       90       1
+##  8 1     N                 300      180       0
+##  9 1     N                 300      270       0
+## 10 1     N                 400       90       1
 ## # ℹ 278 more rows</code></pre>
 </div>
 <div id="weather-data" class="section level3">

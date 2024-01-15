@@ -58,7 +58,7 @@ We'll keep the `field` col to join the weather data and the `trap_coord` col her
 spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%
-  summarise(spore_cm2 = mean(n_spore) / 1.2)
+  summarise(n_spore = sum(n_spore))
 
 spore_data
 ```
