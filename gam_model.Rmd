@@ -83,27 +83,25 @@ mod_dat %>% # str
          degree_dif,
          wind_degrees,
          wind_speed,
-         distance_m) %>%
+         distance_m,
+         n_spore) %>%
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.* 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following GAM best fit the data with the smoothed time slice variables, s(`time_slice`); a smoothed term for both wind-speed and the traps' distance from the harvest field in meters, s(`wind_speed, distance_m`); and the field and traps themselves as a smoothed term random effect, s(`field`, `xy`) using a negative binomial family.
 
 ```{r fit-m1, eval=TRUE}
+# create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
-# create predictor degree diff as per Ben Bolker for circular predictors,
-# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
-mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
-
 m1 <- gam(
-  spore_cm2 ~ s(time_slice, k = 3) +
+  n_spore ~ s(time_slice, k = 3) +
     s(wind_speed, distance_m, k = 72) +
     s(field, xy, bs = "re"),
   data = mod_dat,
   select = TRUE,
   method = "REML",
-  family = "tw"
+  family = nb()
 )
 ```
 
@@ -118,10 +116,28 @@ m1
 ```{r gam-check-m1}
 gam.check(m1)
 summary(m1)
-vis.gam(m1, theta = 50, ticktype = "detailed")
+vis.gam(m1,
+        theta = 50,
+        ticktype = "detailed",
+        main = "Time slice and wind speed")
+vis.gam(
+  m1,
+  theta = 50,
+  view = c("wind_speed", "distance_m"),
+  ticktype = "detailed",
+  main = "Wind speed and distance from field"
+)
+vis.gam(
+  m1,
+  theta = 45,
+  phi = 45,
+  view = c("field", "xy"),
+  ticktype = "detailed",
+  main = "Random Effects"
+)
 ```
 
-The model fully converged after 11 iterations.
+The model fully converged after 8 iterations.
 All of the predictive factors included were significant at *P* \> 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -140,13 +156,8 @@ pacf(residuals(m1))
 This looks OK.
 There is no major pattern discernible in the ACF or PACF plots that show cause for concern.
 
-### Summarise and visualise model m1
-
-```{r appraise-m1, out.width = '100%', fig.height = 6}
-draw(m1)
-```
-
 ```{r save-m1-summary, eval=FALSE, echo=FALSE}
+appraise(m1)
 ggsave(
   last_plot(),
   file = here("plots_manuscript/model_summary.png"),
@@ -171,17 +182,12 @@ ggsave(
 ```{r predict, eval=TRUE}
 dist <- seq(100, 400, by = 100)
 
-# create x and y locations around centroid
-xy <- expand_grid(dist, dist)
-xy <- unite(data = xy, col = "xy")
-
 newd <- expand_grid(
-  time_slice = c(90, 180, 270),
-  distance_m = dist,
-  degree_dif_sin = seq(from = 1, to = 1, by = 0.1),
-  wind_speed = seq(from = 0, to = 30, by = 2),
-  xy = mod_dat$xy,
-  field = mod_dat$field
+  time_slice = unique(mod_dat$time_slice),
+  distance_m = unique(mod_dat$distance_m),
+  wind_speed = seq(from = 0, to = 10, by = 0.5),
+  xy = unique(mod_dat$xy),
+  field = 1
 )
 
 newd$pred_spore_cm2 <-
@@ -193,7 +199,7 @@ newd$pred_spore_cm2 <-
   )
 ```
 
-Visualize the spore dispersal predictions for traps at 0 m, 100 m, 200 m, 300 m, 400 m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
+Visualize the spore dispersal predictions for traps at 100 m, 200 m, 300 m, 400 m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
 ```{r graph-predictions}
 predictions <-
@@ -215,9 +221,3 @@ ggsave(
   scale = 1.2
 )
 ```
-
-## Appendix
-
-Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
-
-!["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](images/BBolker_Toot.png)

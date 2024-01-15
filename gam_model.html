@@ -438,9 +438,10 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
          degree_dif,
          wind_degrees,
          wind_speed,
-         distance_m) %&gt;%
+         distance_m,
+         n_spore) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 × 7
+<pre><code>## # A tibble: 24 × 8
 ## # Groups:   field [6]
 ##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
@@ -467,93 +468,110 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 ## 21 6     N                     0     -2.16          2.16       7.57        100
 ## 22 6     E                    90     87.8           2.16       7.57        100
 ## 23 6     W                   270    268.            2.16       7.57        100
-## 24 6     S                   180    178.            2.16       7.57        100</code></pre>
+## 24 6     S                   180    178.            2.16       7.57        100
+## # ℹ 1 more variable: n_spore &lt;dbl&gt;</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
-following model best fit the data with the smoothed time slice
-variables, <code>time_slice</code>; the wind direction in relation to
-the traps’ placement around the field in terms of degrees, <em>i.e.</em>
-0–360˚, <code>degree_dif</code>; the traps’ distance from the harvest
-field in meters, <code>distance_m</code>; and the field and traps
-themselves as a smoothed term random effect, <code>field</code> and
-<code>xy</code>.</p>
-<pre class="r"><code>mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
-
-# create predictor degree diff as per Ben Bolker for circular predictors,
-# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
-mod_dat$degree_dif_sin &lt;- sin(2 * pi * mod_dat$degree_dif / 360)
+following GAM best fit the data with the smoothed time slice variables,
+s(<code>time_slice</code>); a smoothed term for both wind-speed and the
+traps’ distance from the harvest field in meters,
+s(<code>wind_speed, distance_m</code>); and the field and traps
+themselves as a smoothed term random effect, s(<code>field</code>,
+<code>xy</code>) using a negative binomial family.</p>
+<pre class="r"><code># create a factor for the trap locations in Cartesian coords to be used as a random effect
+mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 &lt;- gam(
-  spore_cm2 ~ s(time_slice, k = 3) +
+  n_spore ~ s(time_slice, k = 3) +
     s(wind_speed, distance_m, k = 72) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
   select = TRUE,
   method = &quot;REML&quot;,
-  family = &quot;tw&quot;
+  family = nb()
 )</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.499) 
+## Family: Negative Binomial(2.483) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(wind_speed, distance_m, 
-##     k = 72) + s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(wind_speed, distance_m, k = 72) + 
+##     s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-##  0.972  1.544 85.331  total = 88.85 
+##  0.974  1.468 87.081  total = 90.52 
 ## 
-## REML score: 695.8308</code></pre>
+## REML score: 1073.899</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 11 iterations.
-## Gradient range [-0.0002707626,0.000250362]
-## (score 695.8308 &amp; scale 0.9423005).
-## Hessian positive definite, eigenvalue range [0.00001926539,221.3536].
+## full convergence after 8 iterations.
+## Gradient range [-0.0003730279,0.00033249]
+## (score 1073.899 &amp; scale 1).
+## Hessian positive definite, eigenvalue range [0.0002110551,53.47214].
 ## Model rank =  266 / 266 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
 ##                               k&#39;     edf k-index p-value
-## s(time_slice)              2.000   0.972    0.92    0.35
-## s(wind_speed,distance_m)  71.000   1.544    1.01    0.95
-## s(field,xy)              192.000  85.331      NA      NA</code></pre>
+## s(time_slice)              2.000   0.974    0.96    0.51
+## s(wind_speed,distance_m)  71.000   1.468    1.01    0.91
+## s(field,xy)              192.000  87.081      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Tweedie(p=1.499) 
+## Family: Negative Binomial(2.483) 
 ## Link function: log 
 ## 
 ## Formula:
-## spore_cm2 ~ s(time_slice, k = 3) + s(wind_speed, distance_m, 
-##     k = 72) + s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(wind_speed, distance_m, k = 72) + 
+##     s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   0.6847     0.1835   3.731 0.000249 ***
+##             Estimate Std. Error z value            Pr(&gt;|z|)    
+## (Intercept)   2.1867     0.1869    11.7 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df     F              p-value    
-## s(time_slice)             0.9723      2 18.98 &lt; 0.0000000000000002 ***
-## s(wind_speed,distance_m)  1.5443     47 92.95              0.00585 ** 
-## s(field,xy)              85.3309     95 17.04 &lt; 0.0000000000000002 ***
+##                              edf Ref.df  Chi.sq             p-value    
+## s(time_slice)             0.9742      2   37.69 &lt;0.0000000000000002 ***
+## s(wind_speed,distance_m)  1.4684     57 1175.98              0.0214 *  
+## s(field,xy)              87.0809     95 1259.43 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.796   Deviance explained = 89.8%
-## -REML = 695.83  Scale est. = 0.9423    n = 288</code></pre>
-<pre class="r"><code>vis.gam(m1, theta = 50, ticktype = &quot;detailed&quot;)</code></pre>
+## R-sq.(adj) =  0.735   Deviance explained = 89.2%
+## -REML = 1073.9  Scale est. = 1         n = 288</code></pre>
+<pre class="r"><code>vis.gam(m1,
+        theta = 50,
+        ticktype = &quot;detailed&quot;,
+        main = &quot;Time slice and wind speed&quot;)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
-<p>The model fully converged after 11 iterations. All of the predictive
+<pre class="r"><code>vis.gam(
+  m1,
+  theta = 50,
+  view = c(&quot;wind_speed&quot;, &quot;distance_m&quot;),
+  ticktype = &quot;detailed&quot;,
+  main = &quot;Wind speed and distance from field&quot;
+)</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-3.png" width="60%" /></p>
+<pre class="r"><code>vis.gam(
+  m1,
+  theta = 45,
+  phi = 45,
+  view = c(&quot;field&quot;, &quot;xy&quot;),
+  ticktype = &quot;detailed&quot;,
+  main = &quot;Random Effects&quot;
+)</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
+<p>The model fully converged after 8 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.05 and the
 smoothed predictors indicate a good fit with residuals being randomly
 distributed and enough basis functions for them to be properly fit. The
@@ -575,39 +593,33 @@ it’s best to check for any autocorrelation in the residuals.</p>
 PACF plots that show cause for concern.</p>
 </div>
 </div>
-<div id="summarise-and-visualise-model-m1" class="section level3">
-<h3>Summarise and visualise model m1</h3>
-<pre class="r"><code>draw(m1)</code></pre>
-<p><img src="gam_model_files/figure-html/appraise-m1-1.png" width="100%" /></p>
-</div>
 <div
 id="predict-spore-dispersal-and-visualise-spore-dispersal-predictions"
 class="section level3">
 <h3>Predict spore dispersal and visualise spore dispersal
 predictions</h3>
-<pre class="r"><code>dist &lt;- seq(0, 400, by = 100)
-
-# create x and y locations around centroid
-xy &lt;- expand_grid(dist, dist)
-xy &lt;- unite(data = xy, col = &quot;xy&quot;)
+<pre class="r"><code>dist &lt;- seq(100, 400, by = 100)
 
 newd &lt;- expand_grid(
-  time_slice = c(90, 180, 270),
-  distance_m = dist,
-  wind_speed = seq(from = 0, to = 30, by = 2),
-  x = dist,
-  y = dist,
-  xy = xy$xy,
+  time_slice = unique(mod_dat$time_slice),
+  distance_m = unique(mod_dat$distance_m),
+  wind_speed = seq(from = 0, to = 10, by = 0.5),
+  xy = unique(mod_dat$xy),
   field = 1
 )
-  
-newd$pred_spore_cm2 &lt;- predict(m1, newd)</code></pre>
-<p>Visualize the spore dispersal predictions for traps at 0 m, 100 m,
-200 m, 300 m, 400 m around the harvest field for sampling times at 90,
-180 and 270 minutes after harvest started.</p>
+
+newd$pred_spore_cm2 &lt;-
+  predict(
+    object = m1,
+    newd,
+    type = &quot;response&quot;,
+    exclude = c(&quot;field&quot;, &quot;xy&quot;)
+  )</code></pre>
+<p>Visualize the spore dispersal predictions for traps at 100 m, 200 m,
+300 m, 400 m around the harvest field for sampling times at 90, 180 and
+270 minutes after harvest started.</p>
 <pre class="r"><code>predictions &lt;-
   newd %&gt;%
-  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 &lt; 0, 0)) %&gt;%
   ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
   geom_boxplot() +
   labs(x = &quot;Distance from harvesting field (m)&quot;,
@@ -622,22 +634,6 @@ predictions</code></pre>
   h = 2,
   scale = 1.2
 )</code></pre>
-</div>
-</div>
-<div id="appendix" class="section level2">
-<h2>Appendix</h2>
-<p>Screenshot of Ben Bolker’s Toot on fedscience.org regarding
-constructing a linear model with compass directions as predictor
-variables and how to handle this in the model.</p>
-<div class="float">
-<img src="images/BBolker_Toot.png"
-alt="“At a quick skim this looks like it’s mostly about circular response variables. In case this hasn’t occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors … (or more precisely sin(2pidir/360) etc. if your directions are in degrees …)”" />
-<div class="figcaption">“At a quick skim this looks like it’s mostly
-about circular <em>response</em> variables. In case this hasn’t occurred
-to you already, I think the simplest thing will be to use
-sin(direction), cos(direction) as predictors … (or more precisely
-sin(2<em>pi</em>dir/360) etc. if your directions are in degrees
-…)”</div>
 </div>
 </div>
 
