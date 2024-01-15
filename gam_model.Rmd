@@ -84,7 +84,7 @@ mod_dat %>% # str
          wind_degrees,
          wind_speed,
          distance_m,
-         n_spore) %>%
+         spore_cm2) %>%
   print(n = Inf)
 ```
 
@@ -94,14 +94,19 @@ Based on the use of AIC to evaluate model fit to the data, the following GAM bes
 # create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
+# create predictor degree diff as per Ben Bolker for circular predictors,
+# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
+mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
+
 m1 <- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(wind_speed, distance_m, k = 72) +
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif_sin, k = 72) +
+    s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
   select = TRUE,
   method = "REML",
-  family = nb()
+  family = tw()
 )
 ```
 
@@ -123,7 +128,7 @@ vis.gam(m1,
 vis.gam(
   m1,
   theta = 50,
-  view = c("wind_speed", "distance_m"),
+  view = c("degree_dif_sin", "distance_m"),
   ticktype = "detailed",
   main = "Wind speed and distance from field"
 )
@@ -137,7 +142,7 @@ vis.gam(
 )
 ```
 
-The model fully converged after 8 iterations.
+The model fully converged after 11 iterations.
 All of the predictive factors included were significant at *P* \> 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
 The Q-Q plot generally falls along the line indicating a sufficient fit.
 There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
@@ -184,8 +189,8 @@ dist <- seq(100, 400, by = 100)
 
 newd <- expand_grid(
   time_slice = unique(mod_dat$time_slice),
+  degree_dif_sin = unique(mod_dat$degree_dif_sin),
   distance_m = unique(mod_dat$distance_m),
-  wind_speed = seq(from = 0, to = 10, by = 0.5),
   xy = unique(mod_dat$xy),
   field = 1
 )
@@ -221,3 +226,9 @@ ggsave(
   scale = 1.2
 )
 ```
+
+## Appendix
+
+Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
+
+!["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](images/BBolker_Toot.png)

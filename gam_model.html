@@ -439,7 +439,7 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
          wind_degrees,
          wind_speed,
          distance_m,
-         n_spore) %&gt;%
+         spore_cm2) %&gt;%
   print(n = Inf)</code></pre>
 <pre><code>## # A tibble: 24 × 8
 ## # Groups:   field [6]
@@ -469,7 +469,7 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 ## 22 6     E                    90     87.8           2.16       7.57        100
 ## 23 6     W                   270    268.            2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100
-## # ℹ 1 more variable: n_spore &lt;dbl&gt;</code></pre>
+## # ℹ 1 more variable: spore_cm2 &lt;dbl&gt;</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following GAM best fit the data with the smoothed time slice variables,
 s(<code>time_slice</code>); a smoothed term for both wind-speed and the
@@ -480,75 +480,84 @@ themselves as a smoothed term random effect, s(<code>field</code>,
 <pre class="r"><code># create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
+# create predictor degree diff as per Ben Bolker for circular predictors,
+# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
+mod_dat$degree_dif_sin &lt;- sin(2 * pi * mod_dat$degree_dif / 360)
+
 m1 &lt;- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(wind_speed, distance_m, k = 72) +
+  spore_cm2 ~ s(time_slice, k = 3) +
+    s(degree_dif_sin, k = 72) +
+    s(distance_m, k = 4) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
   select = TRUE,
   method = &quot;REML&quot;,
-  family = nb()
+  family = tw()
 )</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>m1</code></pre>
 <pre><code>## 
-## Family: Negative Binomial(2.483) 
+## Family: Tweedie(p=1.504) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(wind_speed, distance_m, k = 72) + 
-##     s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif_sin, k = 72) + 
+##     s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Estimated degrees of freedom:
-##  0.974  1.468 87.081  total = 90.52 
+##  0.978  1.658  0.808 84.401  total = 88.84 
 ## 
-## REML score: 1073.899</code></pre>
+## REML score: 695.9045</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 8 iterations.
-## Gradient range [-0.0003730279,0.00033249]
-## (score 1073.899 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [0.0002110551,53.47214].
-## Model rank =  266 / 266 
+## full convergence after 11 iterations.
+## Gradient range [-0.0001281966,0.000115113]
+## (score 695.9045 &amp; scale 0.9504511).
+## Hessian positive definite, eigenvalue range [0.00001544762,220.5864].
+## Model rank =  269 / 269 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                               k&#39;     edf k-index p-value
-## s(time_slice)              2.000   0.974    0.96    0.51
-## s(wind_speed,distance_m)  71.000   1.468    1.01    0.91
-## s(field,xy)              192.000  87.081      NA      NA</code></pre>
+##                        k&#39;     edf k-index p-value  
+## s(time_slice)       2.000   0.978    0.91   0.325  
+## s(degree_dif_sin)  71.000   1.658    0.84   0.035 *
+## s(distance_m)       3.000   0.808    1.03   0.955  
+## s(field,xy)       192.000  84.401      NA      NA  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Negative Binomial(2.483) 
+## Family: Tweedie(p=1.504) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(wind_speed, distance_m, k = 72) + 
-##     s(field, xy, bs = &quot;re&quot;)
+## spore_cm2 ~ s(time_slice, k = 3) + s(degree_dif_sin, k = 72) + 
+##     s(distance_m, k = 4) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value            Pr(&gt;|z|)    
-## (Intercept)   2.1867     0.1869    11.7 &lt;0.0000000000000002 ***
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   0.6869     0.1799   3.819 0.000179 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq             p-value    
-## s(time_slice)             0.9742      2   37.69 &lt;0.0000000000000002 ***
-## s(wind_speed,distance_m)  1.4684     57 1175.98              0.0214 *  
-## s(field,xy)              87.0809     95 1259.43 &lt;0.0000000000000002 ***
+##                       edf Ref.df      F             p-value    
+## s(time_slice)      0.9780      2  22.39 &lt;0.0000000000000002 ***
+## s(degree_dif_sin)  1.6581     69  16.34              0.0591 .  
+## s(distance_m)      0.8082      3 677.92              0.0239 *  
+## s(field,xy)       84.4006     95  13.99 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.735   Deviance explained = 89.2%
-## -REML = 1073.9  Scale est. = 1         n = 288</code></pre>
+## R-sq.(adj) =  0.785   Deviance explained = 89.6%
+## -REML =  695.9  Scale est. = 0.95045   n = 288</code></pre>
 <pre class="r"><code>vis.gam(m1,
         theta = 50,
         ticktype = &quot;detailed&quot;,
@@ -557,7 +566,7 @@ m1 &lt;- gam(
 <pre class="r"><code>vis.gam(
   m1,
   theta = 50,
-  view = c(&quot;wind_speed&quot;, &quot;distance_m&quot;),
+  view = c(&quot;degree_dif_sin&quot;, &quot;distance_m&quot;),
   ticktype = &quot;detailed&quot;,
   main = &quot;Wind speed and distance from field&quot;
 )</code></pre>
@@ -571,7 +580,7 @@ m1 &lt;- gam(
   main = &quot;Random Effects&quot;
 )</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
-<p>The model fully converged after 8 iterations. All of the predictive
+<p>The model fully converged after 11 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.05 and the
 smoothed predictors indicate a good fit with residuals being randomly
 distributed and enough basis functions for them to be properly fit. The
@@ -602,8 +611,8 @@ predictions</h3>
 
 newd &lt;- expand_grid(
   time_slice = unique(mod_dat$time_slice),
+  degree_dif_sin = unique(mod_dat$degree_dif_sin),
   distance_m = unique(mod_dat$distance_m),
-  wind_speed = seq(from = 0, to = 10, by = 0.5),
   xy = unique(mod_dat$xy),
   field = 1
 )
@@ -634,6 +643,22 @@ predictions</code></pre>
   h = 2,
   scale = 1.2
 )</code></pre>
+</div>
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<p>Screenshot of Ben Bolker’s Toot on fedscience.org regarding
+constructing a linear model with compass directions as predictor
+variables and how to handle this in the model.</p>
+<div class="float">
+<img src="images/BBolker_Toot.png"
+alt="“At a quick skim this looks like it’s mostly about circular response variables. In case this hasn’t occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors … (or more precisely sin(2pidir/360) etc. if your directions are in degrees …)”" />
+<div class="figcaption">“At a quick skim this looks like it’s mostly
+about circular <em>response</em> variables. In case this hasn’t occurred
+to you already, I think the simplest thing will be to use
+sin(direction), cos(direction) as predictors … (or more precisely
+sin(2<em>pi</em>dir/360) etc. if your directions are in degrees
+…)”</div>
 </div>
 </div>
 
