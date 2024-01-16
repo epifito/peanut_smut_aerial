@@ -54,7 +54,7 @@ spore_data <- read_csv(
 Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
-```{r summarise-spore-data, eval=FALSE}
+```{r summarise-spore-data}
 spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%

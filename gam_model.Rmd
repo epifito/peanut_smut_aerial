@@ -102,7 +102,7 @@ mod_dat$wind_sin <- sin(2 * pi * mod_dat$wind_degrees / 360)
 m1 <-
   gam(
     n_spore ~ s(time_slice, k = 3) +
-      s(distance_m, wind_sin, k = 20) +
+      s(distance_m, wind_sin, k = 22) +
       s(field, xy, bs = "re"),
     data = mod_dat,
     select = TRUE,
