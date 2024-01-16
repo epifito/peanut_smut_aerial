@@ -54,11 +54,11 @@ spore_data <- read_csv(
 Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
-```{r summarise-spore-data}
+```{r summarise-spore-data, eval=FALSE}
 spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%
-  summarise(spore_cm2 = mean(n_spore) / 1.2)
+  summarise(n_spore = sum(n_spore))
 
 spore_data
 ```
@@ -227,43 +227,7 @@ wind_speed <-
   .id = "time_slice")
 ```
 
-
-```{r bin-time-slices-wind_degrees, eval=TRUE}
-wind_degrees_90 <-
-  m %>%
-  filter(time_slice == 90) %>%
-  group_by(field) %>%
-  summarise(wind_degrees = circular.averaging(wind_degrees))
-
-wind_degrees_180 <-
-  m %>%
-  filter(time_slice == 90 | time_slice == 180) %>%
-  group_by(field) %>%
-  summarise(wind_degrees = circular.averaging(wind_degrees))
-
-wind_degrees_270 <-
-  m %>%
-  group_by(field) %>%
-  summarise(wind_degrees = circular.averaging(wind_degrees))
-
-wind_degrees <-
-  bind_rows(list(
-    "90" = wind_degrees_90,
-    "180" = wind_degrees_180,
-    "270" = wind_degrees_270
-  ),
-  .id = "time_slice")
-
-meteo_data <-
-  rh %>%
-  left_join(temp, by = c("field", "time_slice")) %>%
-  left_join(wind_speed, by = c("field", "time_slice")) %>%
-  left_join(wind_degrees, by = c("field", "time_slice")) %>%
-  mutate(time_slice = as.numeric(time_slice)) %>%
-  arrange(field, time_slice)
-```
-
-```{r meteo_data_JUAN}
+```{r create-meteo-data, eval=TRUE}
 meteo_data <- m %>%
   mutate(time_slice = 270) %>%
   rbind(mutate(filter(., minute_lap <= 180), time_slice = 180)) %>%
@@ -309,7 +273,7 @@ coords_df <- mod_dat %>%
   ungroup() %>%
   distinct(trap_degrees, distance_m, x, y) %>%
   mutate_at(vars(x, y), list(~ round(., 1))) %>%
-  arrange(trap_degrees) # %>% print(n = Inf)
+  arrange(trap_degrees)
 
 coords_df %>%
   ggplot() +

@@ -84,7 +84,7 @@ mod_dat %>% # str
          wind_degrees,
          wind_speed,
          distance_m,
-         spore_cm2) %>%
+         n_spore) %>%
   print(n = Inf)
 ```
 
@@ -96,17 +96,17 @@ mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 # create predictor degree diff as per Ben Bolker for circular predictors,
 # https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
-mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
+mod_dat$wind_sin <- sin(2 * pi * mod_dat$wind_degrees / 360)
 
 m1 <- gam(
-  spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif_sin, k = 72) +
+  n_spore ~ s(time_slice, k = 3) +
+    s(wind_sin, k = 11) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
   select = TRUE,
   method = "REML",
-  family = tw()
+  family = poisson()
 )
 ```
 
@@ -124,13 +124,13 @@ summary(m1)
 vis.gam(m1,
         theta = 50,
         ticktype = "detailed",
-        main = "Time slice and wind speed")
+        main = "Time slice and wind direction (sin)")
 vis.gam(
   m1,
   theta = 50,
-  view = c("degree_dif_sin", "distance_m"),
+  view = c("wind_sin", "distance_m"),
   ticktype = "detailed",
-  main = "Wind speed and distance from field"
+  main = "Wind direction (sin) and distance from field"
 )
 vis.gam(
   m1,
@@ -140,14 +140,15 @@ vis.gam(
   ticktype = "detailed",
   main = "Random Effects"
 )
+draw(m1)
 ```
 
-The model fully converged after 11 iterations.
-All of the predictive factors included were significant at *P* \> 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
-The Q-Q plot generally falls along the line indicating a sufficient fit.
-There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
-The response versus fitted values clusters nicely around the 1:1 line.
-In all, this model looks to explain the spore dispersal data very well.
+The model fully converged after 21 iterations.
+All of the predictive factors included were significant at *P* \> 0.05.
+
+Presumably due to the large number of outliers in the original data set, the residual plots show some patterns and the QQ-plot for the random effects indicate some issues with extreme values.
+However, the `gam.check()` seems satisfactory and the adjusted R-squared value is 0.811.
+In all, this model looks to explain the spore dispersal data well enough for this data set.
 
 #### Check for autocorrelation
 
@@ -189,13 +190,13 @@ dist <- seq(100, 400, by = 100)
 
 newd <- expand_grid(
   time_slice = unique(mod_dat$time_slice),
-  degree_dif_sin = unique(mod_dat$degree_dif_sin),
+  wind_sin = unique(mod_dat$wind_sin),
   distance_m = unique(mod_dat$distance_m),
   xy = unique(mod_dat$xy),
   field = 1
 )
 
-newd$pred_spore_cm2 <-
+newd$pred_n_spore <-
   predict(
     object = m1,
     newd,
@@ -209,17 +210,17 @@ Visualize the spore dispersal predictions for traps at 100 m, 200 m, 300 m, 400 
 ```{r graph-predictions}
 predictions <-
   newd %>%
-  ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
+  ggplot(aes(x = as.factor(distance_m), y = pred_n_spore)) +
   geom_boxplot() +
   labs(x = "Distance from harvesting field (m)",
-       y = "Predicted Spores / cm²")
+       y = "Predicted Spores (n)")
 
 predictions
 ```
 
 ```{r save-prediction-graph, eval=FALSE}
 ggsave(
-  last_plot(),
+  predictions,
   file = "plots_manuscript/spore_prediction.png",
   w = 5,
   h = 2,
@@ -229,6 +230,6 @@ ggsave(
 
 ## Appendix
 
-Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
+Screenshot of Ben Bolker's Toot on fediscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
 
 !["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](images/BBolker_Toot.png)
