@@ -34,6 +34,7 @@ library("ggpubr")
 library("gratia")
 library("here")
 library("mgcv")
+library("DHARMa")
 theme_set(theme_pubclean())
 ```
 
@@ -88,7 +89,7 @@ mod_dat %>% # str
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following GAM best fit the data with the smoothed time slice variables, s(`time_slice`); a smoothed term for both wind-speed and the traps' distance from the harvest field in meters, s(`wind_speed, distance_m`); and the field and traps themselves as a smoothed term random effect, s(`field`, `xy`) using a negative binomial family.
+Based on the use of AIC to evaluate model fit to the data, the following GAM best fit the data with the smoothed time slice variables, s(`time_slice`); a smoothed term for the direction from which the wind came using sin to transform the degrees, `s(wind_sin)`; a smoothed term for the distance of the traps from the field, `s(distance_m)` and the field and traps themselves as a smoothed term random effect, `s(field`, `xy`) using a negative binomial family.
 
 ```{r fit-m1, eval=TRUE}
 # create a factor for the trap locations in Cartesian coords to be used as a random effect
@@ -98,22 +99,22 @@ mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 # https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
 mod_dat$wind_sin <- sin(2 * pi * mod_dat$wind_degrees / 360)
 
-m1 <- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(wind_sin, k = 11) +
-    s(distance_m, k = 4) +
-    s(field, xy, bs = "re"),
-  data = mod_dat,
-  select = TRUE,
-  method = "REML",
-  family = poisson()
-)
+m1 <-
+  gam(
+    n_spore ~ s(time_slice, k = 3) +
+      s(distance_m, wind_sin, k = 20) +
+      s(field, xy, bs = "re"),
+    data = mod_dat,
+    select = TRUE,
+    method = "REML",
+    family = nb()
+  )
 ```
 
 ### Inspect Model m1
 
 ```{r inspect-m1}
-m1
+summary(m1)
 ```
 
 #### Check model m1
@@ -141,13 +142,16 @@ vis.gam(
   main = "Random Effects"
 )
 draw(m1)
+
+# check residuals using DHARMa
+simulateResiduals(m1, plot = TRUE)
 ```
 
 The model fully converged after 21 iterations.
 All of the predictive factors included were significant at *P* \> 0.05.
 
-Presumably due to the large number of outliers in the original data set, the residual plots show some patterns and the QQ-plot for the random effects indicate some issues with extreme values.
-However, the `gam.check()` seems satisfactory and the adjusted R-squared value is 0.811.
+
+
 In all, this model looks to explain the spore dispersal data well enough for this data set.
 
 #### Check for autocorrelation
@@ -191,6 +195,7 @@ dist <- seq(100, 400, by = 100)
 newd <- expand_grid(
   time_slice = unique(mod_dat$time_slice),
   wind_sin = unique(mod_dat$wind_sin),
+  wind_speed = seq(from = 0.5, to = 8, by = 0.5),
   distance_m = unique(mod_dat$distance_m),
   xy = unique(mod_dat$xy),
   field = 1
