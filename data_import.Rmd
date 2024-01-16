@@ -51,7 +51,7 @@ spore_data <- read_csv(
 )
 ```
 
-Summarise the spore data into the mean number of spores per centimeter squared combining the traps' samples and sub-subsamples.
+Summarise the spore data into the total number of spores collected in each field at each time slice at each trap by combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
 ```{r summarise-spore-data}
@@ -65,7 +65,7 @@ spore_data
 
 ### Weather data
 
-Import weather data, filter unused data, convert to SI units and inspect the resulting data.
+Import weather data, filter unused data, convert from kilometers per hour to meters per second and inspect the resulting data.
 
 ```{r meteo-data}
 meteo_data <- read_csv(here("data/wind.csv"),
