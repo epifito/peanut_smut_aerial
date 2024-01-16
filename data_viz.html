@@ -13,7 +13,7 @@
 
 <title>Visualise data</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/simplex.min.css" rel="stylesheet" />
@@ -435,67 +435,82 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
 <div id="plot-spore-count-densities" class="section level3">
 <h3>Plot spore count densities</h3>
 <p>Create a density plot of the observed spore dispersal values.</p>
-<pre class="r"><code>ggplot(mod_dat, aes(y = spore_cm2)) +
+<pre class="r"><code>ggplot(mod_dat, aes(y = n_spore)) +
   geom_density()</code></pre>
 <p><img src="data_viz_files/figure-html/spore-kernel-density-1.png" width="60%" /></p>
 <p>Create a scatter plot and use <code>stat_smooth()</code> to fit a
 line.</p>
 <pre class="r"><code>spore_dot_density_by_distance &lt;- mod_dat %&gt;%
-  ggplot(aes(x = distance_m, y = spore_cm2)) +
+  ggplot(aes(x = distance_m, y = n_spore)) +
   geom_point() +
   scale_fill_viridis_c() +
-  geom_smooth(col = &quot;grey50&quot;,
-              method = &quot;gam&quot;,
-              formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)) +
-  labs(y = expression(Spores / cm ^ {
-    2
-  }),
+  geom_smooth(
+    col = &quot;grey50&quot;,
+    method = &quot;gam&quot;,
+    formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)
+  ) +
+  labs(y = &quot;Spores (n)&quot;,
   x = &quot;Distance (m)&quot;) +
   facet_grid(. ~ time_slice)
 spore_dot_density_by_distance</code></pre>
 <p><img src="data_viz_files/figure-html/spore-dot-density-by-distance-1.png" width="60%" /></p>
-<p>Create a violin plot showing spore distribution at the four
+<p>Create box plots showing spore distribution at the four
 distances.</p>
 <pre class="r"><code>ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
-         y = spore_cm2,
+         y = n_spore,
+       )) +
+  geom_boxplot() +
+  scale_fill_viridis_d() +
+  scale_colour_viridis_d() +
+  labs(y = &quot;Spores (n)&quot;,
+       x = &quot;Distance (m)&quot;)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
+<pre class="r"><code>ggplot(mod_dat,
+       aes(
+         x = as.factor(distance_m),
+         y = n_spore,
          colour = field,
          fill = field
        )) +
-  geom_violin() +
+  geom_boxplot() +
   scale_fill_viridis_d() +
   scale_colour_viridis_d() +
-  labs(y = expression(Spores/cm^{2}),
-       x = &quot;Distance (m)&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
+  labs(y = &quot;Spores (n)&quot;,
+       x = &quot;Distance (m)&quot;) +
+  facet_grid(. ~ field)</code></pre>
+<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-by-field-1.png" width="60%" /></p>
 <p>Create a point plot showing spore density distribution over distance
 for each field.</p>
 <pre class="r"><code>ggplot(data = mod_dat,
        aes(x = distance_m,
-           y = spore_cm2,
-           size = spore_cm2,
+           y = n_spore,
+           size = n_spore,
            colour = field)) +
   geom_point(alpha = 0.75) +
   scale_size(
     range = c(0.25, 6),
-    name = &quot;Smut Spores/m²&quot;,
+    name = &quot;Smut Spores (n)&quot;,
     breaks = seq(10, 300, by = 60)
   ) +
   scale_colour_viridis_d() +
-  labs(y = expression(Spores / cm^{2}),
+  labs(y = &quot;Spores (n)&quot;,
   x = &quot;Distance (m)&quot;) +
-  #facet_grid(. ~ field) +
   central_top_legend</code></pre>
 <p><img src="data_viz_files/figure-html/spore-distance-dispersal-1.png" width="60%" /></p>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
 <p>Create a hexbin plot to display the number of spores by wind speed
 and fit a smoothed line to these variables.</p>
-<pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = spore_cm2)) +
+<pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   scale_fill_viridis_c() +
   geom_hex() +
-  geom_smooth(col = &quot;grey50&quot;) +
+  geom_smooth(
+    col = &quot;grey50&quot;,
+    method = &quot;gam&quot;,
+    formula = y ~ s(x, bs = &quot;cs&quot;)
+  ) +
   labs(y = expression(Spores / cm ^ {
     2
   }),
@@ -517,8 +532,8 @@ do overlap.</p>
   aes(
     x = trap_degrees,
     y = distance_m,
-    colour = spore_cm2,
-    size = spore_cm2
+    colour = n_spore,
+    size = n_spore
   ) +
   facet_grid(time_slice ~ field) +
   coord_polar(theta = &quot;x&quot;,
@@ -527,7 +542,7 @@ do overlap.</p>
   geom_count(alpha = 0.55) +
   scale_colour_viridis_c(
     direction = -1,
-    name = &quot;Smut Spores/m²&quot;,
+    name = &quot;Smut Spores (n)&quot;,
     guide = &quot;legend&quot;,
     breaks = seq(10, 300, by = 60),
     begin = 0,
@@ -535,7 +550,7 @@ do overlap.</p>
   ) +
   scale_size(
     range = c(0.25, 6),
-    name = &quot;Smut Spores/m²&quot;,
+    name = &quot;Smut Spores (n)&quot;,
     breaks = seq(10, 300, by = 60)
   ) +
   scale_x_continuous(
@@ -619,7 +634,7 @@ field.</p>
                              `5` = &quot;Field 5&quot;,
                              `6` = &quot;Field 6&quot;))
 smoothed_dispersal &lt;- mod_dat %&gt;%
-  ggplot(aes(x = distance_m, y = spore_cm2)) +
+  ggplot(aes(x = distance_m, y = n_spore)) +
   geom_point(size = 1.5) +
   stat_summary(fun = &quot;median&quot;,
                geom = &quot;line&quot;,
@@ -634,7 +649,7 @@ smoothed_dispersal &lt;- mod_dat %&gt;%
   facet_grid(. ~ field, labeller = field_names) +
   labs(col = &quot;Prevailing wind&quot;,
        x = &quot;Distance from harvesting field (m)&quot;,
-       y = &quot;Smut spores / m² at trap&quot;)
+       y = &quot;Smut spores (n) at trap&quot;)
 smoothed_dispersal</code></pre>
 <p><img src="data_viz_files/figure-html/smoothed-dispersal-1.png" width="60%" /></p>
 </div>
@@ -642,7 +657,7 @@ smoothed_dispersal</code></pre>
 <h2>Spore type frequency</h2>
 <pre class="r"><code>dat_spore_type &lt;- read_csv(here(&quot;data/spore_type.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_type)</code></pre>
-<pre><code>## # A tibble: 6 × 4
+<pre><code>## # A tibble: 6 x 4
 ##   meter   rep spore_nuclei count
 ##   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
 ## 1   100     1            1     3
@@ -688,7 +703,7 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
 <h2>Spore size</h2>
 <pre class="r"><code>dat_spore_size &lt;- read_csv(here(&quot;data/spore_size.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_size)</code></pre>
-<pre><code>## # A tibble: 6 × 4
+<pre><code>## # A tibble: 6 x 4
 ##   image_id spore_type    d1    d2
 ##   &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
 ## 1 36                1  19.6  20.3
@@ -707,7 +722,7 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
   mutate(across(where(is.numeric), round, 1))
 
 med_spore_size</code></pre>
-<pre><code>## # A tibble: 5 × 3
+<pre><code>## # A tibble: 5 x 3
 ##   spore_type  mean    sd
 ##   &lt;fct&gt;      &lt;dbl&gt; &lt;dbl&gt;
 ## 1 1           18.6   1  

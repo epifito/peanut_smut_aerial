@@ -83,28 +83,30 @@ mod_dat %>% # str
          degree_dif,
          wind_degrees,
          wind_speed,
-         distance_m) %>%
+         distance_m,
+         n_spore) %>%
   print(n = Inf)
 ```
 
-Based on the use of AIC to evaluate model fit to the data, the following model best fit the data with the smoothed time slice variables, `time_slice`; the wind direction in relation to the traps' placement around the field in terms of degrees, *i.e.* 0--360˚, `degree_dif`; the traps' distance from the harvest field in meters, `distance_m`; and the field and traps themselves as a smoothed term random effect, `field` and `xy`.
+Based on the use of AIC to evaluate model fit to the data, the following GAM best fit the data with the smoothed time slice variables, s(`time_slice`); a smoothed term for both wind-speed and the traps' distance from the harvest field in meters, s(`wind_speed, distance_m`); and the field and traps themselves as a smoothed term random effect, s(`field`, `xy`) using a negative binomial family.
 
 ```{r fit-m1, eval=TRUE}
+# create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 # create predictor degree diff as per Ben Bolker for circular predictors,
 # https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
-mod_dat$degree_dif_sin <- sin(2 * pi * mod_dat$degree_dif / 360)
+mod_dat$wind_sin <- sin(2 * pi * mod_dat$wind_degrees / 360)
 
 m1 <- gam(
-  spore_cm2 ~ s(time_slice, k = 3) +
-    s(degree_dif_sin, k = 72) +
+  n_spore ~ s(time_slice, k = 3) +
+    s(wind_sin, k = 11) +
     s(distance_m, k = 4) +
     s(field, xy, bs = "re"),
   data = mod_dat,
   select = TRUE,
   method = "REML",
-  family = "tw"
+  family = poisson()
 )
 ```
 
@@ -119,15 +121,34 @@ m1
 ```{r gam-check-m1}
 gam.check(m1)
 summary(m1)
-vis.gam(m1, theta = 50, ticktype = "detailed")
+vis.gam(m1,
+        theta = 50,
+        ticktype = "detailed",
+        main = "Time slice and wind direction (sin)")
+vis.gam(
+  m1,
+  theta = 50,
+  view = c("wind_sin", "distance_m"),
+  ticktype = "detailed",
+  main = "Wind direction (sin) and distance from field"
+)
+vis.gam(
+  m1,
+  theta = 45,
+  phi = 45,
+  view = c("field", "xy"),
+  ticktype = "detailed",
+  main = "Random Effects"
+)
+draw(m1)
 ```
 
-The model fully converged after 11 iterations.
-All of the predictive factors included were significant at *P* \> 0.05 and the smoothed predictors indicate a good fit with residuals being randomly distributed and enough basis functions for them to be properly fit.
-The Q-Q plot generally falls along the line indicating a sufficient fit.
-There is a bit of a pattern in the residual vs linear predictors but the histogram of residuals is a nice bell-shape.
-The response versus fitted values clusters nicely around the 1:1 line.
-In all, this model looks to explain the spore dispersal data very well.
+The model fully converged after 21 iterations.
+All of the predictive factors included were significant at *P* \> 0.05.
+
+Presumably due to the large number of outliers in the original data set, the residual plots show some patterns and the QQ-plot for the random effects indicate some issues with extreme values.
+However, the `gam.check()` seems satisfactory and the adjusted R-squared value is 0.811.
+In all, this model looks to explain the spore dispersal data well enough for this data set.
 
 #### Check for autocorrelation
 
@@ -141,13 +162,8 @@ pacf(residuals(m1))
 This looks OK.
 There is no major pattern discernible in the ACF or PACF plots that show cause for concern.
 
-### Summarise and visualise model m1
-
-```{r appraise-m1, out.width = '100%', fig.height = 6}
-draw(m1)
-```
-
 ```{r save-m1-summary, eval=FALSE, echo=FALSE}
+appraise(m1)
 ggsave(
   last_plot(),
   file = here("plots_manuscript/model_summary.png"),
@@ -170,43 +186,41 @@ ggsave(
 ### Predict spore dispersal and visualise spore dispersal predictions
 
 ```{r predict, eval=TRUE}
-dist <- seq(0, 400, by = 100)
-
-# create x and y locations around centroid
-xy <- expand_grid(dist, dist)
-xy <- unite(data = xy, col = "xy")
+dist <- seq(100, 400, by = 100)
 
 newd <- expand_grid(
-  time_slice = c(90, 180, 270),
-  degree_dif_sin = seq(from = 1, to = 360, by = 2),
-  distance_m = dist,
-  wind_speed = seq(from = 0, to = 30, by = 2),
-  x = dist,
-  y = dist,
-  xy = xy$xy,
+  time_slice = unique(mod_dat$time_slice),
+  wind_sin = unique(mod_dat$wind_sin),
+  distance_m = unique(mod_dat$distance_m),
+  xy = unique(mod_dat$xy),
   field = 1
 )
-  
-newd$pred_spore_cm2 <- predict(m1, newd)
+
+newd$pred_n_spore <-
+  predict(
+    object = m1,
+    newd,
+    type = "response",
+    exclude = c("field", "xy")
+  )
 ```
 
-Visualize the spore dispersal predictions for traps at 0 m, 100 m, 200 m, 300 m, 400 m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
+Visualize the spore dispersal predictions for traps at 100 m, 200 m, 300 m, 400 m around the harvest field for sampling times at 90, 180 and 270 minutes after harvest started.
 
 ```{r graph-predictions}
 predictions <-
   newd %>%
-  mutate(pred_spore_cm2 = replace(pred_spore_cm2, pred_spore_cm2 < 0, 0)) %>%
-  ggplot(aes(x = as.factor(distance_m), y = pred_spore_cm2)) +
-  geom_violin() +
+  ggplot(aes(x = as.factor(distance_m), y = pred_n_spore)) +
+  geom_boxplot() +
   labs(x = "Distance from harvesting field (m)",
-       y = "Predicted Spores / cm²")
+       y = "Predicted Spores (n)")
 
 predictions
 ```
 
 ```{r save-prediction-graph, eval=FALSE}
 ggsave(
-  last_plot(),
+  predictions,
   file = "plots_manuscript/spore_prediction.png",
   w = 5,
   h = 2,
@@ -216,6 +230,6 @@ ggsave(
 
 ## Appendix
 
-Screenshot of Ben Bolker's Toot on fedscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
+Screenshot of Ben Bolker's Toot on fediscience.org regarding constructing a linear model with compass directions as predictor variables and how to handle this in the model.
 
 !["At a quick skim this looks like it's mostly about circular *response* variables. In case this hasn't occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors ... (or more precisely sin(2*pi*dir/360) etc. if your directions are in degrees ...)"](images/BBolker_Toot.png)
