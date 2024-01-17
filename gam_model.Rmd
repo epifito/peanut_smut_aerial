@@ -59,7 +59,7 @@ x <- read_csv(here("data/spore_type.csv"),
   summarise(n = sum(count), .groups = 'drop') %>%
   spread(spore_nuclei, n) %>%
   column_to_rownames('meter') %>%
-  chisq.test(simulate.p.value = TRUE) 
+  chisq.test(simulate.p.value = TRUE)
 ```
 
 The major spore type spread expected was the individual spore having a smaller spore size (18.8 µm); however, no statistical differences were recorded in spore type proportion at 100 m to 400 m downwind (P = `r x$p.value`, X-squared = `r x$statistic`).
@@ -73,9 +73,11 @@ The major spore type spread expected was the individual spore having a smaller s
 ```{r load-data}
 load(here("data/mod_dat.Rdata"))
 
-sdp_dat <- read_csv(here("data/sdp_data.csv"),
-                    show_col_types = FALSE,
-                    col_types = list(field = col_factor())) %>%
+sdp_dat <- read_csv(
+  here("data/sdp_data.csv"),
+  show_col_types = FALSE,
+  col_types = list(field = col_factor())
+) %>%
   arrange(field) %>%
   select(field, inc, SDP, DSI) %>%
   mutate(field = as.factor(field))
@@ -83,7 +85,7 @@ sdp_dat <- read_csv(here("data/sdp_data.csv"),
 # summarise SDP index by field and create a binomial variable w/ cutoff @ 5 ----
 
 ps_inc <-
-  sdp_dat %>% 
+  sdp_dat %>%
   group_by(field) %>%
   summarise(SDP = mean(SDP))
 
@@ -95,14 +97,16 @@ mod_dat <- left_join(mod_dat, ps_inc, by = c("field"))
 ```{r inspect-mod-dat}
 mod_dat %>% # str
   distinct(field, trap_coord, .keep_all = TRUE) %>%
-  select(trap_coord,
-         trap_degrees,
-         degree_dif,
-         wind_degrees,
-         wind_speed,
-         distance_m,
-         SDP,
-         n_spore) %>%
+  select(
+    trap_coord,
+    trap_degrees,
+    degree_dif,
+    wind_degrees,
+    wind_speed,
+    distance_m,
+    SDP,
+    n_spore
+  ) %>%
   print(n = Inf)
 ```
 
@@ -180,9 +184,9 @@ This looks OK.
 There is no major pattern discernible in the ACF or PACF plots that show cause for concern.
 
 ```{r save-m1-summary, eval=FALSE, echo=FALSE}
-appraise(m1)
+appraise_m1 <- appraise(m1)
 ggsave(
-  last_plot(),
+  apraise_m1,
   file = here("plots_manuscript/model_summary.png"),
   width = 8,
   height = 5,
@@ -191,7 +195,7 @@ ggsave(
   scale = 3
 )
 ggsave(
-  last_plot(),
+  appraise_m1,
   file = here("plots_manuscript/model_summary.eps"),
   device = cairo_ps,
   fallback_resolution = 600,

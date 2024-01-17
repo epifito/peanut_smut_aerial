@@ -415,7 +415,7 @@ x &lt;- read_csv(here(&quot;data/spore_type.csv&quot;),
   summarise(n = sum(count), .groups = &#39;drop&#39;) %&gt;%
   spread(spore_nuclei, n) %&gt;%
   column_to_rownames(&#39;meter&#39;) %&gt;%
-  chisq.test(simulate.p.value = TRUE) </code></pre>
+  chisq.test(simulate.p.value = TRUE)</code></pre>
 <p>The major spore type spread expected was the individual spore having
 a smaller spore size (18.8 µm); however, no statistical differences were
 recorded in spore type proportion at 100 m to 400 m downwind (P =
@@ -428,9 +428,11 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 <h3>Load data</h3>
 <pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))
 
-sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
-                    show_col_types = FALSE,
-                    col_types = list(field = col_factor())) %&gt;%
+sdp_dat &lt;- read_csv(
+  here(&quot;data/sdp_data.csv&quot;),
+  show_col_types = FALSE,
+  col_types = list(field = col_factor())
+) %&gt;%
   arrange(field) %&gt;%
   select(field, inc, SDP, DSI) %&gt;%
   mutate(field = as.factor(field))
@@ -438,7 +440,7 @@ sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
 # summarise SDP index by field and create a binomial variable w/ cutoff @ 5 ----
 
 ps_inc &lt;-
-  sdp_dat %&gt;% 
+  sdp_dat %&gt;%
   group_by(field) %&gt;%
   summarise(SDP = mean(SDP))
 
@@ -448,16 +450,18 @@ mod_dat &lt;- left_join(mod_dat, ps_inc, by = c(&quot;field&quot;))</code></pre>
 <h3>Inspect the mod_dat object</h3>
 <pre class="r"><code>mod_dat %&gt;% # str
   distinct(field, trap_coord, .keep_all = TRUE) %&gt;%
-  select(trap_coord,
-         trap_degrees,
-         degree_dif,
-         wind_degrees,
-         wind_speed,
-         distance_m,
-         SDP,
-         n_spore) %&gt;%
+  select(
+    trap_coord,
+    trap_degrees,
+    degree_dif,
+    wind_degrees,
+    wind_speed,
+    distance_m,
+    SDP,
+    n_spore
+  ) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 x 9
+<pre><code>## # A tibble: 24 × 9
 ## # Groups:   field [6]
 ##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
@@ -485,7 +489,7 @@ mod_dat &lt;- left_join(mod_dat, ps_inc, by = c(&quot;field&quot;))</code></pre>
 ## 22 6     E                    90     87.8           2.16       7.57        100
 ## 23 6     W                   270    268.            2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100
-## # i 2 more variables: SDP &lt;dbl&gt;, n_spore &lt;dbl&gt;</code></pre>
+## # ℹ 2 more variables: SDP &lt;dbl&gt;, n_spore &lt;dbl&gt;</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following GAM best fit the data with the smoothed time slice variables,
 s(<code>time_slice</code>); a smoothed term for the the distance of the
@@ -520,17 +524,17 @@ m1 &lt;- gam(
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
+##             Estimate Std. Error z value            Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4980     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq             p-value    
+## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
+## s(distance_m,wind_speed)  1.4979     48 1221.93              0.0171 *  
+## s(SDP)                    0.7341      5  620.54              0.0576 .  
+## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -543,9 +547,9 @@ m1 &lt;- gam(
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 11 iterations.
-## Gradient range [-0.0002416798,0.0002309939]
+## Gradient range [-0.0002346422,0.0002243924]
 ## (score 1073.208 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [5.501528e-06,53.4399].
+## Hessian positive definite, eigenvalue range [0.000005514403,53.4399].
 ## Model rank =  249 / 249 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
@@ -566,17 +570,17 @@ m1 &lt;- gam(
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
+##             Estimate Std. Error z value            Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4980     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq             p-value    
+## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
+## s(distance_m,wind_speed)  1.4979     48 1221.93              0.0171 *  
+## s(SDP)                    0.7341      5  620.54              0.0576 .  
+## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
