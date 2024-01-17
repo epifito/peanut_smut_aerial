@@ -413,22 +413,38 @@ class="section level2">
   col_types = list(field = col_factor(),
                    trap_coord = col_factor())
 )</code></pre>
-<p>Summarise the spore data into the mean number of spores per
-centimeter squared combining the traps’ samples and sub-subsamples.
-We’ll keep the <code>field</code> col to join the weather data and the
-<code>trap_coord</code> col here for joining with another data frame
-that has the cardinal directions in it for further analysis.</p>
+<p>Summarise the spore data into the total number of spores collected in
+each field at each time slice at each trap by combining the traps’
+samples and sub-subsamples. We’ll keep the <code>field</code> col to
+join the weather data and the <code>trap_coord</code> col here for
+joining with another data frame that has the cardinal directions in it
+for further analysis.</p>
 <pre class="r"><code>spore_data &lt;-
   spore_data %&gt;%
   group_by(field, trap_coord, distance_m, time_min) %&gt;%
   summarise(n_spore = sum(n_spore))
 
 spore_data</code></pre>
+<pre><code>## # A tibble: 288 × 5
+## # Groups:   field, trap_coord, distance_m [96]
+##    field trap_coord distance_m time_min n_spore
+##    &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+##  1 1     N                 100       90       2
+##  2 1     N                 100      180       4
+##  3 1     N                 100      270       3
+##  4 1     N                 200       90       2
+##  5 1     N                 200      180       3
+##  6 1     N                 200      270      14
+##  7 1     N                 300       90       1
+##  8 1     N                 300      180       0
+##  9 1     N                 300      270       0
+## 10 1     N                 400       90       1
+## # ℹ 278 more rows</code></pre>
 </div>
 <div id="weather-data" class="section level3">
 <h3>Weather data</h3>
-<p>Import weather data, filter unused data, convert to SI units and
-inspect the resulting data.</p>
+<p>Import weather data, filter unused data, convert from kilometers per
+hour to meters per second and inspect the resulting data.</p>
 <pre class="r"><code>meteo_data &lt;- read_csv(here(&quot;data/wind.csv&quot;),
                        col_types = list(field = col_factor()))
 
@@ -439,7 +455,7 @@ meteo_data &lt;-
   mutate(wind_speed = wind_speed * 0.2777778)
 
 meteo_data</code></pre>
-<pre><code>## # A tibble: 330 x 6
+<pre><code>## # A tibble: 330 × 6
 ##    field minute_lap rel_hum  temp wind_speed wind_dir
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;   
 ##  1 1              0      65  16        1.72  E       
@@ -452,7 +468,7 @@ meteo_data</code></pre>
 ##  8 1             35      65  19.5      0.611 E       
 ##  9 1             40      65  19.5      1.17  E       
 ## 10 1             45      65  19.7      0.333 NE      
-## # i 320 more rows</code></pre>
+## # ℹ 320 more rows</code></pre>
 </div>
 <div id="data-prep-for-analysis" class="section level3">
 <h3>Data prep for analysis</h3>
@@ -514,7 +530,7 @@ degrees here.</p>
              TRUE ~ 270
            ))
 m</code></pre>
-<pre><code>## # A tibble: 330 x 8
+<pre><code>## # A tibble: 330 × 8
 ##    field minute_lap rel_hum  temp wind_speed wind_dir wind_degrees time_slice
 ##    &lt;fct&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt;
 ##  1 1              0      65  16        1.72  E                  90         90
@@ -527,7 +543,7 @@ m</code></pre>
 ##  8 1             35      65  19.5      0.611 E                  90         90
 ##  9 1             40      65  19.5      1.17  E                  90         90
 ## 10 1             45      65  19.7      0.333 NE                 45         90
-## # i 320 more rows</code></pre>
+## # ℹ 320 more rows</code></pre>
 <pre class="r"><code>rh_90 &lt;-
   m %&gt;%
   filter(time_slice == 90) %&gt;%

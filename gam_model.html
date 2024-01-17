@@ -396,6 +396,7 @@ library(&quot;ggpubr&quot;)
 library(&quot;gratia&quot;)
 library(&quot;here&quot;)
 library(&quot;mgcv&quot;)
+library(&quot;DHARMa&quot;)
 theme_set(theme_pubclean())</code></pre>
 </div>
 <div id="spore-proportion-chi-squared-analysis" class="section level2">
@@ -472,10 +473,11 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 ## # i 1 more variable: n_spore &lt;dbl&gt;</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following GAM best fit the data with the smoothed time slice variables,
-s(<code>time_slice</code>); a smoothed term for both wind-speed and the
-traps’ distance from the harvest field in meters,
-s(<code>wind_speed, distance_m</code>); and the field and traps
-themselves as a smoothed term random effect, s(<code>field</code>,
+s(<code>time_slice</code>); a smoothed term for the direction from which
+the wind came using sin to transform the degrees,
+<code>s(wind_sin)</code>; a smoothed term for the distance of the traps
+from the field, <code>s(distance_m)</code> and the field and traps
+themselves as a smoothed term random effect, <code>s(field</code>,
 <code>xy</code>) using a negative binomial family.</p>
 <pre class="r"><code># create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
@@ -484,91 +486,99 @@ mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 # https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
 mod_dat$wind_sin &lt;- sin(2 * pi * mod_dat$wind_degrees / 360)
 
-m1 &lt;- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(wind_sin, k = 11) +
-    s(distance_m, k = 4) +
-    s(field, xy, bs = &quot;re&quot;),
-  data = mod_dat,
-  select = TRUE,
-  method = &quot;REML&quot;,
-  family = poisson()
-)</code></pre>
+m1 &lt;-
+  gam(
+    n_spore ~ s(time_slice, k = 3) +
+      s(distance_m, wind_sin, k = 20) +
+      s(field, xy, bs = &quot;re&quot;),
+    data = mod_dat,
+    select = TRUE,
+    method = &quot;REML&quot;,
+    family = nb()
+  )</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
-<pre class="r"><code>m1</code></pre>
+<pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: poisson 
+## Family: Negative Binomial(2.457) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(wind_sin, k = 11) + s(distance_m, 
-##     k = 4) + s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_sin, k = 20) + 
+##     s(field, xy, bs = &quot;re&quot;)
 ## 
-## Estimated degrees of freedom:
-##  0.998  9.818  0.786 89.622  total = 102.23 
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    2.188      0.188   11.64   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## REML score: 3645.489</code></pre>
+## Approximate significance of smooth terms:
+##                           edf Ref.df  Chi.sq p-value    
+## s(time_slice)           0.974      2   39.12  &lt;2e-16 ***
+## s(distance_m,wind_sin)  1.284     19  661.20  0.0587 .  
+## s(field,xy)            87.291     95 1255.31  &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.724   Deviance explained = 89.1%
+## -REML = 1074.6  Scale est. = 1         n = 288</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 21 iterations.
-## Gradient range [-0.001809119,0.00166483]
-## (score 3645.489 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [2.250043e-05,39.75521].
-## Model rank =  208 / 208 
+## full convergence after 15 iterations.
+## Gradient range [-0.0004918117,0.0004595578]
+## (score 1074.569 &amp; scale 1).
+## Hessian positive definite, eigenvalue range [1.277384e-05,54.06819].
+## Model rank =  214 / 214 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                    k&#39;     edf k-index p-value  
-## s(time_slice)   2.000   0.998    0.97   0.310  
-## s(wind_sin)    10.000   9.818    0.97   0.335  
-## s(distance_m)   3.000   0.786    0.93   0.035 *
-## s(field,xy)   192.000  89.622      NA      NA  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+##                             k&#39;     edf k-index p-value
+## s(time_slice)            2.000   0.974    0.96    0.49
+## s(distance_m,wind_sin)  19.000   1.284    1.01    0.90
+## s(field,xy)            192.000  87.291      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: poisson 
+## Family: Negative Binomial(2.457) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(wind_sin, k = 11) + s(distance_m, 
-##     k = 4) + s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_sin, k = 20) + 
+##     s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   0.7591     0.1987   3.821 0.000133 ***
+## (Intercept)    2.188      0.188   11.64   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                   edf Ref.df  Chi.sq p-value    
-## s(time_slice)  0.9981      2    1022 &lt; 2e-16 ***
-## s(wind_sin)    9.8182     10 3433551 0.00267 ** 
-## s(distance_m)  0.7863      3 1724559 0.03716 *  
-## s(field,xy)   89.6224     95   10985 &lt; 2e-16 ***
+##                           edf Ref.df  Chi.sq p-value    
+## s(time_slice)           0.974      2   39.12  &lt;2e-16 ***
+## s(distance_m,wind_sin)  1.284     19  661.20  0.0587 .  
+## s(field,xy)            87.291     95 1255.31  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.811   Deviance explained = 87.9%
-## -REML = 3645.5  Scale est. = 1         n = 1152</code></pre>
+## R-sq.(adj) =  0.724   Deviance explained = 89.1%
+## -REML = 1074.6  Scale est. = 1         n = 288</code></pre>
 <pre class="r"><code>vis.gam(m1,
         theta = 50,
         ticktype = &quot;detailed&quot;,
-        main = &quot;Time slice and wind direction (sin)&quot;)</code></pre>
+        main = &quot;Time slice and distance from field (m)&quot;)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
 <pre class="r"><code>vis.gam(
   m1,
   theta = 50,
   view = c(&quot;wind_sin&quot;, &quot;distance_m&quot;),
   ticktype = &quot;detailed&quot;,
-  main = &quot;Wind direction (sin) and distance from field&quot;
+  main = &quot;Wind direction (sin) and distance from field (m)&quot;
 )</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-3.png" width="60%" /></p>
 <pre class="r"><code>vis.gam(
@@ -580,16 +590,31 @@ m1 &lt;- gam(
   main = &quot;Random Effects&quot;
 )</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
-<pre class="r"><code>draw(m1)</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-5.png" width="60%" /></p>
-<p>The model fully converged after 21 iterations. All of the predictive
-factors included were significant at <em>P</em> &gt; 0.05.</p>
-<p>Presumably due to the large number of outliers in the original data
-set, the residual plots show some patterns and the QQ-plot for the
-random effects indicate some issues with extreme values. However, the
-<code>gam.check()</code> seems satisfactory and the adjusted R-squared
-value is 0.811. In all, this model looks to explain the spore dispersal
-data well enough for this data set.</p>
+<pre class="r"><code>plot(m1)</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-5.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-6.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-7.png" width="60%" /></p>
+<pre class="r"><code># check residuals using DHARMa
+simulateResiduals(m1, plot = TRUE)</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-8.png" width="60%" /></p>
+<pre><code>## Object of Class DHARMa with simulated residuals based on 250 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
+##  
+## Scaled residual values: 0.4633615 0.3000682 0.8607595 0.5542709 0.4920175 0.2069774 0.7780646 0.8942653 0.3939137 0.1389491 0.92 0.8203044 0.6546127 0.832 0.1654141 0.03771617 0.7207261 0.3284755 0.2525638 0.6087267 ...</code></pre>
+<p>The model fully converged after 10 iterations. All of the predictive
+factors included were significant at <em>P</em> &gt; 0.1 and the model
+had an adjusted R2 value of 0.726.</p>
+<p>The <code>gam.check()</code> residuals show a slight pattern in the
+Residuals vs. linear predicted values, but this is to be expected with
+the zero values and negative binomial family, <code>nb()</code> that was
+used to fit the model. The QQ-plot appears to be reasonable as does the
+histogram of residuals, and Response vs Fitted Values. To further check
+the model’s fitness, there is a slight pattern in the DHARMa residuals,
+but nothing to worry about too much in a small data set like this while
+this QQ-plot and the associated tests all pass.</p>
+<p>The curvature of <code>distance_m</code> is a bit suspect, but
+without more data, nothing can be done, the model is appropriate for
+this data set but likely lacks explanatory power much beyond this
+set.</p>
+<p>In all, this model looks to explain the spore dispersal data well
+enough for this data set.</p>
 </div>
 <div id="check-for-autocorrelation" class="section level4">
 <h4>Check for autocorrelation</h4>
@@ -613,6 +638,7 @@ predictions</h3>
 newd &lt;- expand_grid(
   time_slice = unique(mod_dat$time_slice),
   wind_sin = unique(mod_dat$wind_sin),
+  wind_speed = seq(from = 0.5, to = 8, by = 0.5),
   distance_m = unique(mod_dat$distance_m),
   xy = unique(mod_dat$xy),
   field = 1
