@@ -404,11 +404,9 @@ theme_set(theme_pubclean())</code></pre>
 <p>Check if the spore type, number of nuclei, affects the dispersal.</p>
 <p>Using the default <code>chisq.test()</code> will result in a warning
 due to small expected values meaning that approximations of p may not be
-correct.</p>
-<pre class="r"><code>Warning message:
-In chisq.test(.) : Chi-squared approximation may be incorrect</code></pre>
-<p>Therefore, we will use Monte Carlo simulation to simulate p
-values.</p>
+correct.
+<code>Warning message: In chisq.test(.) : Chi-squared approximation may be incorrect</code>
+Therefore, we will use Monte Carlo simulation to simulate p values.</p>
 <p>(Manuscript’s section <code>Results/3.2</code>)</p>
 <pre class="r"><code>set.seed(3)
 x &lt;- read_csv(here(&quot;data/spore_type.csv&quot;),
@@ -428,7 +426,23 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 <p>(Manuscript’s section <code>Results/3.3</code>)</p>
 <div id="load-data" class="section level3">
 <h3>Load data</h3>
-<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))</code></pre>
+<pre class="r"><code>load(here(&quot;data/mod_dat.Rdata&quot;))
+
+sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
+                    show_col_types = FALSE,
+                    col_types = list(field = col_factor())) %&gt;%
+  arrange(field) %&gt;%
+  select(field, inc, SDP, DSI) %&gt;%
+  mutate(field = as.factor(field))
+
+# summarise SDP index by field and create a binomial variable w/ cutoff @ 5 ----
+
+ps_inc &lt;-
+  sdp_dat %&gt;% 
+  group_by(field) %&gt;%
+  summarise(SDP = mean(SDP))
+
+mod_dat &lt;- left_join(mod_dat, ps_inc, by = c(&quot;field&quot;))</code></pre>
 </div>
 <div id="inspect-the-mod_dat-object" class="section level3">
 <h3>Inspect the mod_dat object</h3>
@@ -440,9 +454,10 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
          wind_degrees,
          wind_speed,
          distance_m,
+         SDP,
          n_spore) %&gt;%
   print(n = Inf)</code></pre>
-<pre><code>## # A tibble: 24 x 8
+<pre><code>## # A tibble: 24 x 9
 ## # Groups:   field [6]
 ##    field trap_coord trap_degrees degree_dif wind_degrees wind_speed distance_m
 ##    &lt;fct&gt; &lt;chr&gt;             &lt;dbl&gt;      &lt;dbl&gt;        &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
@@ -470,149 +485,138 @@ recorded in spore type proportion at 100 m to 400 m downwind (P =
 ## 22 6     E                    90     87.8           2.16       7.57        100
 ## 23 6     W                   270    268.            2.16       7.57        100
 ## 24 6     S                   180    178.            2.16       7.57        100
-## # i 1 more variable: n_spore &lt;dbl&gt;</code></pre>
+## # i 2 more variables: SDP &lt;dbl&gt;, n_spore &lt;dbl&gt;</code></pre>
 <p>Based on the use of AIC to evaluate model fit to the data, the
 following GAM best fit the data with the smoothed time slice variables,
-s(<code>time_slice</code>); a smoothed term for the direction from which
-the wind came using sin to transform the degrees,
-<code>s(wind_sin)</code>; a smoothed term for the distance of the traps
-from the field, <code>s(distance_m)</code> and the field and traps
-themselves as a smoothed term random effect, <code>s(field</code>,
-<code>xy</code>) using a negative binomial family.</p>
+s(<code>time_slice</code>); a smoothed term for the the distance of the
+traps from the field and wind speed,
+<code>s(distance_m, wind_speed)</code>; a smoothed term for the severely
+damaged pods, <code>s(SDP)</code> and the field and traps themselves as
+a smoothed term random effect, <code>s(field</code>, <code>xy</code>)
+using a negative binomial family, <code>nb()</code>.</p>
 <pre class="r"><code># create a factor for the trap locations in Cartesian coords to be used as a random effect
 mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
-# create predictor degree diff as per Ben Bolker for circular predictors,
-# https://fediscience.org/@bbolker/110856805100981742, see Appendix for screenshot
-mod_dat$wind_sin &lt;- sin(2 * pi * mod_dat$wind_degrees / 360)
-
-m1 &lt;-
-  gam(
-    n_spore ~ s(time_slice, k = 3) +
-      s(distance_m, wind_sin, k = 20) +
-      s(field, xy, bs = &quot;re&quot;),
-    data = mod_dat,
-    select = TRUE,
-    method = &quot;REML&quot;,
-    family = nb()
-  )</code></pre>
+m1 &lt;- gam(
+  n_spore ~ s(time_slice, k = 3) +
+    s(distance_m, wind_speed, k = 50) +
+    s(SDP, k = 6) +
+    s(field, xy, bs = &quot;re&quot;),
+  data = mod_dat,
+  select = TRUE,
+  method = &quot;REML&quot;,
+  family = nb()
+)</code></pre>
 </div>
 <div id="inspect-model-m1" class="section level3">
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Negative Binomial(2.457) 
+## Family: Negative Binomial(2.483) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_sin, k = 20) + 
-##     s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_speed, k = 50) + 
+##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)    2.188      0.188   11.64   &lt;2e-16 ***
+## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                           edf Ref.df  Chi.sq p-value    
-## s(time_slice)           0.974      2   39.12  &lt;2e-16 ***
-## s(distance_m,wind_sin)  1.284     19  661.20  0.0587 .  
-## s(field,xy)            87.291     95 1255.31  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq p-value    
+## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
+## s(distance_m,wind_speed)  1.4980     48 1221.93  0.0171 *  
+## s(SDP)                    0.7341      5  620.54  0.0576 .  
+## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.724   Deviance explained = 89.1%
-## -REML = 1074.6  Scale est. = 1         n = 288</code></pre>
+## R-sq.(adj) =  0.739   Deviance explained = 89.2%
+## -REML = 1073.2  Scale est. = 1         n = 288</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-1.png" width="60%" /></p>
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
-## full convergence after 15 iterations.
-## Gradient range [-0.00049181,0.0004595562]
-## (score 1074.569 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [1.277385e-05,54.06819].
-## Model rank =  214 / 214 
+## full convergence after 11 iterations.
+## Gradient range [-0.0002416798,0.0002309939]
+## (score 1073.208 &amp; scale 1).
+## Hessian positive definite, eigenvalue range [5.501528e-06,53.4399].
+## Model rank =  249 / 249 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                             k&#39;     edf k-index p-value
-## s(time_slice)            2.000   0.974    0.96    0.49
-## s(distance_m,wind_sin)  19.000   1.284    1.01    0.90
-## s(field,xy)            192.000  87.291      NA      NA</code></pre>
+##                               k&#39;     edf k-index p-value
+## s(time_slice)              2.000   0.973    0.96    0.50
+## s(distance_m,wind_speed)  49.000   1.498    1.01    0.92
+## s(SDP)                     5.000   0.734    0.93    0.35
+## s(field,xy)              192.000  86.175      NA      NA</code></pre>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Negative Binomial(2.457) 
+## Family: Negative Binomial(2.483) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_sin, k = 20) + 
-##     s(field, xy, bs = &quot;re&quot;)
+## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_speed, k = 50) + 
+##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)    2.188      0.188   11.64   &lt;2e-16 ***
+## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                           edf Ref.df  Chi.sq p-value    
-## s(time_slice)           0.974      2   39.12  &lt;2e-16 ***
-## s(distance_m,wind_sin)  1.284     19  661.20  0.0587 .  
-## s(field,xy)            87.291     95 1255.31  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq p-value    
+## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
+## s(distance_m,wind_speed)  1.4980     48 1221.93  0.0171 *  
+## s(SDP)                    0.7341      5  620.54  0.0576 .  
+## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.724   Deviance explained = 89.1%
-## -REML = 1074.6  Scale est. = 1         n = 288</code></pre>
-<pre class="r"><code>vis.gam(m1,
-        theta = 50,
-        ticktype = &quot;detailed&quot;,
-        main = &quot;Time slice and distance from field (m)&quot;)</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
+## R-sq.(adj) =  0.739   Deviance explained = 89.2%
+## -REML = 1073.2  Scale est. = 1         n = 288</code></pre>
 <pre class="r"><code>vis.gam(
   m1,
   theta = 50,
-  view = c(&quot;wind_sin&quot;, &quot;distance_m&quot;),
+  view = c(&quot;time_slice&quot;, &quot;SDP&quot;),
   ticktype = &quot;detailed&quot;,
-  main = &quot;Wind direction (sin) and distance from field (m)&quot;
+  main = &quot;Time slice (minutes) and severely damaged pods (SDP)&quot;
 )</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-3.png" width="60%" /></p>
+<p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
 <pre class="r"><code>vis.gam(
   m1,
-  theta = 45,
-  phi = 45,
-  view = c(&quot;field&quot;, &quot;xy&quot;),
+  view = c(&quot;distance_m&quot;, &quot;wind_speed&quot;),
+  theta = 50,
   ticktype = &quot;detailed&quot;,
-  main = &quot;Random Effects&quot;
+  main = &quot;Trap distance from field (m) and wind speed (m/s)&quot;
 )</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
+<p><img src="gam_model_files/figure-html/gam-check-m1-3.png" width="60%" /></p>
 <pre class="r"><code>plot(m1)</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-5.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-6.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-7.png" width="60%" /></p>
+<p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-5.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-6.png" width="60%" /><img src="gam_model_files/figure-html/gam-check-m1-7.png" width="60%" /></p>
 <pre class="r"><code># check residuals using DHARMa
 simulateResiduals(m1, plot = TRUE)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-8.png" width="60%" /></p>
 <pre><code>## Object of Class DHARMa with simulated residuals based on 250 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
 ##  
-## Scaled residual values: 0.4633615 0.3000682 0.8607595 0.5542709 0.4920175 0.2069774 0.7780646 0.8942653 0.3939137 0.1389491 0.92 0.8203044 0.6546127 0.832 0.1654141 0.03771617 0.7207261 0.3284755 0.2525638 0.6087267 ...</code></pre>
-<p>The model fully converged after 10 iterations. All of the predictive
+## Scaled residual values: 0.5966348 0.326032 0.8509289 0.7496079 0.5238095 0.1691754 0.6283619 0.8696426 0.4010286 0.0693676 0.9301913 0.7374863 0.644 0.8741518 0.1604343 0.01793573 0.6495237 0.3167456 0.4143331 0.5420092 ...</code></pre>
+<p>The model fully converged after 11 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.1 and the model
 had an adjusted R2 value of 0.726.</p>
 <p>The <code>gam.check()</code> residuals show a slight pattern in the
 Residuals vs. linear predicted values, but this is to be expected with
-the zero values and negative binomial family, <code>nb()</code> that was
-used to fit the model. The QQ-plot appears to be reasonable as does the
-histogram of residuals, and Response vs Fitted Values. To further check
-the model’s fitness, there is a slight pattern in the DHARMa residuals,
-but nothing to worry about too much in a small data set like this while
-this QQ-plot and the associated tests all pass.</p>
-<p>The curvature of <code>distance_m</code> is a bit suspect, but
-without more data, nothing can be done, the model is appropriate for
-this data set but likely lacks explanatory power much beyond this
-set.</p>
+the zero values and negative binomial family, <code>nb()</code>, that
+was used to fit the model. The QQ-plot appears to be reasonable as does
+the histogram of residuals, and Response vs Fitted Values. To further
+check the model’s fitness, there is a slight pattern in the DHARMa
+residuals, but nothing to worry about too much in a small data set like
+this while this QQ-plot and the associated tests all pass.</p>
 <p>In all, this model looks to explain the spore dispersal data well
 enough for this data set.</p>
 </div>
@@ -636,9 +640,9 @@ predictions</h3>
 <pre class="r"><code>dist &lt;- seq(100, 400, by = 100)
 
 newd &lt;- expand_grid(
+  wind_speed = 1:10,
+  SDP = seq(from = 0.5, to = 10, by = 0.5),
   time_slice = unique(mod_dat$time_slice),
-  wind_sin = unique(mod_dat$wind_sin),
-  wind_speed = seq(from = 0.5, to = 8, by = 0.5),
   distance_m = unique(mod_dat$distance_m),
   xy = unique(mod_dat$xy),
   field = 1
@@ -670,22 +674,6 @@ predictions</code></pre>
   h = 2,
   scale = 1.2
 )</code></pre>
-</div>
-</div>
-<div id="appendix" class="section level2">
-<h2>Appendix</h2>
-<p>Screenshot of Ben Bolker’s Toot on fediscience.org regarding
-constructing a linear model with compass directions as predictor
-variables and how to handle this in the model.</p>
-<div class="float">
-<img src="images/BBolker_Toot.png"
-alt="“At a quick skim this looks like it’s mostly about circular response variables. In case this hasn’t occurred to you already, I think the simplest thing will be to use sin(direction), cos(direction) as predictors … (or more precisely sin(2pidir/360) etc. if your directions are in degrees …)”" />
-<div class="figcaption">“At a quick skim this looks like it’s mostly
-about circular <em>response</em> variables. In case this hasn’t occurred
-to you already, I think the simplest thing will be to use
-sin(direction), cos(direction) as predictors … (or more precisely
-sin(2<em>pi</em>dir/360) etc. if your directions are in degrees
-…)”</div>
 </div>
 </div>
 
