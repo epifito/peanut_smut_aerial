@@ -412,15 +412,15 @@ central_top_legend &lt;- theme(
 load(here(&quot;data/mod_dat.Rdata&quot;))
 sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
                     show_col_types = FALSE) %&gt;% 
-                    arrange(field) %&gt;% 
-                    mutate(field = as_factor(field))</code></pre>
+                    arrange(field)</code></pre>
 </div>
 <div id="plot-severely-damaged-pod-indices" class="section level2">
 <h2>Plot severely damaged pod indices</h2>
 <p>Visualize peanut smut incidence in the fields.</p>
 <pre class="r"><code>ggplot(data = sdp_dat) +
-  aes(y = field, x = SDP) +
-  geom_violin()</code></pre>
+  aes(y = reorder(field, SDP), x = SDP) +
+  geom_boxplot() +
+  ylab(&quot;Field&quot;)</code></pre>
 <p><img src="data_viz_files/figure-html/sdp-incidence-1.png" width="60%" /></p>
 <pre class="r"><code>ggline(sdp_dat,
        x = &quot;field&quot;,
