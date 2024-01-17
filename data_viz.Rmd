@@ -54,8 +54,7 @@ load(here("data/dat.Rdata"))
 load(here("data/mod_dat.Rdata"))
 sdp_dat <- read_csv(here("data/sdp_data.csv"),
                     show_col_types = FALSE) %>% 
-                    arrange(field) %>% 
-                    mutate(field = as_factor(field))
+                    arrange(field)
 ```
 
 ## Plot severely damaged pod indices
@@ -64,8 +63,9 @@ Visualize peanut smut incidence in the fields.
 
 ```{r sdp-incidence}
 ggplot(data = sdp_dat) +
-  aes(y = field, x = SDP) +
-  geom_violin()
+  aes(y = reorder(field, SDP), x = SDP) +
+  geom_boxplot() +
+  ylab("Field")
 ```
 
 ```{r sdp-incidence-mean_se}
