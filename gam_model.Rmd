@@ -102,7 +102,7 @@ mod_dat$wind_sin <- sin(2 * pi * mod_dat$wind_degrees / 360)
 m1 <-
   gam(
     n_spore ~ s(time_slice, k = 3) +
-      s(distance_m, wind_sin, k = 22) +
+      s(distance_m, wind_sin, k = 20) +
       s(field, xy, bs = "re"),
     data = mod_dat,
     select = TRUE,
@@ -125,13 +125,13 @@ summary(m1)
 vis.gam(m1,
         theta = 50,
         ticktype = "detailed",
-        main = "Time slice and wind direction (sin)")
+        main = "Time slice and distance from field (m)")
 vis.gam(
   m1,
   theta = 50,
   view = c("wind_sin", "distance_m"),
   ticktype = "detailed",
-  main = "Wind direction (sin) and distance from field"
+  main = "Wind direction (sin) and distance from field (m)"
 )
 vis.gam(
   m1,
@@ -141,16 +141,20 @@ vis.gam(
   ticktype = "detailed",
   main = "Random Effects"
 )
-draw(m1)
+
+plot(m1)
 
 # check residuals using DHARMa
 simulateResiduals(m1, plot = TRUE)
 ```
 
-The model fully converged after 21 iterations.
-All of the predictive factors included were significant at *P* \> 0.05.
+The model fully converged after 10 iterations.
+All of the predictive factors included were significant at *P* \> 0.1 and the model had an adjusted R2 value of 0.726.
 
+The `gam.check()` residuals show a slight pattern in the Residuals vs. linear predicted values, but this is to be expected with the zero values and negative binomial family, `nb()` that was used to fit the model. The QQ-plot appears to be reasonable as does the histogram of residuals, and Response vs Fitted Values.
+To further check the model's fitness, there is a slight pattern in the DHARMa residuals, but nothing to worry about too much in a small data set like this while this QQ-plot and the associated tests all pass.
 
+The curvature of `distance_m` is a bit suspect, but without more data, nothing can be done, the model is appropriate for this data set but likely lacks explanatory power much beyond this set.
 
 In all, this model looks to explain the spore dispersal data well enough for this data set.
 
