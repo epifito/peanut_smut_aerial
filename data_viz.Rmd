@@ -533,3 +533,79 @@ ggsave(
   height = 5
 )
 ```
+
+## Smut spores trapped 
+
+```{r downwind}
+mod_dat$degree_com <-
+  ifelse(
+    mod_dat$degree_dif < -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
+    ifelse(
+      mod_dat$degree_dif < 180,
+      mod_dat$degree_dif,
+      360 - mod_dat$trap_degrees + mod_dat$wind_degrees
+    )
+  )
+
+mod_dat$degree_com <- abs(mod_dat$degree_com)
+
+all_data <- mod_dat %>% 
+  mutate_at(vars(time_slice), as.factor)
+
+ggplot(all_data, aes(
+  x = distance_m,
+  y = n_spore ,
+  fill = time_slice,
+  group = time_slice)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 75)) +
+  scale_fill_viridis_d() +
+  facet_wrap(~ field)
+
+
+all_data$degree_group <-
+  cut(
+    all_data$degree_com,
+    breaks = c(0, 45, 135, 180),
+    labels = c("upwind", "cross wind", "downwind"),
+    include.lowest = TRUE
+  )
+```
+
+## Filter and plot by downwind only
+
+```{r}
+all_data2 <- all_data %>% filter(degree_group == "downwind")
+
+ggplot(all_data2,
+       aes(x = distance_m, y = n_spore ,
+           fill = as.factor(time_slice))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 75)) +
+  scale_fill_viridis_d(name = "Time slice (min)") +
+  labs(y = "Spores (n)",
+       x = "Distance (m)") +
+  labs(subtitle = "Smut spores trapped downwind") +
+  facet_wrap( ~ field,
+              ncol = 3) +
+  central_top_legend
+```
+
+
+```{r save-spores-downwind, eval=TRUE, echo=FALSE}
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_downwind.png",
+  width = 8,
+  height = 5,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = "plots_manuscript/spores_downwind.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)
+```

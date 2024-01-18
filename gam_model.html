@@ -524,17 +524,17 @@ m1 &lt;- gam(
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value            Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq             p-value    
-## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93              0.0171 *  
-## s(SDP)                    0.7341      5  620.54              0.0576 .  
-## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
+##                              edf Ref.df  Chi.sq p-value    
+## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
+## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
+## s(SDP)                    0.7341      5  620.54  0.0576 .  
+## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -547,9 +547,9 @@ m1 &lt;- gam(
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 11 iterations.
-## Gradient range [-0.0002346422,0.0002243924]
+## Gradient range [-0.000234642,0.0002243936]
 ## (score 1073.208 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [0.000005514403,53.4399].
+## Hessian positive definite, eigenvalue range [5.514404e-06,53.4399].
 ## Model rank =  249 / 249 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
@@ -570,17 +570,17 @@ m1 &lt;- gam(
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value            Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq             p-value    
-## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93              0.0171 *  
-## s(SDP)                    0.7341      5  620.54              0.0576 .  
-## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
+##                              edf Ref.df  Chi.sq p-value    
+## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
+## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
+## s(SDP)                    0.7341      5  620.54  0.0576 .  
+## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -612,7 +612,8 @@ simulateResiduals(m1, plot = TRUE)</code></pre>
 ## Scaled residual values: 0.5966348 0.326032 0.8509289 0.7496079 0.5238095 0.1691754 0.6283619 0.8696426 0.4010286 0.0693676 0.9301913 0.7374863 0.644 0.8741518 0.1604343 0.01793573 0.6495237 0.3167456 0.4143331 0.5420092 ...</code></pre>
 <p>The model fully converged after 11 iterations. All of the predictive
 factors included were significant at <em>P</em> &gt; 0.1 and the model
-had an adjusted R2 value of 0.726.</p>
+had an adjusted R2 value of 0.726 and explains 89.2% of the null
+deviance.</p>
 <p>The <code>gam.check()</code> residuals show a slight pattern in the
 Residuals vs. linear predicted values, but this is to be expected with
 the zero values and negative binomial family, <code>nb()</code>, that

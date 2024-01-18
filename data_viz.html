@@ -657,7 +657,7 @@ smoothed_dispersal</code></pre>
 <h2>Spore type frequency</h2>
 <pre class="r"><code>dat_spore_type &lt;- read_csv(here(&quot;data/spore_type.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_type)</code></pre>
-<pre><code>## # A tibble: 6 x 4
+<pre><code>## # A tibble: 6 × 4
 ##   meter   rep spore_nuclei count
 ##   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
 ## 1   100     1            1     3
@@ -703,7 +703,7 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
 <h2>Spore size</h2>
 <pre class="r"><code>dat_spore_size &lt;- read_csv(here(&quot;data/spore_size.csv&quot;))</code></pre>
 <pre class="r"><code>head(dat_spore_size)</code></pre>
-<pre><code>## # A tibble: 6 x 4
+<pre><code>## # A tibble: 6 × 4
 ##   image_id spore_type    d1    d2
 ##   &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
 ## 1 36                1  19.6  20.3
@@ -722,7 +722,7 @@ spore_type_plot &lt;- dat_spore_type_sum %&gt;%
   mutate(across(where(is.numeric), round, 1))
 
 med_spore_size</code></pre>
-<pre><code>## # A tibble: 5 x 3
+<pre><code>## # A tibble: 5 × 3
 ##   spore_type  mean    sd
 ##   &lt;fct&gt;      &lt;dbl&gt; &lt;dbl&gt;
 ## 1 1           18.6   1  
@@ -762,6 +762,57 @@ spore_size_plot + spore_type_plot +
   scale_fill_viridis_d(direction = -1) &amp;
   plot_annotation(tag_levels = &#39;A&#39;)</code></pre>
 <p><img src="data_viz_files/figure-html/create-single-figure-1.png" width="100%" /></p>
+</div>
+<div id="smut-spores-trapped" class="section level2">
+<h2>Smut spores trapped</h2>
+<pre class="r"><code>mod_dat$degree_com &lt;-
+  ifelse(
+    mod_dat$degree_dif &lt; -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
+    ifelse(
+      mod_dat$degree_dif &lt; 180,
+      mod_dat$degree_dif,
+      360 - mod_dat$trap_degrees + mod_dat$wind_degrees
+    )
+  )
+
+mod_dat$degree_com &lt;- abs(mod_dat$degree_com)
+
+all_data &lt;- mod_dat %&gt;% 
+  mutate_at(vars(time_slice), as.factor)
+
+ggplot(all_data, aes(
+  x = distance_m,
+  y = n_spore ,
+  fill = time_slice,
+  group = time_slice)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 75)) +
+  scale_fill_viridis_d() +
+  facet_wrap(~ field)</code></pre>
+<p><img src="data_viz_files/figure-html/downwind-1.png" width="60%" /></p>
+<pre class="r"><code>all_data$degree_group &lt;-
+  cut(
+    all_data$degree_com,
+    breaks = c(0, 45, 135, 180),
+    labels = c(&quot;upwind&quot;, &quot;cross wind&quot;, &quot;downwind&quot;),
+    include.lowest = TRUE
+  )</code></pre>
+</div>
+<div id="filter-and-plot-by-downwind-only" class="section level2">
+<h2>Filter and plot by downwind only</h2>
+<pre class="r"><code>all_data2 &lt;- all_data %&gt;% filter(degree_group == &quot;downwind&quot;)
+
+ggplot(all_data2,
+       aes(x = distance_m, y = n_spore ,
+           fill = as.factor(time_slice))) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 75)) +
+  scale_fill_viridis_d(name = &quot;Time slice (min)&quot;) +
+  labs(y = &quot;Spores (n)&quot;,
+       x = &quot;Distance (m)&quot;) +
+  labs(subtitle = &quot;Smut spores trapped downwind&quot;) +
+  facet_wrap( ~ field,
+              ncol = 3) +
+  central_top_legend</code></pre>
+<p><img src="data_viz_files/figure-html/unnamed-chunk-1-1.png" width="60%" /></p>
 </div>
 
 
