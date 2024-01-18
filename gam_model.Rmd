@@ -140,6 +140,12 @@ summary(m1)
 ```{r gam-check-m1}
 gam.check(m1)
 
+
+# check residuals using DHARMa
+simulateResiduals(m1, plot = TRUE)
+
+hist(simulateResiduals(m1))
+
 summary(m1)
 
 vis.gam(
@@ -162,19 +168,14 @@ a <- draw(smooth_estimates(m1, smooths(m1)[[1]]))
 b <- draw(smooth_estimates(m1, smooths(m1)[[3]]))
 c <- draw(smooth_estimates(m1, smooths(m1)[[2]])) + coord_cartesian()
 
-gam_plot <- a + b + c + plot_layout()
-gam_plot
-
-# check residuals using DHARMa
-simulateResiduals(m1, plot = TRUE)
-
-hist(simulateResiduals(m1))
+gam_plot <- a + b
+gam_plot / c
 ```
 
 The model fully converged after 11 iterations.
 All of the predictive factors included were significant at *P* \> 0.1 and the model had an adjusted R2 value of 0.726 and explains 89.2% of the null deviance.
 
-The `gam.check()` residuals show a slight pattern in the Residuals vs. linear predicted values, but this is to be expected with the zero values and negative binomial family, `nb()`, that was used to fit the model. The QQ-plot appears to be reasonable as does the histogram of residuals, and Response vs Fitted Values.
+The `gam.check()` residuals show a pattern in the Residuals vs. linear predicted values, but this is to be expected with the zero values and negative binomial family, `nb()`, that was used to fit the model. The QQ-plot appears to be reasonable as does the histogram of residuals, and Response vs Fitted Values.
 To further check the model's fitness, there is a slight pattern in the DHARMa residuals, but nothing to worry about too much in a small data set like this while this QQ-plot and the associated tests all pass.
 
 In all, this model looks to explain the spore dispersal data well enough for this data set.
