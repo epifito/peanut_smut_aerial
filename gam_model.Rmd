@@ -35,6 +35,7 @@ library("gratia")
 library("here")
 library("mgcv")
 library("DHARMa")
+library("patchwork")
 theme_set(theme_pubclean())
 ```
 
@@ -157,10 +158,17 @@ vis.gam(
   main = "Trap distance from field (m) and wind speed (m/s)"
 )
 
-plot(m1)
+a <- draw(smooth_estimates(m1, smooths(m1)[[1]]))
+b <- draw(smooth_estimates(m1, smooths(m1)[[3]]))
+c <- draw(smooth_estimates(m1, smooths(m1)[[2]])) + coord_cartesian()
+
+gam_plot <- a + b + c + plot_layout()
+gam_plot
 
 # check residuals using DHARMa
 simulateResiduals(m1, plot = TRUE)
+
+hist(simulateResiduals(m1))
 ```
 
 The model fully converged after 11 iterations.
@@ -183,24 +191,42 @@ pacf(residuals(m1))
 This looks OK.
 There is no major pattern discernible in the ACF or PACF plots that show cause for concern.
 
-```{r save-m1-summary, eval=FALSE, echo=FALSE}
-appraise_m1 <- appraise(m1)
+```{r save-m1-summary, eval=TRUE, echo=FALSE}
 ggsave(
-  apraise_m1,
+  gam_plot,
   file = here("plots_manuscript/model_summary.png"),
   width = 8,
-  height = 5,
+  height = 8,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  gam_plot,
+  file = here("plots_manuscript/model_summary.eps"),
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 8
+)
+
+appraise_m1 <- appraise(m1)
+ggsave(
+  appraise_m1,
+  file = here("plots_manuscript/model_evaluation.png"),
+  width = 8,
+  height = 8,
   units = "cm",
   dpi = 300,
   scale = 3
 )
 ggsave(
   appraise_m1,
-  file = here("plots_manuscript/model_summary.eps"),
+  file = here("plots_manuscript/model_evaluation.eps"),
   device = cairo_ps,
   fallback_resolution = 600,
   width = 8,
-  height = 5
+  height = 8
 )
 ```
 
