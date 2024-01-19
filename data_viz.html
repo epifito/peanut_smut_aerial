@@ -499,6 +499,64 @@ for each field.</p>
   x = &quot;Distance (m)&quot;) +
   central_top_legend</code></pre>
 <p><img src="data_viz_files/figure-html/spore-distance-dispersal-1.png" width="60%" /></p>
+</div>
+</div>
+<div id="filter-and-plot-by-downwind-only" class="section level2">
+<h2>Filter and plot by downwind only</h2>
+<pre class="r"><code>mod_dat$degree_com &lt;-
+  ifelse(
+    mod_dat$degree_dif &lt; -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
+    ifelse(
+      mod_dat$degree_dif &lt; 180,
+      mod_dat$degree_dif,
+      360 - mod_dat$trap_degrees + mod_dat$wind_degrees
+    )
+  )
+
+mod_dat$degree_com &lt;- abs(mod_dat$degree_com)
+
+all_data &lt;- mod_dat %&gt;% 
+  mutate_at(vars(time_slice), as.factor)
+
+all_data$degree_group &lt;-
+  cut(
+    all_data$degree_com,
+    breaks = c(0, 45, 135, 180),
+    labels = c(&quot;upwind&quot;, &quot;cross wind&quot;, &quot;downwind&quot;),
+    include.lowest = TRUE
+  )
+
+all_data2 &lt;- all_data %&gt;% filter(degree_group == &quot;downwind&quot;)
+
+ggplot(all_data2,
+       aes(x = as.factor(distance_m), y = n_spore,
+           fill = time_slice)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 0.60)) +
+  scale_fill_viridis_d(name = &quot;Time slice (min)&quot;) +
+  labs(y = &quot;Spores (n)&quot;,
+       x = &quot;Distance (m)&quot;) +
+  labs(subtitle = &quot;Smut spores trapped downwind&quot;) +
+  facet_wrap(. ~ field,
+              ncol = 3) +
+  central_top_legend</code></pre>
+<p><img src="data_viz_files/figure-html/downwind-1.png" width="60%" /></p>
+<pre class="r"><code>ggsave(
+  last_plot(),
+  file = &quot;plots_manuscript/spores_downwind.png&quot;,
+  width = 8,
+  height = 5,
+  units = &quot;cm&quot;,
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  last_plot(),
+  file = &quot;plots_manuscript/spores_downwind.eps&quot;,
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)</code></pre>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
 <p>Create a hexbin plot to display the number of spores by wind speed
@@ -544,14 +602,14 @@ do overlap.</p>
     direction = -1,
     name = &quot;Smut Spores (n)&quot;,
     guide = &quot;legend&quot;,
-    breaks = seq(10, 300, by = 60),
+    breaks = seq(10, 1410, by = 200),
     begin = 0,
     end = 0.8
   ) +
   scale_size(
     range = c(0.25, 6),
     name = &quot;Smut Spores (n)&quot;,
-    breaks = seq(10, 300, by = 60)
+    breaks = seq(10, 1410, by = 200),
   ) +
   scale_x_continuous(
     breaks = c(0, 90, 180, 270),
@@ -581,7 +639,6 @@ do overlap.</p>
   guides(color = guide_legend(title.position = &quot;top&quot;,
                               title.hjust = 0.5))</code></pre>
 <p><img src="data_viz_files/figure-html/plot-spores-1.png" width="100%" /></p>
-</div>
 </div>
 </div>
 <div id="plot-wind-data" class="section level2">
@@ -762,57 +819,6 @@ spore_size_plot + spore_type_plot +
   scale_fill_viridis_d(direction = -1) &amp;
   plot_annotation(tag_levels = &#39;A&#39;)</code></pre>
 <p><img src="data_viz_files/figure-html/create-single-figure-1.png" width="100%" /></p>
-</div>
-<div id="smut-spores-trapped" class="section level2">
-<h2>Smut spores trapped</h2>
-<pre class="r"><code>mod_dat$degree_com &lt;-
-  ifelse(
-    mod_dat$degree_dif &lt; -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
-    ifelse(
-      mod_dat$degree_dif &lt; 180,
-      mod_dat$degree_dif,
-      360 - mod_dat$trap_degrees + mod_dat$wind_degrees
-    )
-  )
-
-mod_dat$degree_com &lt;- abs(mod_dat$degree_com)
-
-all_data &lt;- mod_dat %&gt;% 
-  mutate_at(vars(time_slice), as.factor)
-
-ggplot(all_data, aes(
-  x = distance_m,
-  y = n_spore ,
-  fill = time_slice,
-  group = time_slice)) +
-  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 75)) +
-  scale_fill_viridis_d() +
-  facet_wrap(~ field)</code></pre>
-<p><img src="data_viz_files/figure-html/downwind-1.png" width="60%" /></p>
-<pre class="r"><code>all_data$degree_group &lt;-
-  cut(
-    all_data$degree_com,
-    breaks = c(0, 45, 135, 180),
-    labels = c(&quot;upwind&quot;, &quot;cross wind&quot;, &quot;downwind&quot;),
-    include.lowest = TRUE
-  )</code></pre>
-</div>
-<div id="filter-and-plot-by-downwind-only" class="section level2">
-<h2>Filter and plot by downwind only</h2>
-<pre class="r"><code>all_data2 &lt;- all_data %&gt;% filter(degree_group == &quot;downwind&quot;)
-
-ggplot(all_data2,
-       aes(x = distance_m, y = n_spore ,
-           fill = as.factor(time_slice))) +
-  geom_bar(stat = &quot;identity&quot;, position = position_dodge(width = 75)) +
-  scale_fill_viridis_d(name = &quot;Time slice (min)&quot;) +
-  labs(y = &quot;Spores (n)&quot;,
-       x = &quot;Distance (m)&quot;) +
-  labs(subtitle = &quot;Smut spores trapped downwind&quot;) +
-  facet_wrap( ~ field,
-              ncol = 3) +
-  central_top_legend</code></pre>
-<p><img src="data_viz_files/figure-html/unnamed-chunk-1-1.png" width="60%" /></p>
 </div>
 
 
