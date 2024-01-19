@@ -169,7 +169,9 @@ b <- draw(smooth_estimates(m1, smooths(m1)[[3]]))
 c <- draw(smooth_estimates(m1, smooths(m1)[[2]])) + coord_cartesian()
 
 gam_plot <- a + b
-gam_plot / c
+gam_plot <- gam_plot / c
+gam_plot <- gam_plot + plot_annotation(tag_levels = "A")
+gam_plot
 ```
 
 The model fully converged after 11 iterations.
