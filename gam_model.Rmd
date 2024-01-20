@@ -118,8 +118,8 @@ Based on the use of AIC to evaluate model fit to the data, the following GAM bes
 mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(distance_m, wind_speed, k = 50) +
+  spores_90min ~
+    s(distance_m, wind_speed, by = time_slice, k = 55) +
     s(SDP, k = 6) +
     s(field, xy, bs = "re"),
   data = mod_dat,
@@ -140,21 +140,10 @@ summary(m1)
 ```{r gam-check-m1}
 gam.check(m1)
 
-
 # check residuals using DHARMa
 simulateResiduals(m1, plot = TRUE)
 
 hist(simulateResiduals(m1))
-
-summary(m1)
-
-vis.gam(
-  m1,
-  theta = 50,
-  view = c("time_slice", "SDP"),
-  ticktype = "detailed",
-  main = "Time slice (minutes) and severely damaged pods (SDP)"
-)
 
 vis.gam(
   m1,
@@ -164,12 +153,19 @@ vis.gam(
   main = "Trap distance from field (m) and wind speed (m/s)"
 )
 
-a <- draw(smooth_estimates(m1, smooths(m1)[[1]]))
-b <- draw(smooth_estimates(m1, smooths(m1)[[3]]))
-c <- draw(smooth_estimates(m1, smooths(m1)[[2]])) + coord_cartesian()
+vis.gam(
+  m1,
+  theta = 50,
+  view = c("wind_speed", "SDP"),
+  ticktype = "detailed",
+  main = "Wind speed (m/s) and severely damaged pods (SDP)"
+)
 
-gam_plot <- a + b
-gam_plot <- gam_plot / c
+
+a <- draw(smooth_estimates(m1, smooths(m1)[[1]])) + coord_cartesian()
+b <- draw(smooth_estimates(m1, smooths(m1)[[2]]))
+
+gam_plot <- a / b
 gam_plot <- gam_plot + plot_annotation(tag_levels = "A")
 gam_plot
 ```

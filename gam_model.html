@@ -503,8 +503,8 @@ using a negative binomial family, <code>nb()</code>.</p>
 mod_dat$xy &lt;- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 &lt;- gam(
-  n_spore ~ s(time_slice, k = 3) +
-    s(distance_m, wind_speed, k = 50) +
+  spores_90min ~
+    s(distance_m, wind_speed, by = time_slice, k = 55) +
     s(SDP, k = 6) +
     s(field, xy, bs = &quot;re&quot;),
   data = mod_dat,
@@ -517,30 +517,33 @@ m1 &lt;- gam(
 <h3>Inspect Model m1</h3>
 <pre class="r"><code>summary(m1)</code></pre>
 <pre><code>## 
-## Family: Negative Binomial(2.483) 
+## Family: Negative Binomial(3.001) 
 ## Link function: log 
 ## 
 ## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_speed, k = 50) + 
+## spores_90min ~ s(distance_m, wind_speed, by = time_slice, k = 55) + 
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
+## (Intercept)   0.6835     0.1983   3.447 0.000568 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
+##                                        edf Ref.df Chi.sq             p-value
+## s(distance_m,wind_speed):time_slice  2.797     55   2837              0.0023
+## s(SDP)                               0.734      5   5462              0.0612
+## s(field,xy)                         88.589     96   2311 &lt;0.0000000000000002
+##                                        
+## s(distance_m,wind_speed):time_slice ** 
+## s(SDP)                              .  
+## s(field,xy)                         ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## R-sq.(adj) =  0.739   Deviance explained = 89.2%
-## -REML = 1073.2  Scale est. = 1         n = 288</code></pre>
+## R-sq.(adj) =  0.677   Deviance explained = 82.6%
+## -REML = 2179.9  Scale est. = 1         n = 1152</code></pre>
 <div id="check-model-m1" class="section level4">
 <h4>Check model m1</h4>
 <pre class="r"><code>gam.check(m1)</code></pre>
@@ -548,61 +551,32 @@ m1 &lt;- gam(
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 11 iterations.
-## Gradient range [-0.000234642,0.0002243936]
-## (score 1073.208 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [5.514404e-06,53.4399].
-## Model rank =  249 / 249 
+## Gradient range [-0.00001369518,0.000008795544]
+## (score 2179.908 &amp; scale 1).
+## Hessian positive definite, eigenvalue range [0.00001369508,115.5254].
+## Model rank =  253 / 253 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
 ## indicate that k is too low, especially if edf is close to k&#39;.
 ## 
-##                               k&#39;     edf k-index p-value
-## s(time_slice)              2.000   0.973    0.96    0.50
-## s(distance_m,wind_speed)  49.000   1.498    1.01    0.92
-## s(SDP)                     5.000   0.734    0.93    0.35
-## s(field,xy)              192.000  86.175      NA      NA</code></pre>
+##                                          k&#39;     edf k-index             p-value
+## s(distance_m,wind_speed):time_slice  55.000   2.797    0.94                0.32
+## s(SDP)                                5.000   0.734    0.81 &lt;0.0000000000000002
+## s(field,xy)                         192.000  88.589      NA                  NA
+##                                        
+## s(distance_m,wind_speed):time_slice    
+## s(SDP)                              ***
+## s(field,xy)                            
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <pre class="r"><code># check residuals using DHARMa
 simulateResiduals(m1, plot = TRUE)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-2.png" width="60%" /></p>
 <pre><code>## Object of Class DHARMa with simulated residuals based on 250 simulations with refit = FALSE . See ?DHARMa::simulateResiduals for help. 
 ##  
-## Scaled residual values: 0.5966348 0.326032 0.8509289 0.7496079 0.5238095 0.1691754 0.6283619 0.8696426 0.4010286 0.0693676 0.9301913 0.7374863 0.644 0.8741518 0.1604343 0.01793573 0.6495237 0.3167456 0.4143331 0.5420092 ...</code></pre>
+## Scaled residual values: 0.9185531 0.150617 0.426161 0.518618 0.4254376 0.06640196 0.1276327 0.8776358 0.9168607 0.1555072 0.4373157 0.05223684 0.8645337 0.1250079 0.6354826 0.1919397 0.8740174 0.7360026 0.4134471 0.1740461 ...</code></pre>
 <pre class="r"><code>hist(simulateResiduals(m1))</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-3.png" width="60%" /></p>
-<pre class="r"><code>summary(m1)</code></pre>
-<pre><code>## 
-## Family: Negative Binomial(2.483) 
-## Link function: log 
-## 
-## Formula:
-## n_spore ~ s(time_slice, k = 3) + s(distance_m, wind_speed, k = 50) + 
-##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
-## 
-## Parametric coefficients:
-##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## R-sq.(adj) =  0.739   Deviance explained = 89.2%
-## -REML = 1073.2  Scale est. = 1         n = 288</code></pre>
-<pre class="r"><code>vis.gam(
-  m1,
-  theta = 50,
-  view = c(&quot;time_slice&quot;, &quot;SDP&quot;),
-  ticktype = &quot;detailed&quot;,
-  main = &quot;Time slice (minutes) and severely damaged pods (SDP)&quot;
-)</code></pre>
-<p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
 <pre class="r"><code>vis.gam(
   m1,
   view = c(&quot;distance_m&quot;, &quot;wind_speed&quot;),
@@ -610,13 +584,19 @@ simulateResiduals(m1, plot = TRUE)</code></pre>
   ticktype = &quot;detailed&quot;,
   main = &quot;Trap distance from field (m) and wind speed (m/s)&quot;
 )</code></pre>
+<p><img src="gam_model_files/figure-html/gam-check-m1-4.png" width="60%" /></p>
+<pre class="r"><code>vis.gam(
+  m1,
+  theta = 50,
+  view = c(&quot;wind_speed&quot;, &quot;SDP&quot;),
+  ticktype = &quot;detailed&quot;,
+  main = &quot;Wind speed (m/s) and severely damaged pods (SDP)&quot;
+)</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-5.png" width="60%" /></p>
-<pre class="r"><code>a &lt;- draw(smooth_estimates(m1, smooths(m1)[[1]]))
-b &lt;- draw(smooth_estimates(m1, smooths(m1)[[3]]))
-c &lt;- draw(smooth_estimates(m1, smooths(m1)[[2]])) + coord_cartesian()
+<pre class="r"><code>a &lt;- draw(smooth_estimates(m1, smooths(m1)[[1]])) + coord_cartesian()
+b &lt;- draw(smooth_estimates(m1, smooths(m1)[[2]]))
 
-gam_plot &lt;- a + b
-gam_plot &lt;- gam_plot / c
+gam_plot &lt;- a / b
 gam_plot &lt;- gam_plot + plot_annotation(tag_levels = &quot;A&quot;)
 gam_plot</code></pre>
 <p><img src="gam_model_files/figure-html/gam-check-m1-6.png" width="60%" /></p>
