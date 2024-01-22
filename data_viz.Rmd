@@ -50,7 +50,7 @@ central_top_legend <- theme(
 ## Load data
 
 ```{r load-data}
-load(here("data/dat.Rdata"))
+load(here("data/meteo_data.Rdata"))
 load(here("data/mod_dat.Rdata"))
 sdp_dat <- read_csv(here("data/sdp_data.csv"),
                     show_col_types = FALSE) %>% 
@@ -366,82 +366,138 @@ ggsave(
 
 ### Wind roses
 
-Using the `wind_rose()` from _clifro_, create windrose plots to visualise windspeeds and directions during the harvest and spread events.
+Using a modified `wind_rose()` from _clifro_, create windrose plots to visualise wind speeds and directions during the harvest and spread events.
 
-```{r wind-rose, out.width = '100%'}
+#### Five minute data (raw) wind roses
 
-# from SO: https://stackoverflow.com/questions/17266780/wind-rose-with-ggplot-r
+```{r wind-rose-5min, out.width = '100%'}
 
 library(scales)
 
-facet = mod_dat$field
- calm_wind = 0
-                    variable_wind = 990
-                    n_col = 1
-                    facet_row = mod_dat$time_slice
-
- optimal_n_dir = seq(1, 45, 2) * 4
-  if (is.na(match(n_directions, optimal_n_dir))){
-    n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
-    message("using the closest optimal number of wind directions (",
-            n_directions, ")")
-
-  ## Create factor variable for wind direction intervals
-  dir_bin_width = 360 / n_directions
-  dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
-  dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
-  dir_intervals[dir_intervals == n_directions] = 0
-  factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
-                      dir_bin_cuts, sep = ", ")
-  dir_bin = head(factor(dir_intervals, labels = paste0("(", factor_labs, "]")),
-                 -n_directions)
-  
-  
-  ## Create a factor variable for wind speed intervals
-  speed_cuts <- 3
-
-      speed_cuts = c(0, speed_cuts)
-    
-    if (tail(speed_cuts, 1) < max(speed, na.rm = TRUE))
-      speed_cuts = c(speed_cuts, max(speed, na.rm = TRUE))
-    spd_bin = cut(speed, speed_cuts)
-  }
-
-  if (length(spd_cols) != length(levels(spd_bin)))
-    spd_bin = cut_interval(speed, length(spd_cols))
-  
-  ## Create the dataframe suitable for plotting
-    ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
-    ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
-                                     function(x) x / sum(x)),
-                                  use.names = FALSE)
-    ggplot_df$proportion <- ggplot_df$proportion * 3
+facet <- m$field
+facet_row <- m$time_slice
+speed <- m$wind_speed
+direction <- m$wind_degrees
+calm_wind <- 0
+n_speeds <- 5
+variable_wind <- 990
+n_directions <- 12
 
 
-  ggplot(data = ggplot_df,
-                      aes_string(x = "dir_bin",
-                                 fill = "spd_bin",
-                                 y = "proportion")) +
-    geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
-    scale_x_discrete(
-      breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions,
-                                             n_directions / 4)],
-      labels = c("N", "E", "S", "W"),
-      drop = FALSE
-    ) +
-    scale_fill_manual(name = "Wind speed (m/s)", values = spd_cols) +
-    coord_polar(start = 2 * pi - pi / n_directions) +
-    scale_y_continuous(labels = percent_format()) +
-    theme(axis.title = element_blank()) +
-    facet_grid(facet ~ facet_row)
+optimal_n_dir = seq(1, 45, 2) * 4
 
-wr
+n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
+
+## Create factor variable for wind direction intervals
+dir_bin_width = 360 / n_directions
+dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
+dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
+dir_intervals[dir_intervals == n_directions] = 0
+factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
+                    dir_bin_cuts, sep = ", ")
+dir_bin = head(factor(dir_intervals, labels = paste0("(", factor_labs, "]")),
+               -n_directions)
+
+
+## Create a factor variable for wind speed intervals
+
+spd_bin <- cut_interval(speed, n_speeds)
+
+## Create the dataframe suitable for plotting
+ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
+ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
+                                 function(x)
+                                   x / sum(x)),
+                              use.names = FALSE)
+ggplot_df$proportion <- ggplot_df$proportion * length(unique(facet_row))
+
+wr_5min <- ggplot(data = ggplot_df,
+       aes(x = dir_bin,
+           fill = spd_bin,
+           y = proportion)) +
+  geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
+  scale_x_discrete(
+    breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions, n_directions / 4)],
+    labels = c("N", "E", "S", "W"),
+    drop = FALSE
+  ) +
+  scale_fill_viridis_d(name = "Wind speed (m/s)", direction = -1) +
+  coord_polar(start = 2 * pi - pi / n_directions) +
+  scale_y_continuous(labels = percent_format()) +
+  theme(axis.title = element_blank()) +
+  facet_grid(facet ~ facet_row) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  ggtitle(label = "Five minute wind speed (m/s) and direction (˚)")
+
+wr_5min
+```
+
+#### Model data (summarised by time slice) wind roses
+
+```{r wind-rose-model, out.width = '100%'}
+facet <- mod_dat$field
+facet_row <- mod_dat$time_slice
+speed <- mod_dat$wind_speed
+direction <- mod_dat$wind_degrees
+calm_wind <- 0
+n_speeds <- 5
+variable_wind <- 990
+n_directions <- 12
+
+
+optimal_n_dir = seq(1, 45, 2) * 4
+
+n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
+
+## Create factor variable for wind direction intervals
+dir_bin_width = 360 / n_directions
+dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
+dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
+dir_intervals[dir_intervals == n_directions] = 0
+factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
+                    dir_bin_cuts, sep = ", ")
+dir_bin = head(factor(dir_intervals, labels = paste0("(", factor_labs, "]")),
+               -n_directions)
+
+
+## Create a factor variable for wind speed intervals
+
+spd_bin <- cut_interval(speed, n_speeds)
+
+## Create the dataframe suitable for plotting
+ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
+ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
+                                 function(x)
+                                   x / sum(x)),
+                              use.names = FALSE)
+ggplot_df$proportion <- ggplot_df$proportion * length(unique(facet_row))
+
+wr_model <- ggplot(data = ggplot_df,
+       aes(x = dir_bin,
+           fill = spd_bin,
+           y = proportion)) +
+  geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
+  scale_x_discrete(
+    breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions, n_directions / 4)],
+    labels = c("N", "E", "S", "W"),
+    drop = FALSE
+  ) +
+  scale_fill_viridis_d(name = "Wind speed (m/s)", direction = -1) +
+  coord_polar(start = 2 * pi - pi / n_directions) +
+  scale_y_continuous(labels = percent_format()) +
+  theme(axis.title = element_blank()) +
+  facet_grid(facet ~ facet_row) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  ggtitle(label = "Wind speed (m/s) and direction (˚)",
+          subtitle = "Mean values per time slice")
+
+wr_model
 ```
 
 ```{r save-wr, echo=FALSE, eval=TRUE}
 ggsave(
-  wr,
-  file = "plots_manuscript/wind_rose_6_tr.png",
+  wr_5min,
+  file = "plots_manuscript/wind_rose_5_min.png",
   width = 5,
   height = 8,
   units = "cm",
@@ -449,8 +505,26 @@ ggsave(
   scale = 3
 )
 ggsave(
-  wr,
-  file = "plots_manuscript/wind_rose_6_tr.eps",
+  wr_5min,
+  file = "plots_manuscript/wind_rose_5_min.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 5,
+  height = 8
+)
+
+ggsave(
+  wr_model,
+  file = "plots_manuscript/wind_rose_model.png",
+  width = 5,
+  height = 8,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  wr_model,
+  file = "plots_manuscript/wind_rose_model.eps",
   device = cairo_ps,
   fallback_resolution = 600,
   width = 5,

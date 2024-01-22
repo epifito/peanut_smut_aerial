@@ -143,6 +143,7 @@ m <-
              minute_lap > 90 & minute_lap <= 180 ~ 180,
              TRUE ~ 270
            ))
+
 m
 ```
 
@@ -209,7 +210,7 @@ wind_speed_90 <-
 
 wind_speed_180 <-
   m %>%
-  filter(time_slice == 90 | time_slice == 180) %>%
+  filter(time_slice == 0 | time_slice == 180) %>%
   group_by(field) %>%
   summarise(wind_speed = mean(wind_speed))
 

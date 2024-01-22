@@ -529,6 +529,7 @@ degrees here.</p>
              minute_lap &gt; 90 &amp; minute_lap &lt;= 180 ~ 180,
              TRUE ~ 270
            ))
+
 m</code></pre>
 <pre><code>## # A tibble: 330 × 8
 ##    field minute_lap rel_hum  temp wind_speed wind_dir wind_degrees time_slice
@@ -598,7 +599,7 @@ temp &lt;-
 
 wind_speed_180 &lt;-
   m %&gt;%
-  filter(time_slice == 90 | time_slice == 180) %&gt;%
+  filter(time_slice == 0 | time_slice == 180) %&gt;%
   group_by(field) %&gt;%
   summarise(wind_speed = mean(wind_speed))
 

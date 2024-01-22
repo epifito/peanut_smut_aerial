@@ -525,17 +525,17 @@ m1 &lt;- gam(
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
+##             Estimate Std. Error z value            Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq             p-value    
+## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
+## s(distance_m,wind_speed)  1.4980     48 1221.93              0.0171 *  
+## s(SDP)                    0.7341      5  620.54              0.0576 .  
+## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -548,9 +548,9 @@ m1 &lt;- gam(
 <pre><code>## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 11 iterations.
-## Gradient range [-0.000234642,0.0002243936]
+## Gradient range [-0.0002416813,0.0002309953]
 ## (score 1073.208 &amp; scale 1).
-## Hessian positive definite, eigenvalue range [5.514404e-06,53.4399].
+## Hessian positive definite, eigenvalue range [0.000005501524,53.4399].
 ## Model rank =  249 / 249 
 ## 
 ## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
@@ -579,17 +579,17 @@ simulateResiduals(m1, plot = TRUE)</code></pre>
 ##     s(SDP, k = 6) + s(field, xy, bs = &quot;re&quot;)
 ## 
 ## Parametric coefficients:
-##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)   2.1871     0.1841   11.88   &lt;2e-16 ***
+##             Estimate Std. Error z value            Pr(&gt;|z|)    
+## (Intercept)   2.1871     0.1841   11.88 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Approximate significance of smooth terms:
-##                              edf Ref.df  Chi.sq p-value    
-## s(time_slice)             0.9730      2   37.28  &lt;2e-16 ***
-## s(distance_m,wind_speed)  1.4979     48 1221.93  0.0171 *  
-## s(SDP)                    0.7341      5  620.54  0.0576 .  
-## s(field,xy)              86.1747     95 1204.66  &lt;2e-16 ***
+##                              edf Ref.df  Chi.sq             p-value    
+## s(time_slice)             0.9730      2   37.28 &lt;0.0000000000000002 ***
+## s(distance_m,wind_speed)  1.4980     48 1221.93              0.0171 *  
+## s(SDP)                    0.7341      5  620.54              0.0576 .  
+## s(field,xy)              86.1747     95 1204.66 &lt;0.0000000000000002 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 

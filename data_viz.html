@@ -408,7 +408,7 @@ central_top_legend &lt;- theme(
 </div>
 <div id="load-data" class="section level2">
 <h2>Load data</h2>
-<pre class="r"><code>load(here(&quot;data/dat.Rdata&quot;))
+<pre class="r"><code>load(here(&quot;data/meteo_data.Rdata&quot;))
 load(here(&quot;data/mod_dat.Rdata&quot;))
 sdp_dat &lt;- read_csv(here(&quot;data/sdp_data.csv&quot;),
                     show_col_types = FALSE) %&gt;% 
@@ -645,149 +645,133 @@ do overlap.</p>
 <h2>Plot wind data</h2>
 <div id="wind-roses" class="section level3">
 <h3>Wind roses</h3>
-<p>Using the <code>wind_rose()</code> from <em>clifro</em>, create
-windrose plots to visualise windspeeds and directions during the harvest
-and spread events.</p>
-<pre class="r"><code># from SO: https://stackoverflow.com/questions/17266780/wind-rose-with-ggplot-r
+<p>Using a modified <code>wind_rose()</code> from <em>clifro</em>,
+create windrose plots to visualise wind speeds and directions during the
+harvest and spread events.</p>
+<div id="five-minute-data-raw-wind-roses" class="section level4">
+<h4>Five minute data (raw) wind roses</h4>
+<pre class="r"><code>library(scales)
 
-library(scales)
+facet &lt;- m$field
+facet_row &lt;- m$time_slice
+speed &lt;- m$wind_speed
+direction &lt;- m$wind_degrees
+calm_wind &lt;- 0
+n_speeds &lt;- 5
+variable_wind &lt;- 990
+n_directions &lt;- 12
 
-plot.windrose &lt;- function(data,
-                          spd,
-                          dir,
-                          spdres = 2,
-                          dirres = 30,
-                          spdmin = 0,
-                          spdmax = 10,
-                          spdseq = NULL,
-                          palette = &quot;YlGnBu&quot;,
-                          countmax = NA,
-                          debug = 0){
-  
-  
-  # Look to see what data was passed in to the function
-  if (is.numeric(spd) &amp; is.numeric(dir)){
-    # assume that we&#39;ve been given vectors of the speed and direction vectors
-    data &lt;- data.frame(spd = spd,
-                       dir = dir)
-    spd = &quot;spd&quot;
-    dir = &quot;dir&quot;
-  } else if (exists(&quot;data&quot;)){
-    # Assume that we&#39;ve been given a data frame, and the name of the speed 
-    # and direction columns. This is the format we want for later use.    
-  }  
-  
-  # Tidy up input data ----
-  n.in &lt;- NROW(data)
-  dnu &lt;- (is.na(data[[spd]]) | is.na(data[[dir]]))
-  data[[spd]][dnu] &lt;- NA
-  data[[dir]][dnu] &lt;- NA
-  
-  # figure out the wind speed bins ----
-  if (missing(spdseq)){
-    spdseq &lt;- seq(spdmin,spdmax,spdres)
-  } else {
-    if (debug &gt;0){
-      cat(&quot;Using custom speed bins \n&quot;)
-    }
-  }
-  # get some information about the number of bins, etc.
-  n.spd.seq &lt;- length(spdseq)
-  n.colors.in.range &lt;- n.spd.seq - 1
 
-  if (max(data[[spd]],na.rm = TRUE) &gt; spdmax){    
-    spd.breaks &lt;- c(spdseq,
-                    max(data[[spd]],na.rm = TRUE))
-    spd.labels &lt;- c(paste(c(spdseq[1:n.spd.seq-1]),
-                          &#39;-&#39;,
-                          c(spdseq[2:n.spd.seq])),
-                    paste(spdmax,
-                          &quot;-&quot;,
-                          max(data[[spd]],na.rm = TRUE)))
-    spd.colors &lt;- c(spd.colors, &quot;grey50&quot;)
-  } else{
-    spd.breaks &lt;- spdseq
-    spd.labels &lt;- paste(c(spdseq[1:n.spd.seq-1]),
-                        &#39;-&#39;,
-                        c(spdseq[2:n.spd.seq]))    
-  }
-  data$spd.binned &lt;- cut(x = data[[spd]],
-                         breaks = spd.breaks,
-                         labels = spd.labels,
-                         ordered_result = TRUE)
-  
-  # figure out the wind direction bins
-  dir.breaks &lt;- c(-dirres/2,
-                  seq(dirres/2, 360-dirres/2, by = dirres),
-                  360+dirres/2)  
-  dir.labels &lt;- c(paste(360-dirres/2,&quot;-&quot;,dirres/2),
-                  paste(seq(dirres/2, 360-3*dirres/2, by = dirres),
-                        &quot;-&quot;,
-                        seq(3*dirres/2, 360-dirres/2, by = dirres)),
-                  paste(360-dirres/2,&quot;-&quot;,dirres/2))
-  # assign each wind direction to a bin
-  dir.binned &lt;- cut(data[[dir]],
-                    breaks = dir.breaks,
-                    ordered_result = TRUE)
-  levels(dir.binned) &lt;- dir.labels
-  data$dir.binned &lt;- dir.binned
-  
-  # Run debug if required ----
-  if (debug&gt;0){    
-    cat(dir.breaks,&quot;\n&quot;)
-    cat(dir.labels,&quot;\n&quot;)
-    cat(levels(dir.binned),&quot;\n&quot;)
-    
-  }  
-  
-  # create the plot ----
-  p.windrose &lt;- ggplot(data = data,
-                       aes(
-                         x = dir.binned,
-                         fill = spd.binned,
-                         y = (..count..) / sum(..count..)
-                       )) +
-    geom_bar() +
-    scale_x_discrete(
-      drop = FALSE,
-      labels = c(
-        &quot;N&quot;,
-        &quot;NE&quot;,
-        &quot;ENE&quot;,
-        &quot;E&quot;,
-        &quot;ESE&quot;,
-        &quot;SE&quot;,
-        &quot;SSE&quot;,
-        &quot;S&quot;,
-        &quot;SSW&quot;,
-        &quot;SW&quot;,
-        &quot;WSW&quot;,
-        &quot;W&quot;,
-        &quot;WNW&quot;,
-        &quot;NW&quot;,
-        &quot;NNW&quot;
-      )
-    ) +
-    coord_polar(start = -((dirres / 2) / 360) * 2 * pi) +
-    scale_fill_viridis_d(direction = -1, &quot;Wind speed (m/s)&quot;) +
-    theme(axis.title.x = element_blank()) +
-    scale_y_continuous(labels = percent) +
-    ylab(&quot;Frequency&quot;)
-  
-  # adjust axes if required
-  if (!is.na(countmax)){
-    p.windrose &lt;- p.windrose +
-      ylim(c(0,countmax))
-  }
-  
-  return(p.windrose)
-}
+optimal_n_dir = seq(1, 45, 2) * 4
 
-wr &lt;- plot.windrose(data = mod_dat, spd = &quot;wind_speed&quot;, dir = &quot;wind_degrees&quot;) +
-  facet_grid(time_slice ~ field)
+n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
 
-wr</code></pre>
-<p><img src="data_viz_files/figure-html/wind-rose-1.png" width="100%" /></p>
+## Create factor variable for wind direction intervals
+dir_bin_width = 360 / n_directions
+dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
+dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
+dir_intervals[dir_intervals == n_directions] = 0
+factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
+                    dir_bin_cuts, sep = &quot;, &quot;)
+dir_bin = head(factor(dir_intervals, labels = paste0(&quot;(&quot;, factor_labs, &quot;]&quot;)),
+               -n_directions)
+
+
+## Create a factor variable for wind speed intervals
+
+spd_bin &lt;- cut_interval(speed, n_speeds)
+
+## Create the dataframe suitable for plotting
+ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
+ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
+                                 function(x)
+                                   x / sum(x)),
+                              use.names = FALSE)
+ggplot_df$proportion &lt;- ggplot_df$proportion * length(unique(facet_row))
+
+wr_5min &lt;- ggplot(data = ggplot_df,
+       aes(x = dir_bin,
+           fill = spd_bin,
+           y = proportion)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_stack(reverse = TRUE)) +
+  scale_x_discrete(
+    breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions, n_directions / 4)],
+    labels = c(&quot;N&quot;, &quot;E&quot;, &quot;S&quot;, &quot;W&quot;),
+    drop = FALSE
+  ) +
+  scale_fill_viridis_d(name = &quot;Wind speed (m/s)&quot;, direction = -1) +
+  coord_polar(start = 2 * pi - pi / n_directions) +
+  scale_y_continuous(labels = percent_format()) +
+  theme(axis.title = element_blank()) +
+  facet_grid(facet ~ facet_row) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  ggtitle(label = &quot;Five minute wind speed (m/s) and direction (˚)&quot;)
+
+wr_5min</code></pre>
+<p><img src="data_viz_files/figure-html/wind-rose-5min-1.png" width="100%" /></p>
+</div>
+<div id="model-data-summarised-by-time-slice-wind-roses"
+class="section level4">
+<h4>Model data (summarised by time slice) wind roses</h4>
+<pre class="r"><code>facet &lt;- mod_dat$field
+facet_row &lt;- mod_dat$time_slice
+speed &lt;- mod_dat$wind_speed
+direction &lt;- mod_dat$wind_degrees
+calm_wind &lt;- 0
+n_speeds &lt;- 5
+variable_wind &lt;- 990
+n_directions &lt;- 12
+
+
+optimal_n_dir = seq(1, 45, 2) * 4
+
+n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
+
+## Create factor variable for wind direction intervals
+dir_bin_width = 360 / n_directions
+dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
+dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
+dir_intervals[dir_intervals == n_directions] = 0
+factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
+                    dir_bin_cuts, sep = &quot;, &quot;)
+dir_bin = head(factor(dir_intervals, labels = paste0(&quot;(&quot;, factor_labs, &quot;]&quot;)),
+               -n_directions)
+
+
+## Create a factor variable for wind speed intervals
+
+spd_bin &lt;- cut_interval(speed, n_speeds)
+
+## Create the dataframe suitable for plotting
+ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
+ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
+                                 function(x)
+                                   x / sum(x)),
+                              use.names = FALSE)
+ggplot_df$proportion &lt;- ggplot_df$proportion * length(unique(facet_row))
+
+wr_model &lt;- ggplot(data = ggplot_df,
+       aes(x = dir_bin,
+           fill = spd_bin,
+           y = proportion)) +
+  geom_bar(stat = &quot;identity&quot;, position = position_stack(reverse = TRUE)) +
+  scale_x_discrete(
+    breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions, n_directions / 4)],
+    labels = c(&quot;N&quot;, &quot;E&quot;, &quot;S&quot;, &quot;W&quot;),
+    drop = FALSE
+  ) +
+  scale_fill_viridis_d(name = &quot;Wind speed (m/s)&quot;, direction = -1) +
+  coord_polar(start = 2 * pi - pi / n_directions) +
+  scale_y_continuous(labels = percent_format()) +
+  theme(axis.title = element_blank()) +
+  facet_grid(facet ~ facet_row) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+  ggtitle(label = &quot;Wind speed (m/s) and direction (˚)&quot;,
+          subtitle = &quot;Mean values per time slice&quot;)
+
+wr_model</code></pre>
+<p><img src="data_viz_files/figure-html/wind-rose-model-1.png" width="100%" /></p>
+</div>
 </div>
 </div>
 <div id="wind-speed-per-time-slice-per-field" class="section level2">
