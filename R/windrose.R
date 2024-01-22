@@ -98,7 +98,7 @@ windrose = function(speed, direction, facet, n_directions = 12,
                     ggtheme = c("grey", "gray", "bw", "linedraw",
                                 "light", "minimal", "classic"),
                     legend_title = "Wind Speed", calm_wind = 0,
-                    variable_wind = 990, n_col = 1, ...){
+                    variable_wind = 990, n_col = 1, facet_row, ...){
   
   if (missingArg(speed))
     stop("speed can't be missing")
@@ -111,13 +111,7 @@ windrose = function(speed, direction, facet, n_directions = 12,
     
     if (!is.character(facet) && !is.factor(facet))
       stop("the faceting variable needs to be character or factor")
-    
-    if (length(facet) == 1)
-      facet = rep(facet, length(speed))
-    
-    if (length(facet) != length(speed))
-      stop("the facet variable must be the same length as the wind
-                   speeds")
+
   }
   
   if (!is.numeric(speed))
@@ -212,31 +206,30 @@ windrose = function(speed, direction, facet, n_directions = 12,
     spd_bin = cut_interval(speed, length(spd_cols))
   
   ## Create the dataframe suitable for plotting
-  if (include_facet){
-    ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet))
+    ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
     ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
                                      function(x) x / sum(x)),
                                   use.names = FALSE)
-  } else {
-    ggplot_df = data.frame(table(dir_bin, spd_bin))
-    ggplot_df$proportion = ggplot_df$Freq / sum(ggplot_df$Freq)
-  }
-  
+    ggplot_df$proportion <- ggplot_df$proportion * 3
+
+
   ## (gg)Plot me
-  ggwindrose = ggplot(data = ggplot_df,
-                      aes_string(x = "dir_bin", fill = "spd_bin", y = "proportion")) +
+  ggplot(data = ggplot_df,
+                      aes_string(x = "dir_bin",
+                                 fill = "spd_bin",
+                                 y = "proportion")) +
     geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
-    scale_x_discrete(breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions,
-                                                            n_directions / 4)],
-                     labels = c("N", "E", "S", "W"), drop = FALSE) +
-    scale_fill_manual(name = legend_title, values = spd_cols) +
+    scale_x_discrete(
+      breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions,
+                                             n_directions / 4)],
+      labels = c("N", "E", "S", "W"),
+      drop = FALSE
+    ) +
+    scale_fill_manual(name = "Wind speed (m/s)", values = spd_cols) +
     coord_polar(start = 2 * pi - pi / n_directions) +
     scale_y_continuous(labels = percent_format()) +
-    eval(call(paste0("theme_", ggtheme))) +
-    theme(axis.title = element_blank(), ...)
+    theme(axis.title = element_blank()) +
+    facet_grid(facet ~ facet_row)
   
-  if (include_facet)
-    ggwindrose = ggwindrose + facet_wrap(~facet, ncol = n_col)
-  
-  return(ggwindrose)
+    return(ggwindrose)
 }
