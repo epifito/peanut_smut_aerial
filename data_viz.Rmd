@@ -84,42 +84,48 @@ ggline(sdp_dat,
 Create a density plot of the observed spore dispersal values.
 
 ```{r spore-kernel-density}
-ggplot(mod_dat, aes(y = spores_90min)) +
+ggplot(mod_dat, aes(y = n_spore)) +
   geom_density()
 ```
 
-Use dotplot over-layed with `stat_smooth()` to fit a line through the data.
+Create a scatter plot and use `stat_smooth()` to fit a line.
 
 ```{r spore-dot-density-by-distance}
 spore_dot_density_by_distance <- mod_dat %>%
-  ggplot(aes(x = distance_m, y = spores_90min)) +
+  ggplot(aes(x = distance_m, y = n_spore)) +
   geom_point() +
+  scale_fill_viridis_c() +
   geom_smooth(
     col = "grey50",
     method = "gam",
-    formula = y ~ s(x, k = 3, bs = "fs")
+    formula = y ~ s(x, bs = "cs", k = 3)
   ) +
   labs(y = "Spores (n)",
-  x = "Distance (m)")
+  x = "Distance (m)") +
+  facet_grid(. ~ time_slice)
 spore_dot_density_by_distance
 ```
 
-Use boxplots to show the dispersal over distance.
+Create box plots showing spore distribution at the four distances.
 
-```{r spore-boxplot-density-by-distance}
-spore_box_density_by_distance <- mod_dat %>%
-  ggplot(aes(x = as.factor(distance_m), y = spores_90min)) +
+```{r spore-violin-density-by-distance}
+ggplot(mod_dat,
+       aes(
+         x = as.factor(distance_m),
+         y = n_spore,
+       )) +
   geom_boxplot() +
+  scale_fill_viridis_d() +
+  scale_colour_viridis_d() +
   labs(y = "Spores (n)",
-  x = "Distance (m)")
-spore_box_density_by_distance
+       x = "Distance (m)")
 ```
 
 ```{r spore-violin-density-by-distance-by-field}
 ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
-         y = spores_90min,
+         y = n_spore,
          colour = field,
          fill = field
        )) +
@@ -156,8 +162,8 @@ Create a point plot showing spore density distribution over distance for each fi
 ```{r spore-distance-dispersal}
 ggplot(data = mod_dat,
        aes(x = distance_m,
-           y = spores_90min,
-           size = spores_90min,
+           y = n_spore,
+           size = n_spore,
            colour = field)) +
   geom_point(alpha = 0.75) +
   scale_size(
@@ -222,7 +228,7 @@ all_data$degree_group <-
 all_data2 <- all_data %>% filter(degree_group == "downwind")
 
 ggplot(all_data2,
-       aes(x = as.factor(distance_m), y = spores_90min,
+       aes(x = as.factor(distance_m), y = n_spore,
            fill = time_slice)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.60)) +
   scale_fill_viridis_d(name = "Time slice (min)") +
@@ -257,7 +263,7 @@ ggsave(
 Create a hexbin plot to display the number of spores by wind speed and fit a smoothed line to these variables.
 
 ```{r spore-windspeed}
-ggplot(data = mod_dat, aes(x = wind_speed, y = spores_90min)) +
+ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   scale_fill_viridis_c() +
   geom_hex() +
   geom_smooth(
@@ -286,8 +292,8 @@ ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,
     y = distance_m,
-    colour = spores_90min,
-    size = spores_90min
+    colour = n_spore,
+    size = n_spore
   ) +
   facet_grid(time_slice ~ field) +
   coord_polar(theta = "x",
@@ -425,7 +431,7 @@ field_names <- as_labeller(c(`1` = "Field 1",
                              `5` = "Field 5",
                              `6` = "Field 6"))
 smoothed_dispersal <- mod_dat %>%
-  ggplot(aes(x = distance_m, y = spores_90min)) +
+  ggplot(aes(x = distance_m, y = n_spore)) +
   geom_point(size = 1.5) +
   stat_summary(fun = "median",
                geom = "line",

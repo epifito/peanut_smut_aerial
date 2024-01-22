@@ -51,22 +51,14 @@ spore_data <- read_csv(
 )
 ```
 
-### Summarise to spores/cm<sup>2</sup> per 90 minutes
-
-Summarise the spore data into the total number of spores collected in each field at each time slice at each trap by combining the traps' samples and subsubsamples.
-Then using weights, calculate the mean number of spores trapped per ninety minutes and convert this values to spores/cm<sup>2</sup>.
+Summarise the spore data into the total number of spores collected in each field at each time slice at each trap by combining the traps' samples and sub-subsamples.
 We'll keep the `field` col to join the weather data and the `trap_coord` col here for joining with another data frame that has the cardinal directions in it for further analysis.
 
 ```{r summarise-spore-data}
 spore_data <-
   spore_data %>%
   group_by(field, trap_coord, distance_m, time_min) %>%
-  mutate(weight = case_when(
-    time_min == 90 ~ 1,
-    time_min == 180 ~ 0.5,
-    time_min == 270 ~ 0.333333
-  )) %>%
-  mutate(spores_90min = n_spore * weight)
+  summarise(n_spore = sum(n_spore))
 
 spore_data
 ```
