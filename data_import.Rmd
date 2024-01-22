@@ -292,4 +292,6 @@ Save data object for fitting models.
 
 ```{r save-mod-dat, eval=TRUE}
 save(mod_dat, file = here("data/mod_dat.Rdata"))
+
+save(m, file = here("data/meteo_data.Rdata"))
 ```

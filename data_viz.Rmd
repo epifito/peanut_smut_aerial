@@ -419,6 +419,57 @@ ggsave(
 )
 ```
 
+## Wind Speed per Time Slice per Field
+
+```{r wind_speed_per_slice, eval=TRUE, out.width = '100%'}
+load(file = here("data/meteo_data.Rdata"))
+ws <- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
+  geom_vline(xintercept = c(90, 180), lty = "dotted") +
+  geom_text(aes(label = "90",
+                x = 90,
+                y = 13),
+            angle = 90,
+            vjust = 1) +
+  geom_text(aes(label = "180",
+                x = 180,
+                y = 13),
+            angle = 90,
+            vjust = 1) +
+  ylim(0, 15) +
+  geom_point(size = 1.5, aes(colour = time_slice)) +
+  geom_smooth(method = "gam") +
+  scale_colour_viridis_c(breaks = c(90, 180, 270),
+                         labels = c("90", "180", "270")) +
+  guides(colour = guide_legend("Time Slice")) +
+  ylab("Wind Speed (m/s)") +
+  xlab("Time (min.)") +
+  facet_wrap(. ~ field) +
+  ggtitle(label = "Wind Speed",
+          subtitle = "Measurements taken every 5 minutes.")
+
+ws
+```
+
+```{r save-ws, echo=FALSE, eval=TRUE}
+ggsave(
+  ws,
+  file = "plots_manuscript/wind_speed_5min.png",
+  width = 8,
+  height = 5,
+  units = "cm",
+  dpi = 300,
+  scale = 3
+)
+ggsave(
+  ws,
+  file = "plots_manuscript/wind_speed_5min.eps",
+  device = cairo_ps,
+  fallback_resolution = 600,
+  width = 8,
+  height = 5
+)
+```
+
 ## Plot smoothed spore dispersal
 
 Plot spore dispersal as points with median values represented as red points with a line connecting the median values for each respective field.

@@ -679,6 +679,36 @@ wind_rose +
 <p><img src="data_viz_files/figure-html/wind-rose-1.png" width="100%" /></p>
 </div>
 </div>
+<div id="wind-speed-per-time-slice-per-field" class="section level2">
+<h2>Wind Speed per Time Slice per Field</h2>
+<pre class="r"><code>load(file = here(&quot;data/meteo_data.Rdata&quot;))
+ws &lt;- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
+  geom_vline(xintercept = c(90, 180), lty = &quot;dotted&quot;) +
+  geom_text(aes(label = &quot;90&quot;,
+                x = 90,
+                y = 13),
+            angle = 90,
+            vjust = 1) +
+  geom_text(aes(label = &quot;180&quot;,
+                x = 180,
+                y = 13),
+            angle = 90,
+            vjust = 1) +
+  ylim(0, 15) +
+  geom_point(size = 1.5, aes(colour = time_slice)) +
+  geom_smooth(method = &quot;gam&quot;) +
+  scale_colour_viridis_c(breaks = c(90, 180, 270),
+                         labels = c(&quot;90&quot;, &quot;180&quot;, &quot;270&quot;)) +
+  guides(colour = guide_legend(&quot;Time Slice&quot;)) +
+  ylab(&quot;Wind Speed (m/s)&quot;) +
+  xlab(&quot;Time (min.)&quot;) +
+  facet_wrap(. ~ field) +
+  ggtitle(label = &quot;Wind Speed&quot;,
+          subtitle = &quot;Measurements taken every 5 minutes.&quot;)
+
+ws</code></pre>
+<p><img src="data_viz_files/figure-html/wind_speed_per_slice-1.png" width="100%" /></p>
+</div>
 <div id="plot-smoothed-spore-dispersal" class="section level2">
 <h2>Plot smoothed spore dispersal</h2>
 <p>Plot spore dispersal as points with median values represented as red
