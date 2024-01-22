@@ -648,34 +648,145 @@ do overlap.</p>
 <p>Using the <code>wind_rose()</code> from <em>clifro</em>, create
 windrose plots to visualise windspeeds and directions during the harvest
 and spread events.</p>
-<pre class="r"><code>wind_rose &lt;-
-  with(
-    mod_dat,
-    windrose(
-      speed = wind_speed,
-      direction = wind_degrees,
-      facet = field,
-      n_speeds = 5,
-      n_col = 3
-    )
-  )
+<pre class="r"><code># from SO: https://stackoverflow.com/questions/17266780/wind-rose-with-ggplot-r
 
-wind_rose +
-  scale_fill_viridis_d(
-    name = &quot;Wind Speed (m/s)&quot;,
-    direction = -1,
-    begin = 0,
-    end = .8
-  ) +
-  labs(x = &quot;&quot;, y = &quot;&quot;) +
-  central_top_legend +
-  theme_pubclean() +
-  guides(fill = guide_legend(
-    title.position = &quot;top&quot;,
-    title.hjust = 0.5,
-    keywidth = unit(1, &quot;lines&quot;),
-    keyheight = unit(1, &quot;lines&quot;)
-  ))</code></pre>
+library(scales)
+
+plot.windrose &lt;- function(data,
+                          spd,
+                          dir,
+                          spdres = 2,
+                          dirres = 30,
+                          spdmin = 0,
+                          spdmax = 10,
+                          spdseq = NULL,
+                          palette = &quot;YlGnBu&quot;,
+                          countmax = NA,
+                          debug = 0){
+  
+  
+  # Look to see what data was passed in to the function
+  if (is.numeric(spd) &amp; is.numeric(dir)){
+    # assume that we&#39;ve been given vectors of the speed and direction vectors
+    data &lt;- data.frame(spd = spd,
+                       dir = dir)
+    spd = &quot;spd&quot;
+    dir = &quot;dir&quot;
+  } else if (exists(&quot;data&quot;)){
+    # Assume that we&#39;ve been given a data frame, and the name of the speed 
+    # and direction columns. This is the format we want for later use.    
+  }  
+  
+  # Tidy up input data ----
+  n.in &lt;- NROW(data)
+  dnu &lt;- (is.na(data[[spd]]) | is.na(data[[dir]]))
+  data[[spd]][dnu] &lt;- NA
+  data[[dir]][dnu] &lt;- NA
+  
+  # figure out the wind speed bins ----
+  if (missing(spdseq)){
+    spdseq &lt;- seq(spdmin,spdmax,spdres)
+  } else {
+    if (debug &gt;0){
+      cat(&quot;Using custom speed bins \n&quot;)
+    }
+  }
+  # get some information about the number of bins, etc.
+  n.spd.seq &lt;- length(spdseq)
+  n.colors.in.range &lt;- n.spd.seq - 1
+
+  if (max(data[[spd]],na.rm = TRUE) &gt; spdmax){    
+    spd.breaks &lt;- c(spdseq,
+                    max(data[[spd]],na.rm = TRUE))
+    spd.labels &lt;- c(paste(c(spdseq[1:n.spd.seq-1]),
+                          &#39;-&#39;,
+                          c(spdseq[2:n.spd.seq])),
+                    paste(spdmax,
+                          &quot;-&quot;,
+                          max(data[[spd]],na.rm = TRUE)))
+    spd.colors &lt;- c(spd.colors, &quot;grey50&quot;)
+  } else{
+    spd.breaks &lt;- spdseq
+    spd.labels &lt;- paste(c(spdseq[1:n.spd.seq-1]),
+                        &#39;-&#39;,
+                        c(spdseq[2:n.spd.seq]))    
+  }
+  data$spd.binned &lt;- cut(x = data[[spd]],
+                         breaks = spd.breaks,
+                         labels = spd.labels,
+                         ordered_result = TRUE)
+  
+  # figure out the wind direction bins
+  dir.breaks &lt;- c(-dirres/2,
+                  seq(dirres/2, 360-dirres/2, by = dirres),
+                  360+dirres/2)  
+  dir.labels &lt;- c(paste(360-dirres/2,&quot;-&quot;,dirres/2),
+                  paste(seq(dirres/2, 360-3*dirres/2, by = dirres),
+                        &quot;-&quot;,
+                        seq(3*dirres/2, 360-dirres/2, by = dirres)),
+                  paste(360-dirres/2,&quot;-&quot;,dirres/2))
+  # assign each wind direction to a bin
+  dir.binned &lt;- cut(data[[dir]],
+                    breaks = dir.breaks,
+                    ordered_result = TRUE)
+  levels(dir.binned) &lt;- dir.labels
+  data$dir.binned &lt;- dir.binned
+  
+  # Run debug if required ----
+  if (debug&gt;0){    
+    cat(dir.breaks,&quot;\n&quot;)
+    cat(dir.labels,&quot;\n&quot;)
+    cat(levels(dir.binned),&quot;\n&quot;)
+    
+  }  
+  
+  # create the plot ----
+  p.windrose &lt;- ggplot(data = data,
+                       aes(
+                         x = dir.binned,
+                         fill = spd.binned,
+                         y = (..count..) / sum(..count..)
+                       )) +
+    geom_bar() +
+    scale_x_discrete(
+      drop = FALSE,
+      labels = c(
+        &quot;N&quot;,
+        &quot;NE&quot;,
+        &quot;ENE&quot;,
+        &quot;E&quot;,
+        &quot;ESE&quot;,
+        &quot;SE&quot;,
+        &quot;SSE&quot;,
+        &quot;S&quot;,
+        &quot;SSW&quot;,
+        &quot;SW&quot;,
+        &quot;WSW&quot;,
+        &quot;W&quot;,
+        &quot;WNW&quot;,
+        &quot;NW&quot;,
+        &quot;NNW&quot;
+      )
+    ) +
+    coord_polar(start = -((dirres / 2) / 360) * 2 * pi) +
+    scale_fill_viridis_d(direction = -1, &quot;Wind speed (m/s)&quot;) +
+    theme(axis.title.x = element_blank()) +
+    scale_y_continuous(labels = percent) +
+    ylab(&quot;Frequency&quot;)
+  
+  # adjust axes if required
+  if (!is.na(countmax)){
+    p.windrose &lt;- p.windrose +
+      ylim(c(0,countmax))
+  }
+  
+  return(p.windrose)
+}
+
+wr &lt;- plot.windrose(data = mod_dat, spd = &quot;wind_speed&quot;, dir = &quot;wind_degrees&quot;) +
+  facet_grid(time_slice ~ field)
+
+wr</code></pre>
 <p><img src="data_viz_files/figure-html/wind-rose-1.png" width="100%" /></p>
 </div>
 </div>
@@ -683,7 +794,7 @@ wind_rose +
 <h2>Wind Speed per Time Slice per Field</h2>
 <pre class="r"><code>load(file = here(&quot;data/meteo_data.Rdata&quot;))
 ws &lt;- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
-  geom_vline(xintercept = c(90, 180), lty = &quot;dotted&quot;) +
+  geom_vline(xintercept = c(90, 180), lty = &quot;dashed&quot;) +
   geom_text(aes(label = &quot;90&quot;,
                 x = 90,
                 y = 13),

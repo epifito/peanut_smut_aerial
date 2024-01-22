@@ -369,53 +369,92 @@ ggsave(
 Using the `wind_rose()` from _clifro_, create windrose plots to visualise windspeeds and directions during the harvest and spread events.
 
 ```{r wind-rose, out.width = '100%'}
-wind_rose <-
-  with(
-    mod_dat,
-    windrose(
-      speed = wind_speed,
-      direction = wind_degrees,
-      facet = field,
-      n_speeds = 5,
-      n_col = 3
-    )
-  )
 
-wind_rose +
-  scale_fill_viridis_d(
-    name = "Wind Speed (m/s)",
-    direction = -1,
-    begin = 0,
-    end = .8
-  ) +
-  labs(x = "", y = "") +
-  central_top_legend +
-  theme_pubclean() +
-  guides(fill = guide_legend(
-    title.position = "top",
-    title.hjust = 0.5,
-    keywidth = unit(1, "lines"),
-    keyheight = unit(1, "lines")
-  ))
+# from SO: https://stackoverflow.com/questions/17266780/wind-rose-with-ggplot-r
+
+library(scales)
+
+facet = mod_dat$field
+ calm_wind = 0
+                    variable_wind = 990
+                    n_col = 1
+                    facet_row = mod_dat$time_slice
+
+ optimal_n_dir = seq(1, 45, 2) * 4
+  if (is.na(match(n_directions, optimal_n_dir))){
+    n_directions = optimal_n_dir[which.min(abs(n_directions - optimal_n_dir))]
+    message("using the closest optimal number of wind directions (",
+            n_directions, ")")
+
+  ## Create factor variable for wind direction intervals
+  dir_bin_width = 360 / n_directions
+  dir_bin_cuts = seq(dir_bin_width / 2, 360 - dir_bin_width / 2, dir_bin_width)
+  dir_intervals = findInterval(c(direction, dir_bin_cuts), dir_bin_cuts)
+  dir_intervals[dir_intervals == n_directions] = 0
+  factor_labs = paste(c(tail(dir_bin_cuts, 1), head(dir_bin_cuts, -1)),
+                      dir_bin_cuts, sep = ", ")
+  dir_bin = head(factor(dir_intervals, labels = paste0("(", factor_labs, "]")),
+                 -n_directions)
+  
+  
+  ## Create a factor variable for wind speed intervals
+  speed_cuts <- 3
+
+      speed_cuts = c(0, speed_cuts)
+    
+    if (tail(speed_cuts, 1) < max(speed, na.rm = TRUE))
+      speed_cuts = c(speed_cuts, max(speed, na.rm = TRUE))
+    spd_bin = cut(speed, speed_cuts)
+  }
+
+  if (length(spd_cols) != length(levels(spd_bin)))
+    spd_bin = cut_interval(speed, length(spd_cols))
+  
+  ## Create the dataframe suitable for plotting
+    ggplot_df = as.data.frame(table(dir_bin, spd_bin, facet, facet_row))
+    ggplot_df$proportion = unlist(by(ggplot_df$Freq, ggplot_df$facet,
+                                     function(x) x / sum(x)),
+                                  use.names = FALSE)
+    ggplot_df$proportion <- ggplot_df$proportion * 3
+
+
+  ggplot(data = ggplot_df,
+                      aes_string(x = "dir_bin",
+                                 fill = "spd_bin",
+                                 y = "proportion")) +
+    geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
+    scale_x_discrete(
+      breaks = levels(ggplot_df$dir_bin)[seq(1, n_directions,
+                                             n_directions / 4)],
+      labels = c("N", "E", "S", "W"),
+      drop = FALSE
+    ) +
+    scale_fill_manual(name = "Wind speed (m/s)", values = spd_cols) +
+    coord_polar(start = 2 * pi - pi / n_directions) +
+    scale_y_continuous(labels = percent_format()) +
+    theme(axis.title = element_blank()) +
+    facet_grid(facet ~ facet_row)
+
+wr
 ```
 
 ```{r save-wr, echo=FALSE, eval=TRUE}
 ggsave(
-  last_plot(),
+  wr,
   file = "plots_manuscript/wind_rose_6_tr.png",
-  width = 8,
-  height = 5,
+  width = 5,
+  height = 8,
   units = "cm",
   dpi = 300,
   scale = 3
 )
 ggsave(
-  last_plot(),
+  wr,
   file = "plots_manuscript/wind_rose_6_tr.eps",
   device = cairo_ps,
   fallback_resolution = 600,
-  width = 8,
-  height = 5
+  width = 5,
+  height = 8
 )
 ```
 
@@ -424,7 +463,7 @@ ggsave(
 ```{r wind_speed_per_slice, eval=TRUE, out.width = '100%'}
 load(file = here("data/meteo_data.Rdata"))
 ws <- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
-  geom_vline(xintercept = c(90, 180), lty = "dotted") +
+  geom_vline(xintercept = c(90, 180), lty = "dashed") +
   geom_text(aes(label = "90",
                 x = 90,
                 y = 13),
