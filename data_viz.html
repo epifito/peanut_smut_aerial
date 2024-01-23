@@ -466,7 +466,7 @@ distances.</p>
   scale_colour_viridis_d() +
   labs(y = &quot;Spores (n)&quot;,
        x = &quot;Distance (m)&quot;)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-1.png" width="60%" /></p>
+<p><img src="data_viz_files/figure-html/spore-boxplot-density-by-distance-1.png" width="60%" /></p>
 <pre class="r"><code>ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
@@ -480,7 +480,7 @@ distances.</p>
   labs(y = &quot;Spores (n)&quot;,
        x = &quot;Distance (m)&quot;) +
   facet_grid(. ~ field)</code></pre>
-<p><img src="data_viz_files/figure-html/spore-violin-density-by-distance-by-field-1.png" width="60%" /></p>
+<p><img src="data_viz_files/figure-html/spore-boxplot-density-by-distance-by-field-1.png" width="60%" /></p>
 <p>Create a point plot showing spore density distribution over distance
 for each field.</p>
 <pre class="r"><code>ggplot(data = mod_dat,

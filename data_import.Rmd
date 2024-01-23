@@ -200,7 +200,6 @@ temp <-
   ), .id = "time_slice")
 ```
 
-
 ```{r bin-time-slices-wind, eval=TRUE}
 wind_speed_90 <-
   m %>%

@@ -108,7 +108,7 @@ spore_dot_density_by_distance
 
 Create box plots showing spore distribution at the four distances.
 
-```{r spore-violin-density-by-distance}
+```{r spore-boxplot-density-by-distance}
 ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
@@ -121,7 +121,7 @@ ggplot(mod_dat,
        x = "Distance (m)")
 ```
 
-```{r spore-violin-density-by-distance-by-field}
+```{r spore-boxplot-density-by-distance-by-field}
 ggplot(mod_dat,
        aes(
          x = as.factor(distance_m),
@@ -137,10 +137,10 @@ ggplot(mod_dat,
   facet_grid(. ~ field)
 ```
 
-```{r save-spores-density-violin, eval=TRUE, echo=FALSE}
+```{r save-spores-density-boxplot, eval=TRUE, echo=FALSE}
 ggsave(
   last_plot(),
-  file = "plots_manuscript/spores_density_violin.png",
+  file = "plots_manuscript/spores_density_boxplot.png",
   width = 8,
   height = 5,
   units = "cm",
@@ -149,7 +149,7 @@ ggsave(
 )
 ggsave(
   last_plot(),
-  file = "plots_manuscript/spores_density_violin.eps",
+  file = "plots_manuscript/spores_density_boxplot.eps",
   device = cairo_ps,
   fallback_resolution = 600,
   width = 8,
