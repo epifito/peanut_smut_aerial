@@ -31,7 +31,6 @@ library("knitr")
 library("tidyverse")
 library("ggpubr")
 library("here")
-library("clifro")
 ```
 
 
@@ -204,7 +203,10 @@ ggsave(
 ```{r downwind}
 mod_dat$degree_com <-
   ifelse(
-    mod_dat$degree_dif < -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
+    mod_dat$degree_dif < -180,
+    -360 +
+      mod_dat$trap_degrees +
+      mod_dat$wind_degrees,
     ifelse(
       mod_dat$degree_dif < 180,
       mod_dat$degree_dif,
@@ -260,7 +262,7 @@ ggsave(
 
 #### Check windspeed effect
 
-Create a hexbin plot to display the number of spores by wind speed and fit a smoothed line to these variables.
+Create a hexbin plot to display the number of spores by wind speed.
 
 ```{r spore-windspeed}
 ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
@@ -285,7 +287,7 @@ ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
 Create polar coordinate plots that display spore density in each cardinal direction.
 Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90.
 So, here the figure shows an additive effect of the number of spores that were captured over time.
-These are not discrete time_slices shown here, they do overlap.
+These are not discrete `time_slices` shown here, they do overlap.
 
 ```{r plot-spores,  out.width = '100%'}
 ggplot(data = mod_dat) +
@@ -366,7 +368,7 @@ ggsave(
 
 ### Wind roses
 
-Using a modified `wind_rose()` from _clifro_, create windrose plots to visualise wind speeds and directions during the harvest and spread events.
+Using a modified `wind_rose()` from {clifro}, create windrose plots to visualise wind speeds and directions during the harvest and spread events.
 
 #### Five minute data (raw) wind roses
 
@@ -433,6 +435,8 @@ wr_5min
 ```
 
 #### Model data (summarised by time slice) wind roses
+
+This is the wind data that is used in the model.
 
 ```{r wind-rose-model, out.width = '100%'}
 facet <- mod_dat$field

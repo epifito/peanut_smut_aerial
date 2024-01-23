@@ -394,8 +394,7 @@ div.tocify {
 <pre class="r"><code>library(&quot;knitr&quot;)
 library(&quot;tidyverse&quot;)
 library(&quot;ggpubr&quot;)
-library(&quot;here&quot;)
-library(&quot;clifro&quot;)</code></pre>
+library(&quot;here&quot;)</code></pre>
 <pre class="r"><code>theme_set(theme_pubclean())
 
 central_top_legend &lt;- theme(
@@ -505,7 +504,10 @@ for each field.</p>
 <h2>Filter and plot by downwind only</h2>
 <pre class="r"><code>mod_dat$degree_com &lt;-
   ifelse(
-    mod_dat$degree_dif &lt; -180, -360 + mod_dat$trap_degrees + mod_dat$wind_degrees,
+    mod_dat$degree_dif &lt; -180,
+    -360 +
+      mod_dat$trap_degrees +
+      mod_dat$wind_degrees,
     ifelse(
       mod_dat$degree_dif &lt; 180,
       mod_dat$degree_dif,
@@ -559,8 +561,8 @@ ggsave(
 )</code></pre>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
-<p>Create a hexbin plot to display the number of spores by wind speed
-and fit a smoothed line to these variables.</p>
+<p>Create a hexbin plot to display the number of spores by wind
+speed.</p>
 <pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   scale_fill_viridis_c() +
   geom_hex() +
@@ -584,8 +586,8 @@ and fit a smoothed line to these variables.</p>
 cardinal direction. Note that the 270 minute traps were deployed from
 time 0 to 270 minutes, 180 from 0 to 180, and 90 from 0 to 90. So, here
 the figure shows an additive effect of the number of spores that were
-captured over time. These are not discrete time_slices shown here, they
-do overlap.</p>
+captured over time. These are not discrete <code>time_slices</code>
+shown here, they do overlap.</p>
 <pre class="r"><code>ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,
@@ -645,8 +647,8 @@ do overlap.</p>
 <h2>Plot wind data</h2>
 <div id="wind-roses" class="section level3">
 <h3>Wind roses</h3>
-<p>Using a modified <code>wind_rose()</code> from <em>clifro</em>,
-create windrose plots to visualise wind speeds and directions during the
+<p>Using a modified <code>wind_rose()</code> from {clifro}, create
+windrose plots to visualise wind speeds and directions during the
 harvest and spread events.</p>
 <div id="five-minute-data-raw-wind-roses" class="section level4">
 <h4>Five minute data (raw) wind roses</h4>
@@ -713,6 +715,7 @@ wr_5min</code></pre>
 <div id="model-data-summarised-by-time-slice-wind-roses"
 class="section level4">
 <h4>Model data (summarised by time slice) wind roses</h4>
+<p>This is the wind data that is used in the model.</p>
 <pre class="r"><code>facet &lt;- mod_dat$field
 facet_row &lt;- mod_dat$time_slice
 speed &lt;- mod_dat$wind_speed
