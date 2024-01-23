@@ -44,11 +44,9 @@ source(here("./R/circular_averaging.R"))
 Import spore trap data and inspect.
 
 ```{r spore-data}
-spore_data <- read_csv(
-  here("data/spore_data.csv"),
-  col_types = list(field = col_factor(),
-                   trap_coord = col_factor())
-)
+spore_data <- read_csv(here("data/spore_data.csv")) %>%
+  mutate(field = as_factor(field),
+         trap_coords = as_factor(trap_coord))
 ```
 
 Summarise the spore data into the total number of spores collected in each field at each time slice at each trap by combining the traps' samples and sub-subsamples.
@@ -57,8 +55,10 @@ We'll keep the `field` col to join the weather data and the `trap_coord` col her
 ```{r summarise-spore-data}
 spore_data <-
   spore_data %>%
-  group_by(field, trap_coord, distance_m, time_min) %>%
-  summarise(n_spore = sum(n_spore))
+  rename(time_slice = time_min) %>%
+  group_by(field, trap_coord, distance_m, time_slice) %>%
+  summarise(n_spore = sum(n_spore)) %>%
+  ungroup()
 
 spore_data
 ```
@@ -68,8 +68,8 @@ spore_data
 Import weather data, filter unused data, convert from kilometers per hour to meters per second and inspect the resulting data.
 
 ```{r meteo-data}
-meteo_data <- read_csv(here("data/wind.csv"),
-                       col_types = list(field = col_factor()))
+meteo_data <- read_csv(here("data/wind.csv")) %>%
+  mutate(field = as_factor(field))
 
 # some sites go past 270 minutes, remove those data.
 meteo_data <-
@@ -135,7 +135,7 @@ The weather data are summarised from 0 to 90, 0 to 180 and 0 to 270 minutes to a
 This is where the `circular.averaging()` is needed since we cannot simply take the `mean` value of wind direction in degrees here.
 
 ```{r bin-time-slices}
-m <-
+meteo_data <-
   meteo_data %>%
   mutate(time_slice =
            case_when(
@@ -143,6 +143,7 @@ m <-
              minute_lap > 90 & minute_lap <= 180 ~ 180,
              TRUE ~ 270
            ))
+<<<<<<< Updated upstream
 m
 ```
 
@@ -239,6 +240,10 @@ meteo_data <- m %>%
     wind_speed = mean(wind_speed),
     wind_degrees = circular.averaging(wind_degrees)
   )
+=======
+
+meteo_data
+>>>>>>> Stashed changes
 ```
 
 ## Merge the spore data with the weather data

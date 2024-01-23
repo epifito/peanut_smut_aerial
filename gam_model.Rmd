@@ -74,22 +74,10 @@ The major spore type spread expected was the individual spore having a smaller s
 ```{r load-data}
 load(here("data/mod_dat.Rdata"))
 
-sdp_dat <- read_csv(
-  here("data/sdp_data.csv"),
-  show_col_types = FALSE,
-  col_types = list(field = col_factor())
-) %>%
+sdp_dat <- read_csv(here("data/sdp_data.csv")) %>%
   arrange(field) %>%
   select(field, inc, SDP, DSI) %>%
   mutate(field = as.factor(field))
-
-# summarise SDP index by field and create a binomial variable w/ cutoff @ 5 ----
-
-ps_inc <-
-  sdp_dat %>%
-  group_by(field) %>%
-  summarise(SDP = mean(SDP))
-
 mod_dat <- left_join(mod_dat, ps_inc, by = c("field"))
 ```
 
@@ -119,7 +107,7 @@ mod_dat$xy <- as.factor(paste(mod_dat$x, mod_dat$y))
 
 m1 <- gam(
   n_spore ~ s(time_slice, k = 3) +
-    s(distance_m, wind_speed, k = 50) +
+    s(distance_m, wind_speed_5m, k = 50) +
     s(SDP, k = 6) +
     s(field, xy, bs = "re"),
   data = mod_dat,

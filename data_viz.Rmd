@@ -31,7 +31,7 @@ library("knitr")
 library("tidyverse")
 library("ggpubr")
 library("here")
-library("clifro")
+library("scales")
 ```
 
 
@@ -366,10 +366,15 @@ ggsave(
 
 ### Wind roses
 
+<<<<<<< Updated upstream
 Using the `wind_rose()` from _clifro_, create windrose plots to visualise windspeeds and directions during the harvest and spread events.
+=======
+Using a modified `wind_rose()` from {clifro}, create windrose plots to visualise wind speeds and directions during the harvest and spread events.
+>>>>>>> Stashed changes
 
 ```{r wind-rose, out.width = '100%'}
 
+<<<<<<< Updated upstream
 # from SO: https://stackoverflow.com/questions/17266780/wind-rose-with-ggplot-r
 
 library(scales)
@@ -416,6 +421,17 @@ facet = mod_dat$field
                                      function(x) x / sum(x)),
                                   use.names = FALSE)
     ggplot_df$proportion <- ggplot_df$proportion * 3
+=======
+```{r wind-rose-5min, out.width = '100%'}
+facet <- m$field
+facet_row <- m$time_slice
+speed <- m$wind_speed
+direction <- m$wind_degrees
+calm_wind <- 0
+n_speeds <- 5
+variable_wind <- 990
+n_directions <- 12
+>>>>>>> Stashed changes
 
 
   ggplot(data = ggplot_df,
@@ -462,6 +478,10 @@ ggsave(
 
 ```{r wind_speed_per_slice, eval=TRUE, out.width = '100%'}
 load(file = here("data/meteo_data.Rdata"))
+
+ts_90 <- filter(m, time_slice == 90)
+ts_180 <- filter(m, time_slice == 180)
+
 ws <- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
   geom_vline(xintercept = c(90, 180), lty = "dashed") +
   geom_text(aes(label = "90",
@@ -481,10 +501,9 @@ ws <- ggplot(data = m, aes(x = minute_lap, y = wind_speed)) +
                          labels = c("90", "180", "270")) +
   guides(colour = guide_legend("Time Slice")) +
   ylab("Wind Speed (m/s)") +
-  xlab("Time (min.)") +
+  xlab("Time (5 min.)") +
   facet_wrap(. ~ field) +
-  ggtitle(label = "Wind Speed",
-          subtitle = "Measurements taken every 5 minutes.")
+  ggtitle(label = "Wind Speed")
 
 ws
 ```
