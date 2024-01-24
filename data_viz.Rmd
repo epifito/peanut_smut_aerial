@@ -199,7 +199,6 @@ ggsave(
 
 ## Filter and plot by downwind only
 
-
 ```{r downwind}
 mod_dat$degree_com <-
   ifelse(
@@ -262,16 +261,16 @@ ggsave(
 
 #### Check windspeed effect
 
-Create a hexbin plot to display the number of spores by wind speed.
+Create a scatter plot to display the number of spores by wind speed.
 
 ```{r spore-windspeed}
 ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   scale_fill_viridis_c() +
-  geom_hex() +
+  geom_point() +
   geom_smooth(
     col = "grey50",
     method = "gam",
-    formula = y ~ s(x, bs = "cs")
+    formula = y ~ s(x, bs = "cs", k = 3)
   ) +
   labs(y = expression(Spores / cm ^ {
     2
@@ -279,7 +278,8 @@ ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   x = "Wind Speed (m/s)") +
   central_top_legend +
   guides(fill = guide_legend(title.position = "top",
-                             title.hjust = 0.5))
+                             title.hjust = 0.5)) +
+  facet_wrap(. ~ field)
 ```
 
 #### Polar coordinates
@@ -289,7 +289,7 @@ Note that the 270 minute traps were deployed from time 0 to 270 minutes, 180 fro
 So, here the figure shows an additive effect of the number of spores that were captured over time.
 These are not discrete `time_slices` shown here, they do overlap.
 
-```{r plot-spores,  out.width = '100%'}
+```{r plot-spores, out.width = '100%'}
 ggplot(data = mod_dat) +
   aes(
     x = trap_degrees,

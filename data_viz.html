@@ -561,15 +561,15 @@ ggsave(
 )</code></pre>
 <div id="check-windspeed-effect" class="section level4">
 <h4>Check windspeed effect</h4>
-<p>Create a hexbin plot to display the number of spores by wind
+<p>Create a scatter plot to display the number of spores by wind
 speed.</p>
 <pre class="r"><code>ggplot(data = mod_dat, aes(x = wind_speed, y = n_spore)) +
   scale_fill_viridis_c() +
-  geom_hex() +
+  geom_point() +
   geom_smooth(
     col = &quot;grey50&quot;,
     method = &quot;gam&quot;,
-    formula = y ~ s(x, bs = &quot;cs&quot;)
+    formula = y ~ s(x, bs = &quot;cs&quot;, k = 3)
   ) +
   labs(y = expression(Spores / cm ^ {
     2
@@ -577,7 +577,8 @@ speed.</p>
   x = &quot;Wind Speed (m/s)&quot;) +
   central_top_legend +
   guides(fill = guide_legend(title.position = &quot;top&quot;,
-                             title.hjust = 0.5))</code></pre>
+                             title.hjust = 0.5)) +
+  facet_wrap(. ~ field)</code></pre>
 <p><img src="data_viz_files/figure-html/spore-windspeed-1.png" width="60%" /></p>
 </div>
 <div id="polar-coordinates" class="section level4">
